@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Golden Stone Hotel | Breads Section</title>
+  <meta name="description" content="Choose from our premium selection of Indian breads at Golden Stone Hotel."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold-100: #fff9ed;
+      --gold-200: #fef3c7;
+      --gold-300: #f5d48a;
+      --gold-400: #e8c56a;
+      --gold-500: #d4a832;
+      --gold-600: #b8901e;
+      --stone-950: #080500;
+      --gold-glow: rgba(212,168,50,.55);
+      --ff-serif:  'Playfair Display', Georgia, serif;
+      --ff-cinzel: 'Cinzel', 'Times New Roman', serif;
+      --ff-body:   'Inter', 'Helvetica Neue', sans-serif;
+      --ease-out:    cubic-bezier(.22,1,.36,1);
+      --ease-bounce: cubic-bezier(.34,1.56,.64,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--ff-body);
+      color: #fff;
+      background: var(--stone-950);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── FIXED BG ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+      pointer-events: none;
+    }
+    .bg img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: brightness(.2) saturate(.6);
+      animation: bgZoom 35s ease-in-out infinite alternate;
+    }
+    @keyframes bgZoom { from { transform: scale(1); } to { transform: scale(1.07); } }
+    .bg-grad {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 45% at 50% 0%, rgba(180,130,20,.22) 0%, transparent 70%),
+        linear-gradient(to bottom, rgba(8,5,0,.6) 0%, rgba(6,4,0,.3) 30%, rgba(4,3,0,.85) 100%);
+    }
+
+    /* ── PARTICLES ── */
+    .particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+    .particle {
+      position: absolute; border-radius: 50%;
+      background: var(--gold-300); opacity: 0;
+      animation: floatUp var(--dur,10s) var(--delay,0s) ease-in infinite;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) scale(1); opacity: 0; }
+      8%   { opacity: .35; }
+      85%  { opacity: .07; }
+      100% { transform: translateY(-105vh) scale(.15); opacity: 0; }
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      padding: .75rem 1.2rem;
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(8,5,0,.82);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(212,168,50,.18);
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
+      color: rgba(255,255,255,.7); font-family: var(--ff-body); font-size: .8rem;
+      letter-spacing: .05em; padding: .45rem 1rem; border-radius: 100px;
+      cursor: pointer; backdrop-filter: blur(10px); transition: .25s ease;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .back-btn:hover { background: rgba(212,168,50,.18); color: var(--gold-300); border-color: rgba(212,168,50,.4); }
+    .back-arrow { font-size: 1rem; line-height: 1; }
+    .topbar-title {
+      flex: 1; text-align: center;
+      font-family: var(--ff-cinzel); font-size: clamp(.95rem, 3.5vw, 1.3rem);
+      font-weight: 700; letter-spacing: .18em;
+      background: linear-gradient(135deg, var(--gold-300), var(--gold-500), var(--gold-200));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-shadow: none;
+    }
+    .topbar-spacer { width: 90px; flex-shrink: 0; }
+
+    /* ── SEARCH BAR ── */
+    .page-intro {
+      position: relative; z-index: 2;
+      padding: 1rem 1.1rem .9rem;
+      animation: pageIn .8s .05s var(--ease-out) both;
+    }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .search-wrap { position: relative; width: 100%; }
+    .search-input {
+      width: 100%; padding: .75rem 3rem .75rem 1.2rem;
+      border-radius: 100px;
+      border: 1.5px solid rgba(212,168,50,.35);
+      background: rgba(20,14,4,.78);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      color: #fff; font-family: var(--ff-body); font-size: 1rem;
+      outline: none; transition: border-color .25s ease, box-shadow .25s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    }
+    .search-input::placeholder { color: rgba(255,255,255,.38); }
+    .search-input:focus {
+      border-color: rgba(212,168,50,.7);
+      box-shadow: 0 0 0 3px rgba(212,168,50,.12), 0 4px 20px rgba(0,0,0,.5);
+    }
+    .search-icon {
+      position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%);
+      color: var(--gold-400); font-size: 1.1rem; pointer-events: none;
+    }
+    .no-results-card {
+      grid-column: 1 / -1;
+      text-align: center; padding: 2rem 1rem;
+      font-family: var(--ff-cinzel); font-size: .95rem; letter-spacing: .1em;
+      color: rgba(255,255,255,.4);
+    }
+    .item-card.hidden { display: none; }
+    .section-label.hidden { display: none; }
+
+    /* ── ITEMS GRID ── */
+    .items-section {
+      position: relative; z-index: 2;
+      padding: 0 1rem 3rem;
+      animation: pageIn .9s .12s var(--ease-out) both;
+    }
+    .section-label {
+      font-family: var(--ff-cinzel); font-size: .7rem; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--gold-500);
+      text-align: center; margin-bottom: 1rem;
+      opacity: .85;
+    }
+    .items-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .85rem;
+    }
+
+    /* ── RECTANGLE ITEM CARD ── */
+    .item-card {
+      display: flex; align-items: center; gap: .9rem;
+      background: rgba(20,14,4,.72);
+      border: 1px solid rgba(212,168,50,.18);
+      border-radius: 18px;
+      padding: .75rem;
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 4px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+      transition: transform .3s var(--ease-bounce), border-color .3s ease, box-shadow .3s ease;
+      opacity: 0; transform: translateY(22px);
+      position: relative;
+    }
+    .item-card.visible {
+      opacity: 1; transform: translateY(0);
+    }
+    .item-card:hover {
+      transform: translateY(-3px) scale(1.012);
+      border-color: rgba(212,168,50,.45);
+      box-shadow: 0 0 32px rgba(212,168,50,.12), 0 12px 36px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
+    }
+
+    .item-card.ordered {
+      border-color: #22c55e !important;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.4), 0 4px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06) !important;
+    }
+    .item-card.ordered:hover {
+      border-color: #4ade80 !important;
+      box-shadow: 0 0 24px rgba(74, 222, 128, 0.5), 0 12px 36px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1) !important;
+    }
+
+    .item-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,168,50,.6), transparent);
+      border-radius: 18px 18px 0 0;
+      opacity: .6;
+    }
+    .item-card.ordered::before {
+      background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.8), transparent) !important;
+    }
+
+    .item-img-wrap {
+      width: 88px; height: 88px; border-radius: 14px;
+      overflow: hidden; flex-shrink: 0;
+      border: 1.5px solid rgba(212,168,50,.22);
+      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+    }
+    .item-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .45s var(--ease-out);
+    }
+    .item-card:hover .item-img-wrap img { transform: scale(1.1); }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name {
+      font-family: var(--ff-cinzel); font-size: clamp(1rem, 3.8vw, 1.18rem);
+      font-weight: 600; letter-spacing: .05em; line-height: 1.3;
+      color: #fff;
+      text-shadow: 0 1px 8px rgba(0,0,0,.8);
+      margin-bottom: .35rem;
+      white-space: normal;
+    }
+    .item-price-row {
+      display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+      flex-wrap: wrap;
+    }
+    .item-price {
+      font-family: var(--ff-cinzel); font-size: clamp(.95rem, 3.5vw, 1.1rem);
+      font-weight: 700; letter-spacing: .06em;
+      background: linear-gradient(135deg, var(--gold-300), var(--gold-500));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    /* ── ORDER COUNTER ── */
+    .order-counter {
+      display: flex; align-items: center; gap: 0;
+      background: rgba(8,5,0,.7);
+      border: 1px solid rgba(212,168,50,.35);
+      border-radius: 100px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    }
+    .counter-btn {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--gold-400);
+      transition: background .2s ease, color .2s ease;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .counter-btn:hover { background: rgba(212,168,50,.18); color: var(--gold-200); }
+    .counter-btn:active { background: rgba(212,168,50,.3); }
+    .counter-btn.minus { display: none; }
+    .counter-display {
+      min-width: 28px; text-align: center;
+      font-family: var(--ff-cinzel); font-size: .85rem; font-weight: 700;
+      color: #fff; letter-spacing: .04em;
+      display: none;
+      padding: 0 2px;
+    }
+    .order-counter.has-items .counter-btn.minus { display: flex; }
+    .order-counter.has-items .counter-display { display: block; }
+
+    /* ── CART BAR ── */
+    .cart-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      padding: .9rem 1.2rem;
+      background: rgba(10,7,2,.95);
+      border-top: 1px solid rgba(212,168,50,.3);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex; align-items: center; justify-content: space-between;
+      transform: translateY(100%);
+      transition: transform .4s var(--ease-bounce);
+      box-shadow: 0 -8px 32px rgba(0,0,0,.6);
+    }
+    .cart-bar.visible { transform: translateY(0); }
+    .cart-info { display: flex; flex-direction: column; gap: .1rem; min-width: 0; flex: 1; margin-right: 1rem; }
+    .cart-count {
+      font-family: var(--ff-cinzel); font-size: .72rem; letter-spacing: .12em; color: var(--gold-400);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cart-total { font-family: var(--ff-cinzel); font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold-300), var(--gold-500));
+      -webkit-background-clip: text; background-clip: text; color: transparent; flex-shrink: 0; }
+    .cart-btn {
+      font-family: var(--ff-cinzel); font-size: .78rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      padding: .7rem 1.5rem; border-radius: 100px;
+      border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--gold-500), var(--gold-400), var(--gold-600));
+      color: #1a0f00;
+      box-shadow: 0 4px 20px rgba(212,168,50,.4);
+      transition: transform .2s var(--ease-bounce), box-shadow .2s ease;
+    }
+    .cart-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(212,168,50,.55); }
+    .cart-btn:active { transform: scale(.97); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 5rem; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(16,12,4,.96); border: 1px solid rgba(212,168,50,.4);
+      border-radius: 100px; padding: .5rem 1.3rem;
+      font-size: .74rem; letter-spacing: .06em; color: var(--gold-300);
+      opacity: 0; transition: .35s ease; z-index: 9999; white-space: nowrap;
+      backdrop-filter: blur(16px); box-shadow: 0 4px 24px rgba(0,0,0,.5);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── ORDER POPUP ── */
+    .order-popup-overlay {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding-top: 2rem; pointer-events: none;
+    }
+    .order-popup {
+      background: rgba(16,12,4,.96); border: 1px solid rgba(212,168,50,.5);
+      border-radius: 20px; padding: 1.5rem; max-width: 90%; width: 340px;
+      text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.8);
+      transform: translateY(-150%) scale(.9); opacity: 0;
+      transition: transform .5s var(--ease-bounce), opacity .4s ease;
+    }
+    .order-popup-overlay.show .order-popup { transform: translateY(0) scale(1); opacity: 1; }
+    
+    .popup-title {
+      font-family: var(--ff-cinzel); font-size: 1.4rem; font-weight: 700;
+      color: var(--gold-400); margin-bottom: 1rem;
+    }
+    .popup-desc {
+      font-family: var(--ff-body); font-size: .95rem; color: rgba(255,255,255,.8);
+      line-height: 1.5;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 560px) {
+      .items-grid { grid-template-columns: repeat(2, 1fr); }
+      .item-img-wrap { width: 80px; height: 80px; }
+    }
+    @media (min-width: 860px) {
+      .items-grid { grid-template-columns: repeat(3, 1fr); }
+      .items-section { padding: 0 1.5rem 4rem; }
+    }
+    @media (min-width: 1100px) {
+      .items-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED BACKGROUND -->
+  <div class="bg">
+    <img src="Hotel_image_use_as_bg.png" alt="Golden Stone Hotel ambience"
+         onerror="if(!this._t){this._t=0}this._t++;if(this._t===1)this.src='hotel-bg.jpg.jpeg';else this.style.display='none'"/>
+    <div class="bg-grad"></div>
+  </div>
+
+  <!-- PARTICLES -->
+  <div class="particles" id="particles"></div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="menu.html" class="back-btn" id="backBtn" onclick="passParams(event)">
+      <span class="back-arrow">&#8592;</span> Back
+    </a>
+    <div class="topbar-title">Breads Section</div>
+    <div class="topbar-spacer"></div>
+  </div>
+
+  <!-- PAGE INTRO / SEARCH -->
+  <div class="page-intro">
+    <div class="search-wrap">
+      <input class="search-input" id="searchInput" type="text" autocomplete="off"
+             placeholder="Search breads..." aria-label="Search menu items"/>
+      <span class="search-icon">&#128269;</span>
+    </div>
+  </div>
+
+  <!-- ITEMS SECTION -->
+  <section class="items-section" aria-label="Bread Items">
+    <div class="section-label" id="labelRotis">— Rotis &amp; Chapatis —</div>
+    <div class="items-grid" id="itemsGrid"></div>
+  </section>
+
+  <!-- CART BAR -->
+  <div class="cart-bar" id="cartBar">
+    <div class="cart-info">
+      <div class="cart-count" id="cartCount">0 items</div>
+      <div class="cart-total" id="cartTotal">₹0</div>
+    </div>
+    <button class="cart-btn" id="cartBtn" onclick="placeOrder()">Confirm Order</button>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ ORDER POPUP ══ -->
+  <div class="order-popup-overlay" id="orderPopupOverlay">
+    <div class="order-popup">
+      <div class="popup-title">✨ Order Confirmed</div>
+      <div class="popup-desc" id="popupDesc">Your order has been sent to the kitchen and is expected to arrive within 5 minutes. Thank you 😊.</div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    /* ── Session params ── */
+    const params  = new URLSearchParams(location.search);
+    const lang    = params.get('lang')    || sessionStorage.getItem('hotel_lang')    || 'en';
+    const table   = params.get('table')   || sessionStorage.getItem('hotel_table')   || '—';
+    const persons = params.get('persons') || sessionStorage.getItem('hotel_persons') || '1';
+
+    /* ── Language strings ── */
+    const UI = {
+      en: { search: 'Search breads...', back: '← Back', noResults: 'No items found', rotis: '— Rotis & Chapatis —', naans: '— Naans & Kulchas —', bhakris: '— Traditional Bhakris —', confirmOrder: 'Confirm Order', items: 'items', item: 'item' },
+      hi: { search: 'रोटी खोजें...', back: '← वापस', noResults: 'कोई आइटम नहीं मिला', rotis: '— रोटी और चपाती —', naans: '— नान और कुलचे —', bhakris: '— पारंपरिक भाकरी —', confirmOrder: 'ऑर्डर कन्फर्म करें', items: 'आइटम', item: 'आइटम' },
+      mr: { search: 'पोळी / ब्रेड शोधा...', back: '← मागे', noResults: 'कोणती वस्तू सापडली नाही', rotis: '— पोळी आणि चपाती —', naans: '— नान आणि कुलचे —', bhakris: '— पारंपारिक भाकरी —', confirmOrder: 'ऑर्डर निश्चित करा', items: 'वस्तू', item: 'वस्तू' },
+    };
+    const ui = UI[lang] || UI.en;
+
+    /* ── Apply UI language ── */
+    document.getElementById('searchInput').placeholder = ui.search;
+    document.getElementById('backBtn').childNodes[1].textContent = ' ' + ui.back.replace('← ','');
+    document.querySelector('.back-arrow').textContent = '←';
+    document.getElementById('cartBtn').textContent = ui.confirmOrder;
+
+    /* ── Menu data with translations ── */
+    const PAGE_CATEGORY = 'bread';
+    const MENU = [
+      { id:201, en:'Plain Roti',              hi:'प्लेन रोटी',              mr:'साधी पोळी',             price:20,  img:'Breads/Tandoori Roti.png' },
+      { id:202, en:'Chapati',                 hi:'चपाती',                  mr:'चपाती',                 price:20,  img:'Breads/Chapati.png' },
+      { id:203, en:'Butter Roti',             hi:'बटर रोटी',                mr:'बटर पोळी',              price:25,  img:'Breads/Butter roti.png' },
+      { id:204, en:'Tandoori Roti',           hi:'तंदूरी रोटी',              mr:'तंदूरी रोटी',            price:25,  img:'Breads/Tandoori Roti.png' },
+      { id:205, en:'Butter Tandoori Roti',    hi:'बटर तंदूरी रोटी',          mr:'बटर तंदूरी रोटी',        price:35,  img:'Breads/Butter Tandoori Roti.png' },
+      { id:206, en:'Multigrain Roti',         hi:'मल्टीग्रेन रोटी',           mr:'मल्टीग्रेन रोटी',         price:50,  img:'Breads/Multigrain Roti.png' },
+      { id:207, en:'Rumali Roti',             hi:'रुमाली रोटी',              mr:'रुमाली रोटी',            price:40,  img:'Breads/Rumali Roti.png' },
+      { id:208, en:'Khamiri Roti',            hi:'खमीरी रोटी',              mr:'खमीरी रोटी',            price:60,  img:'Breads/Khamiri Roti.png' },
+      { id:209, en:'Missi Roti',              hi:'मिस्सी रोटी',              mr:'मिस्सी रोटी',            price:60,  img:'Breads/Missi Roti.png' },
+      
+      { id:210, en:'Plain Naan',              hi:'प्लेन नान',               mr:'साधा नान',              price:40,  img:'Breads/Plain Naan.png' },
+      { id:211, en:'Butter Naan',             hi:'बटर नान',                 mr:'बटर नान',               price:50,  img:'Breads/Butter Naan.png' },
+      { id:212, en:'Garlic Naan',             hi:'गार्लिक नान',              mr:'लसूण नान',              price:70,  img:'Breads/Garlic Naan.png' },
+      { id:213, en:'Garlic Butter Naan',      hi:'गार्लिक बटर नान',          mr:'लसूण बटर नान',          price:80,  img:'Breads/Garlic Butter Naan.png' },
+      { id:214, en:'Cheese Naan',             hi:'चीज़ नान',                mr:'चीज नान',               price:100, img:'Breads/Cheese Naan.png' },
+      { id:215, en:'Stuffed Naan',            hi:'स्टफ्ड नान',              mr:'भरलेला नान',            price:90,  img:'Breads/Stuffed Naan.png' },
+      
+      { id:216, en:'Kulcha',                  hi:'कुलचा',                  mr:'कुलचा',                 price:60,  img:'Breads/Kulcha.png' },
+      { id:217, en:'Butter Kulcha',           hi:'बटर कुलचा',              mr:'बटर कुलचा',            price:70,  img:'Breads/Butter Kulcha.png' },
+      { id:218, en:'Paneer Kulcha',           hi:'पनीर कुलचा',              mr:'पनीर कुलचा',            price:120, img:'Breads/Paneer Kulcha.png' },
+      { id:219, en:'Aloo Kulcha',             hi:'आलू कुलचा',              mr:'आलू कुलचा',            price:90,  img:'Breads/Aloo Kulcha.png' },
+      
+      { id:220, en:'Jowar Bhakri',            hi:'ज्वार भाकरी',             mr:'ज्वारीची भाकरी',         price:40,  img:'Breads/Jowar Bhakri.png' },
+      { id:221, en:'Bajra Bhakri',            hi:'बाजरा भाकरी',             mr:'बाजरीची भाकरी',         price:40,  img:'Breads/Bajra Bhakri.png' }
+    ];
+
+    /* resolve display name per language */
+    function getName(item) { return item[lang] || item.en; }
+    const cart = {};
+
+    /* ── Render items ── */
+    const grid = document.getElementById('itemsGrid');
+
+    MENU.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.id = 'card-' + item.id;
+      card.innerHTML = `
+        <div class="item-img-wrap">
+          <img src="${item.img}" alt="${item.en}" loading="${idx < 4 ? 'eager' : 'lazy'}"
+               onerror="this.src='Breads_Roti.png'"/>
+        </div>
+        <div class="item-info">
+          <div class="item-name">${getName(item)}</div>
+          <div class="item-price-row">
+            <div class="item-price">&#8377;${item.price}</div>
+            <div class="order-counter" id="counter-${item.id}">
+              <button class="counter-btn minus" onclick="changeQty(${item.id}, -1)" aria-label="Remove one ${item.en}">&#8722;</button>
+              <span class="counter-display" id="qty-${item.id}">0</span>
+              <button class="counter-btn plus" onclick="changeQty(${item.id}, 1)" aria-label="Add ${item.en}">&#43;</button>
+            </div>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+
+      /* add section labels dynamically */
+      if (idx === 8) { // After Khamiri & Missi Roti, before Plain Naan
+        const lbl = document.createElement('div');
+        lbl.className = 'section-label';
+        lbl.id = 'labelNaans';
+        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
+        lbl.textContent = ui.naans;
+        grid.appendChild(lbl);
+      } else if (idx === 18) { // Before Jowar Bhakri
+        const lbl = document.createElement('div');
+        lbl.className = 'section-label';
+        lbl.id = 'labelBhakris';
+        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
+        lbl.textContent = ui.bhakris;
+        grid.appendChild(lbl);
+      }
+    });
+    document.getElementById('labelRotis').textContent = ui.rotis;
+
+    /* ── Search ── */
+    const searchInput = document.getElementById('searchInput');
+    const noResultCard = document.createElement('div');
+    noResultCard.className = 'no-results-card';
+    noResultCard.id = 'noResultCard';
+    noResultCard.style.display = 'none';
+    grid.appendChild(noResultCard);
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+
+      let visibleRotis = 0, visibleNaans = 0, visibleBhakris = 0;
+
+      MENU.forEach((item, idx) => {
+        const card = document.getElementById('card-' + item.id);
+        const nameMatch = getName(item).toLowerCase().includes(q) || item.en.toLowerCase().includes(q);
+        if (!q || nameMatch) {
+          card.classList.remove('hidden');
+          if (idx < 9) visibleRotis++;
+          else if (idx < 19) visibleNaans++;
+          else visibleBhakris++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      /* show/hide section labels */
+      const lblR = document.getElementById('labelRotis');
+      const lblN = document.getElementById('labelNaans');
+      const lblB = document.getElementById('labelBhakris');
+      if (lblR) lblR.classList.toggle('hidden', visibleRotis === 0);
+      if (lblN) lblN.classList.toggle('hidden', visibleNaans === 0);
+      if (lblB) lblB.classList.toggle('hidden', visibleBhakris === 0);
+
+      /* no results message */
+      if (q && visibleRotis === 0 && visibleNaans === 0 && visibleBhakris === 0) {
+        noResultCard.textContent = ui.noResults;
+        noResultCard.style.display = '';
+      } else {
+        noResultCard.style.display = 'none';
+      }
+    });
+
+    /* ── Quantity change ── */
+    function changeQty(id, delta) {
+      const current = cart[id] || 0;
+      const next = Math.max(0, current + delta);
+      cart[id] = next;
+
+      const counter = document.getElementById('counter-' + id);
+      const qtyEl   = document.getElementById('qty-' + id);
+      qtyEl.textContent = next;
+      
+      const card = document.getElementById('card-' + id);
+
+      if (next > 0) {
+        counter.classList.add('has-items');
+        if (card) card.classList.add('ordered');
+      } else {
+        counter.classList.remove('has-items');
+        if (card) card.classList.remove('ordered');
+      }
+
+      updateCart();
+    }
+
+    /* ── Update cart bar ── */
+    function updateCart() {
+      const activeItems = [];
+      let totalItems = 0;
+      let totalPrice = 0;
+      MENU.forEach(item => {
+        const q = cart[item.id] || 0;
+        if (q > 0) {
+          activeItems.push({
+            name: getName(item),
+            qty: q,
+            price: q * item.price
+          });
+          totalItems += q;
+          totalPrice += q * item.price;
+        }
+      });
+
+      const bar = document.getElementById('cartBar');
+      const cartCountEl = document.getElementById('cartCount');
+      const cartTotalEl = document.getElementById('cartTotal');
+
+      if (activeItems.length === 1) {
+        cartCountEl.textContent = `${activeItems[0].name} (${activeItems[0].qty})`;
+        cartTotalEl.textContent = '₹' + activeItems[0].price;
+      } else if (activeItems.length > 1) {
+        cartCountEl.textContent = activeItems.map(item => `${item.name} (${item.qty})`).join(', ');
+        cartTotalEl.textContent = 'Total: ₹' + totalPrice;
+      } else {
+        cartCountEl.textContent = '0 items';
+        cartTotalEl.textContent = '₹0';
+      }
+
+      if (totalItems > 0) bar.classList.add('visible');
+      else bar.classList.remove('visible');
+    }
+
+    /* ── Place order ── */
+    function placeOrder() {
+      console.log("--- placeOrder() EXECUTION START ---");
+      const items = MENU.filter(i => (cart[i.id] || 0) > 0);
+      console.log("1. Selected items:", items);
+      if (items.length === 0) {
+        console.warn("2. Items array is empty. Execution STOPS here.");
+        return;
+      }
+
+      let stored = [];
+      const orderKey = 'hotel_confirmed_orders_' + table;
+      try { 
+        stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); 
+        console.log("3. SessionStorage retrieved:", stored);
+      } catch (e) { 
+        stored = []; 
+        console.error("3. SessionStorage parse error:", e);
+      }
+
+      items.forEach(item => {
+        const qty = cart[item.id];
+        const existing = stored.find(s => s.id === item.id);
+        if (existing) {
+          existing.qty += qty;
+        } else {
+          stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
+        }
+      });
+      sessionStorage.setItem(orderKey, JSON.stringify(stored));
+      console.log("4. SessionStorage updated with new items.");
+
+      // ─── Send order to kitchen backend (MySQL) ───
+      const apiItems = items.map(item => ({
+        id: item.id, name: item.en, category: PAGE_CATEGORY,
+        price: item.price, qty: cart[item.id]
+      }));
+      console.log("5. apiItems payload mapped:", apiItems);
+
+      const fetchPayload = { table: table, persons: parseInt(persons)||1, customer_notes: '', items: apiItems };
+      console.log("6. Final POST body:", JSON.stringify(fetchPayload));
+
+      try {
+        console.log("7. About to call fetch('api/create-order.php')...");
+        fetch('api/create-order.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fetchPayload)
+        }).then(async r => {
+          console.log("8. Fetch response received. Status:", r.status, r.statusText);
+          if (!r.ok) {
+            const text = await r.text();
+            console.error("9. Fetch HTTP error text:", text);
+            throw new Error(`HTTP Error: ${r.status}`);
+          }
+          return r.json();
+        }).then(d => { 
+          console.log("9. Fetch parsed JSON:", d);
+          if (!d.success) console.error('Order API error:', d.error); 
+        }).catch(e => {
+          console.error("10. Fetch caught error (network or parsing):", e);
+        });
+        console.log("8. fetch() was called asynchronously without throwing sync errors.");
+      } catch (err) {
+        console.error("11. fetch() threw a SYNCHRONOUS ERROR. Execution STOPS here:", err);
+      }
+
+      for (let id in cart) {
+        if (cart.hasOwnProperty(id)) {
+          cart[id] = 0;
+          const counter = document.getElementById('counter-' + id);
+          const qtyEl   = document.getElementById('qty-' + id);
+          const card = document.getElementById('card-' + id);
+          if (qtyEl) qtyEl.textContent = '0';
+          if (counter) counter.classList.remove('has-items');
+          if (card) card.classList.remove('ordered');
+        }
+      }
+      updateCart();
+
+      const popup = document.getElementById('orderPopupOverlay');
+      const popupDesc = document.getElementById('popupDesc');
+      const msgs = {
+        en: 'Your order has been sent to the kitchen and is expected to arrive within 5 minutes. Thank you 😊.',
+        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और 5 मिनट के भीतर आने की उम्मीद है। धन्यवाद 😊।',
+        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि 5 मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+      };
+      const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
+      document.querySelector('.popup-title').textContent = titles[lang] || titles.en;
+      popupDesc.textContent = msgs[lang] || msgs.en;
+      
+      popup.classList.add('show');
+      setTimeout(() => popup.classList.remove('show'), 5000);
+    }
+
+    /* ── Back button params ── */
+    function passParams(e) {
+      const base = 'menu.html';
+      const q = new URLSearchParams({ lang, table, persons }).toString();
+      e.currentTarget.href = base + '?' + q;
+    }
+
+    /* ── Toast ── */
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    /* ── Gold particles ── */
+    (function() {
+      const c = document.getElementById('particles');
+      for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const s = 1.5 + Math.random() * 2.2;
+        p.style.cssText = [
+          '--dur:'   + (10 + Math.random() * 14) + 's',
+          '--delay:' + (Math.random() * 16) + 's',
+          'left:'    + (Math.random() * 100) + '%',
+          'bottom:'  + (-5 + Math.random() * 14) + '%',
+          'width:'   + s + 'px',
+          'height:'  + s + 'px',
+        ].join(';');
+        c.appendChild(p);
+      }
+    })();
+
+    /* ── Entrance animation ── */
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('visible');
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.05 });
+
+    document.querySelectorAll('.item-card').forEach((card, i) => {
+      card.style.transition = `opacity .45s ${.06 + i * .04}s ease, transform .45s ${.06 + i * .04}s ease`;
+      io.observe(card);
+    });
+  </script>
+</body>
+</html>

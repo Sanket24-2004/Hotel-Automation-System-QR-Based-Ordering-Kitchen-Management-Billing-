@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Golden Stone Hotel | Kitchen Dashboard</title>
+  <meta name="description" content="Real-time Kitchen Order Management Dashboard for Golden Stone Hotel"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="kitchen.css?v=5"/>
+</head>
+<body>
+
+  <!-- ══ FIXED BACKGROUND ══ -->
+  <div class="bg">
+    <img src="Kichen BG image.png" alt="Kitchen background"/>
+    <div class="bg-overlay"></div>
+  </div>
+  <!-- ══ HEADER ══ -->
+  <header class="header" id="header">
+    <div class="header-brand">
+      <span>🍽</span> GOLDEN STONE KITCHEN
+    </div>
+    <div class="header-right">
+      <div class="header-clock" id="clock">--:--:--</div>
+      <button class="hdr-btn active" id="soundBtn" onclick="toggleSound()">🔔 Sound ON</button>
+    </div>
+  </header>
+
+  <!-- ══ HOME VIEW ══ -->
+  <div id="homeView">
+    <!-- ══ STATS BAR ══ -->
+    <div class="stats-bar">
+    <div class="stat-card s-total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Today</div></div>
+    <div class="stat-card s-active"><div class="stat-value" id="statActive">0</div><div class="stat-label">Active</div></div>
+    <div class="stat-card s-new"><div class="stat-value" id="statNew">0</div><div class="stat-label">🔵 New</div></div>
+    <div class="stat-card s-preparing"><div class="stat-value" id="statPreparing">0</div><div class="stat-label">🟠 Preparing</div></div>
+    <div class="stat-card s-ready"><div class="stat-value" id="statReady">0</div><div class="stat-label">🟢 Ready</div></div>
+    <div class="stat-card s-served"><div class="stat-value" id="statServed">0</div><div class="stat-label">⬜ Served</div></div>
+  </div>
+
+  <!-- ══ FILTER & SEARCH ══ -->
+  <div class="controls">
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">ALL</button>
+      <button class="filter-tab" data-filter="new"><span class="dot" style="background:var(--blue)"></span>NEW</button>
+      <button class="filter-tab" data-filter="preparing"><span class="dot" style="background:var(--orange)"></span>PREPARING</button>
+      <button class="filter-tab" data-filter="ready"><span class="dot" style="background:var(--green)"></span>READY</button>
+      <button class="filter-tab" data-filter="served"><span class="dot" style="background:var(--gray)"></span>SERVED</button>
+    </div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by Table No. or Order ID..." autocomplete="off"/>
+    </div>
+  </div>
+
+  <!-- ══ READY TO SERVE PANEL ══ -->
+  <div class="ready-panel" id="readyPanel">
+    <div class="ready-panel-title">
+      <span class="pulse-dot"></span> READY TO SERVE
+    </div>
+    <div class="ready-grid" id="readyGrid"></div>
+  </div>
+
+  <!-- ══ NOTIFICATION BANNER ══ -->
+  <div class="notif-banner" id="notifBanner">🔔 New Order Received!</div>
+
+  <!-- ══ MAIN ORDER GRID ══ -->
+  <div class="orders-container">
+    <div class="orders-grid" id="ordersGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">🍳</div>
+      <p>No active orders right now. Orders will appear here in real-time when customers place them.</p>
+    </div>
+  </div>
+  </div> <!-- ══ END HOME VIEW ══ -->
+
+  <!-- ══ HISTORY VIEW ══ -->
+  <div id="historyView" style="display: none;">
+    <div class="history-header">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="hdr-btn" onclick="showHome()">← Back</button>
+        <h2>📜 Order History (Last 24 Hours)</h2>
+      </div>
+    </div>
+    <div class="orders-container">
+      <div class="orders-grid" id="historyGrid"></div>
+      <div class="empty-state" id="historyEmptyState" style="display:none">
+        <div class="empty-icon">📜</div>
+        <p>No completed orders in the last 24 hours.</p>
+      </div>
+    </div>
+  </div>
+  <!-- ══ END HISTORY VIEW ══ -->
+
+  <!-- ══ BOTTOM TASKBAR ══ -->
+  <div class="bottom-taskbar">
+    <button class="tb-btn active" id="btnHome" onclick="showHome()">
+      <span class="tb-icon">🍽️</span> Home
+    </button>
+    <button class="tb-btn" id="btnHistory" onclick="showHistory()">
+      <span class="tb-icon">📜</span> History
+    </button>
+  </div>
+
+  <!-- ══ TIMELINE MODAL ══ -->
+  <div class="modal-overlay" id="timelineModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <div class="modal-title" id="modalTitle">Order Timeline</div>
+      <div id="timelineContent"></div>
+      <button class="modal-close" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script src="kitchen.js?v=5"></script>
+</body>
+</html>

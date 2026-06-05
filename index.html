@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="description" content="Welcome to Golden Stone Hotel – Select your preferred language to begin your luxury experience." />
+  <title>Golden Stone Hotel | Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== CINEMATIC BACKGROUND ========== -->
+  <div class="bg-wrapper" id="bgWrapper">
+    <img
+      src="HOTEL Main BG.png"
+      alt="Golden Stone Hotel"
+      class="bg-image"
+      id="bgImage"
+      onerror="if(this.data_t===undefined){this.data_t=0;}this.data_t++;if(this.data_t===1){this.src='hotel-bg.jpg';}else if(this.data_t===2){this.src='hotel-bg.jpeg';}else if(this.data_t===3){this.src='assets/hotel-bg.jpg';}else{this.style.display='none';}"
+    />
+    <div class="bg-overlay"></div>
+    <div class="bg-vignette"></div>
+  </div>
+
+  <!-- ========== FLOATING PARTICLES ========== -->
+  <div class="particles" id="particles"></div>
+
+  <!-- ========== PAGE TRANSITION OVERLAY ========== -->
+  <div class="page-transition" id="pageTransition"></div>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="main-content" id="mainContent">
+
+    <!-- TOP CREST -->
+    <div class="top-crest" id="topCrest">
+      <div class="crest-line"></div>
+      <span class="crest-icon">✦</span>
+      <div class="crest-line"></div>
+    </div>
+
+    <!-- HERO / WELCOME SECTION -->
+    <section class="hero-section" id="heroSection" aria-labelledby="hotelTitle">
+
+      <div class="hero-inner">
+
+        <!-- Eyebrow tag -->
+        <div class="eyebrow-tag">
+          <span class="eyebrow-dot"></span>
+          <span class="eyebrow-text">LUXURY HOSPITALITY</span>
+          <span class="eyebrow-dot"></span>
+        </div>
+
+        <!-- Welcome text -->
+        <p class="welcome-text" id="welcomeText">Welcome to</p>
+
+        <!-- Hotel name -->
+        <h1 class="hotel-name" id="hotelTitle">
+          <span class="hotel-name-main">Golden</span>
+          <span class="hotel-name-accent">Stone</span>
+        </h1>
+
+        <!-- Ornamental divider -->
+        <div class="ornament" aria-hidden="true">
+          <span class="orn-line"></span>
+          <span class="orn-diamond">◆</span>
+          <span class="orn-dot"></span>
+          <span class="orn-diamond">◆</span>
+          <span class="orn-line"></span>
+        </div>
+
+        <!-- Tagline -->
+        <p class="hero-tagline">
+          Where every moment becomes a treasured memory
+        </p>
+
+      </div>
+    </section>
+
+    <!-- ========== LANGUAGE SELECTION ========== -->
+    <section class="lang-section" id="langSection" aria-label="Language selection">
+
+      <p class="lang-prompt">
+        <span class="prompt-globe">🌐</span>
+        Choose your preferred language
+      </p>
+
+      <div class="lang-buttons" id="langButtons" role="group" aria-label="Select language">
+
+        <!-- English -->
+        <button
+          class="lang-btn lang-en"
+          id="btn-english"
+          data-lang="en"
+          data-lang-name="English"
+          aria-label="Continue in English"
+        >
+          <div class="btn-shine"></div>
+          <span class="btn-flag">🇬🇧</span>
+          <span class="btn-label">English</span>
+          <span class="btn-sub">Continue in English</span>
+          <div class="btn-glow-ring"></div>
+        </button>
+
+        <!-- Hindi -->
+        <button
+          class="lang-btn lang-hi"
+          id="btn-hindi"
+          data-lang="hi"
+          data-lang-name="हिंदी"
+          aria-label="हिंदी में जारी रखें"
+        >
+          <div class="btn-shine"></div>
+          <span class="btn-flag">🇮🇳</span>
+          <span class="btn-label">हिंदी</span>
+          <span class="btn-sub">हिंदी में जारी रखें</span>
+          <div class="btn-glow-ring"></div>
+        </button>
+
+        <!-- Marathi -->
+        <button
+          class="lang-btn lang-mr"
+          id="btn-marathi"
+          data-lang="mr"
+          data-lang-name="मराठी"
+          aria-label="मराठीत सुरू ठेवा"
+        >
+          <div class="btn-shine"></div>
+          <span class="btn-flag">🏵️</span>
+          <span class="btn-label">मराठी</span>
+          <span class="btn-sub">मराठीत सुरू ठेवा</span>
+          <div class="btn-glow-ring"></div>
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

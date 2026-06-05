@@ -1,0 +1,705 @@
+/* ================================================================
+   GOLDEN STONE HOTEL — style.css
+   Premium cinematic welcome page
+   ================================================================ */
+
+/* ——— GOOGLE FONTS import fallback ——— */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+/* ——— CSS CUSTOM PROPERTIES ——— */
+:root {
+  /* Gold palette */
+  --gold-100: #fff9ed;
+  --gold-200: #fde9a2;
+  --gold-300: #f5d48a;
+  --gold-400: #e8c56a;
+  --gold-500: #d4a832;
+  --gold-600: #b8901e;
+  --gold-700: #8a6510;
+  --gold-glow:        rgba(212, 168, 50, 0.45);
+  --gold-glow-soft:   rgba(212, 168, 50, 0.20);
+  --gold-glow-strong: rgba(212, 168, 50, 0.80);
+
+  /* Stone / warm neutrals */
+  --stone-dark:  #0c0900;
+  --stone-900:   #141008;
+  --stone-800:   #1e1710;
+
+  /* Whites */
+  --white:     #ffffff;
+  --white-05:  rgba(255,255,255,0.05);
+  --white-10:  rgba(255,255,255,0.10);
+  --white-15:  rgba(255,255,255,0.15);
+  --white-20:  rgba(255,255,255,0.20);
+  --white-40:  rgba(255,255,255,0.40);
+  --white-60:  rgba(255,255,255,0.60);
+  --white-80:  rgba(255,255,255,0.80);
+
+  /* Typography */
+  --font-serif:   'Playfair Display', 'Georgia', serif;
+  --font-cinzel:  'Cinzel', 'Times New Roman', serif;
+  --font-body:    'Inter', 'Helvetica Neue', sans-serif;
+
+  /* Spacing scale */
+  --sp-xs:  0.4rem;
+  --sp-sm:  0.75rem;
+  --sp-md:  1.25rem;
+  --sp-lg:  2rem;
+  --sp-xl:  3rem;
+  --sp-2xl: 5rem;
+
+  /* Radius */
+  --r-sm:   10px;
+  --r-md:   18px;
+  --r-lg:   26px;
+  --r-pill: 100px;
+
+  /* Glass */
+  --glass-bg:     rgba(255,255,255,0.07);
+  --glass-border: rgba(255,255,255,0.16);
+  --glass-blur:   blur(24px);
+  --glass-shadow: 0 12px 56px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.10) inset;
+
+  /* Easing */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ================================================================
+   RESET
+   ================================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--white);
+  min-height: 100dvh;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--stone-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img  { display: block; max-width: 100%; }
+button { cursor: pointer; border: none; outline: none; background: none; font-family: inherit; }
+
+/* ================================================================
+   CINEMATIC BACKGROUND
+   ================================================================ */
+.bg-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  animation: bgZoom 30s ease-in-out infinite alternate;
+  will-change: transform;
+  transform-origin: center;
+}
+
+@keyframes bgZoom {
+  from { transform: scale(1.00); }
+  to   { transform: scale(1.10); }
+}
+
+/* Dark gradient overlay — heavier at bottom for text legibility */
+.bg-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(8, 5, 0, 0.45)  0%,
+      rgba(10, 6, 0, 0.30) 30%,
+      rgba(8,  5, 0, 0.55) 65%,
+      rgba(5,  3, 0, 0.85) 100%
+    );
+}
+
+/* Soft vignette on edges */
+.bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.50) 100%
+  );
+  pointer-events: none;
+}
+
+/* ================================================================
+   FLOATING GOLD PARTICLES
+   ================================================================ */
+.particles {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--gold-300);
+  opacity: 0;
+  animation: floatUp var(--dur, 10s) var(--delay, 0s) ease-in infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1);   opacity: 0;   }
+  8%   { opacity: 0.55; }
+  85%  { opacity: 0.15; }
+  100% { transform: translateY(-105vh) scale(0.25); opacity: 0; }
+}
+
+/* ================================================================
+   PAGE TRANSITION OVERLAY
+   ================================================================ */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--stone-dark);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.75s var(--ease-out);
+}
+.page-transition.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================================================================
+   MAIN CONTENT
+   ================================================================ */
+.main-content {
+  position: relative;
+  z-index: 2;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+
+  opacity: 0;
+  animation: pageEnter 1.4s 0.2s var(--ease-out) forwards;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ================================================================
+   TOP CREST ORNAMENT
+   ================================================================ */
+.top-crest {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-lg) var(--sp-lg) 0;
+  width: 100%;
+  justify-content: center;
+
+  animation: slideDown 1s 0.6s var(--ease-out) both;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.crest-line {
+  display: block;
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-400));
+}
+.top-crest .crest-line:last-child {
+  background: linear-gradient(to left, transparent, var(--gold-400));
+}
+
+.crest-icon {
+  font-size: 0.85rem;
+  color: var(--gold-400);
+  animation: spinSlow 16s linear infinite;
+  filter: drop-shadow(0 0 6px var(--gold-glow));
+}
+
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+
+/* ================================================================
+   HERO SECTION
+   ================================================================ */
+.hero-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--sp-lg);
+  width: 100%;
+}
+
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+
+  animation: heroRise 1.2s 0.8s var(--ease-out) both;
+}
+
+@keyframes heroRise {
+  from { opacity: 0; transform: translateY(36px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ——— EYEBROW TAG ——— */
+.eyebrow-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+
+  font-family: var(--font-cinzel);
+  font-size: clamp(0.75rem, 2vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.30em;
+  color: var(--gold-300);
+  text-transform: uppercase;
+
+  padding: 0.6rem 1.8rem;
+  border: 1px solid rgba(212,168,50,0.38);
+  border-radius: var(--r-pill);
+  background: rgba(212,168,50,0.06);
+  backdrop-filter: blur(12px);
+
+  animation: eyebrowShimmer 3.5s ease-in-out infinite;
+}
+
+@keyframes eyebrowShimmer {
+  0%,100% { border-color: rgba(212,168,50,0.38); box-shadow: 0 0 0 rgba(212,168,50,0); }
+  50%     { border-color: rgba(212,168,50,0.70); box-shadow: 0 0 16px rgba(212,168,50,0.18); }
+}
+
+.eyebrow-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold-400);
+  box-shadow: 0 0 6px var(--gold-glow);
+}
+
+
+
+.welcome-text {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 5.5vw, 3rem);
+  font-weight: 400;
+  font-style: italic;
+  color: #fef3d0;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.8),
+    0 0 40px rgba(212, 168, 50, 0.3);
+}
+
+/* ——— HOTEL NAME ——— */
+.hotel-name {
+  font-family: var(--font-cinzel);
+  font-weight: 600;
+  font-size: clamp(3rem, 12vw, 7rem);
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-shadow: 0 6px 60px rgba(0,0,0,0.6);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25em;
+  margin-bottom: var(--sp-lg);
+}
+
+.hotel-name-main {
+  color: var(--white);
+}
+
+.hotel-name-accent {
+  background: linear-gradient(
+    135deg,
+    #fff8e1 0%,
+    #f5d48a 20%,
+    #e8c56a 45%,
+    #d4a832 65%,
+    #f5d48a 85%,
+    #fff8e1 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShine 5s linear infinite;
+  filter: drop-shadow(0 0 20px rgba(212,168,50,0.5));
+}
+
+@keyframes goldShine {
+  0%   { background-position: 0%   center; }
+  100% { background-position: 250% center; }
+}
+
+/* ——— ORNAMENTAL DIVIDER ——— */
+.ornament {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: var(--sp-md);
+}
+
+.orn-line {
+  display: block;
+  width: 70px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(212,168,50,0.7));
+}
+.ornament .orn-line:last-child {
+  background: linear-gradient(to left, transparent, rgba(212,168,50,0.7));
+}
+
+.orn-diamond {
+  color: var(--gold-400);
+  font-size: 0.45rem;
+  animation: pulseDiamond 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px var(--gold-glow));
+}
+.orn-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold-500);
+  box-shadow: 0 0 6px var(--gold-glow);
+}
+
+@keyframes pulseDiamond {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ——— TAGLINE ——— */
+.hero-tagline {
+  font-family: var(--font-body);
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  font-weight: 300;
+  color: var(--white-60);
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ================================================================
+   LANGUAGE SECTION
+   ================================================================ */
+.lang-section {
+  width: 100%;
+  padding: var(--sp-md) var(--sp-lg) var(--sp-xl);
+  padding-bottom: max(var(--sp-xl), env(safe-area-inset-bottom, var(--sp-xl)));
+
+  animation: fadeInUp 1s 1.2s var(--ease-out) both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Language prompt */
+.lang-prompt {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white-40);
+  margin-bottom: var(--sp-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.prompt-globe {
+  font-size: 0.9rem;
+  filter: opacity(0.6);
+}
+
+/* ——— BUTTON GRID ——— */
+.lang-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.9rem;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* ——— LANGUAGE BUTTON BASE ——— */
+.lang-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 1.1rem 0.6rem 1.2rem;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  color: var(--white);
+
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.12) 0%,
+    rgba(255,255,255,0.05) 100%
+  );
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+
+  transition:
+    transform 0.35s var(--ease-bounce),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.lang-btn:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 4px;
+}
+
+/* ——— SHINE SWEEP ——— */
+.btn-shine {
+  position: absolute;
+  top: -60%;
+  left: -80%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.18) 50%,
+    transparent 60%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s var(--ease-out);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lang-btn:hover .btn-shine {
+  left: 140%;
+}
+
+/* ——— PER-LANGUAGE COLOR ACCENTS ——— */
+/* English — sapphire blue */
+.lang-en {
+  border-color: rgba(100, 180, 255, 0.28);
+  animation: pulseEN 4s 2.0s ease-in-out infinite;
+}
+@keyframes pulseEN {
+  0%,100% { box-shadow: 0 0 22px rgba(100,180,255,0.12), 0 8px 32px rgba(0,0,0,0.5); }
+  50%     { box-shadow: 0 0 36px rgba(100,180,255,0.32), 0 8px 32px rgba(0,0,0,0.5); }
+}
+
+/* Hindi — saffron orange */
+.lang-hi {
+  border-color: rgba(255, 160, 60, 0.28);
+  animation: pulseHI 4s 2.5s ease-in-out infinite;
+}
+@keyframes pulseHI {
+  0%,100% { box-shadow: 0 0 22px rgba(255,160,60,0.12), 0 8px 32px rgba(0,0,0,0.5); }
+  50%     { box-shadow: 0 0 36px rgba(255,160,60,0.32), 0 8px 32px rgba(0,0,0,0.5); }
+}
+
+/* Marathi — emerald green */
+.lang-mr {
+  border-color: rgba(100, 220, 160, 0.28);
+  animation: pulseMR 4s 3.0s ease-in-out infinite;
+}
+@keyframes pulseMR {
+  0%,100% { box-shadow: 0 0 22px rgba(100,220,160,0.12), 0 8px 32px rgba(0,0,0,0.5); }
+  50%     { box-shadow: 0 0 36px rgba(100,220,160,0.32), 0 8px 32px rgba(0,0,0,0.5); }
+}
+
+/* ——— HOVER STATES ——— */
+.lang-btn:hover {
+  transform: translateY(-6px) scale(1.04);
+  animation-play-state: paused;
+}
+.lang-btn:active {
+  transform: scale(0.96);
+}
+
+.lang-en:hover {
+  border-color: rgba(100,180,255,0.65);
+  box-shadow: 0 0 40px rgba(100,180,255,0.35), 0 12px 40px rgba(0,0,0,0.55);
+}
+.lang-hi:hover {
+  border-color: rgba(255,160,60,0.65);
+  box-shadow: 0 0 40px rgba(255,160,60,0.35), 0 12px 40px rgba(0,0,0,0.55);
+}
+.lang-mr:hover {
+  border-color: rgba(100,220,160,0.65);
+  box-shadow: 0 0 40px rgba(100,220,160,0.35), 0 12px 40px rgba(0,0,0,0.55);
+}
+
+/* ——— GLOW RING (bottom bloom) ——— */
+.btn-glow-ring {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 40px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  filter: blur(12px);
+}
+
+.lang-en .btn-glow-ring  { background: rgba(100,180,255,0.5); }
+.lang-hi .btn-glow-ring  { background: rgba(255,160,60,0.5);  }
+.lang-mr .btn-glow-ring  { background: rgba(100,220,160,0.5); }
+
+.lang-btn:hover .btn-glow-ring  { opacity: 1; }
+
+/* ——— BUTTON CONTENT ——— */
+.btn-flag {
+  font-size: 1.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s var(--ease-bounce);
+}
+.lang-btn:hover .btn-flag {
+  transform: scale(1.15);
+}
+
+.btn-label {
+  font-family: var(--font-cinzel);
+  font-size: clamp(0.85rem, 3.5vw, 1.15rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.btn-sub {
+  font-size: 0.52rem;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: var(--white-60);
+  text-align: center;
+  line-height: 1.4;
+  position: relative;
+  z-index: 2;
+}
+
+/* ——— LOADING STATE ——— */
+.lang-btn.loading {
+  pointer-events: none;
+}
+.lang-btn.loading .btn-flag {
+  animation: btnSpin 0.8s linear infinite;
+}
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================================================================
+   SMALL PHONE FIX  ≤ 360px
+   ================================================================ */
+@media (max-width: 360px) {
+  .lang-buttons {
+    grid-template-columns: 1fr;   /* stack buttons vertically */
+    max-width: 260px;
+  }
+
+  .lang-btn {
+    flex-direction: row;
+    gap: 0.75rem;
+    padding: 0.9rem 1.2rem;
+    justify-content: flex-start;
+  }
+
+  .btn-flag { font-size: 1.6rem; }
+  .btn-sub  { display: none; }   /* hide sub-text on tiny screens */
+
+  .hotel-name {
+    font-size: clamp(2.2rem, 11vw, 3rem);
+  }
+}
+
+/* ================================================================
+   DESKTOP BREAKPOINT ≥ 768px
+   ================================================================ */
+@media (min-width: 768px) {
+  .lang-buttons {
+    gap: 1.4rem;
+  }
+
+  .lang-btn {
+    padding: 1.6rem 1rem 1.7rem;
+  }
+
+  .btn-flag  { font-size: 2.2rem; }
+  .btn-sub   { font-size: 0.62rem; }
+
+  .orn-line  { width: 90px; }
+}
+
+@media (min-width: 1024px) {
+  .hotel-name {
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ================================================================
+   REDUCED MOTION
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
