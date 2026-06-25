@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Owner Login – Hotel Golden Stone</title>
+  <meta name="description" content="Secure owner login portal for Hotel Golden Stone management system."/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #FFD700;
+      --gold-light: #FFE96B;
+      --gold-dark: #B8860B;
+      --white: #ffffff;
+      --glass-bg: rgba(0,0,0,0.55);
+      --glass-border: rgba(255,215,0,0.30);
+      --input-bg: rgba(255,255,255,0.07);
+      --input-border: rgba(255,215,0,0.25);
+      --error: #ff4f4f;
+      --success: #4cff91;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Background ── */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: url('Hotel BG 3.png') center/cover no-repeat;
+      z-index: 0;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.60);
+      z-index: 1;
+    }
+
+    /* ── Main wrapper ── */
+    .page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 8px;
+    }
+
+    /* ── Header texts ── */
+    .ganesh-text {
+      font-size: 1rem;
+      color: var(--white);
+      letter-spacing: 2px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(50px);
+      animation: fadeUp 1s ease-out 0.2s forwards;
+    }
+
+    .hotel-name {
+      font-size: clamp(1.8rem, 6vw, 3.2rem);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: 4px;
+      text-align: center;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: scale(0.5);
+      animation: zoomIn 1.2s ease-out 0.8s forwards, shimmer 3s linear 2.2s infinite;
+      background: linear-gradient(90deg, #fff 0%, #FFD700 30%, #fff 50%, #FFD700 70%, #fff 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 0.80rem;
+      font-weight: 400;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      opacity: 0;
+      transform: translateX(-30px);
+      animation: slideRight 0.8s ease-out 1.5s forwards;
+    }
+
+    /* ── Login Card ── */
+    .card {
+      margin-top: 18px;
+      width: 100%;
+      max-width: 420px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 38px 36px 32px;
+      opacity: 0;
+      transform: translateY(80px);
+      animation: slideUpCard 1s ease-out 2s forwards;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,215,0,0.08);
+    }
+
+    .card-heading {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+      margin-bottom: 28px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Form elements ── */
+    .input-group {
+      margin-bottom: 16px;
+    }
+    .input-label {
+      display: block;
+      font-size: 0.72rem;
+      color: rgba(255,215,0,0.75);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .phone-wrap {
+      display: flex;
+      gap: 8px;
+    }
+    .prefix-box {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      padding: 0 14px;
+      color: var(--gold);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      user-select: none;
+    }
+    input[type="tel"],
+    input[type="text"] {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    input[type="tel"]::placeholder,
+    input[type="text"]::placeholder { color: rgba(255,255,255,0.28); }
+    input[type="tel"]:focus,
+    input[type="text"]:focus {
+      border-color: rgba(255,215,0,0.6);
+      box-shadow: 0 0 0 3px rgba(255,215,0,0.10);
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      color: #1a0f00;
+      box-shadow: 0 4px 18px rgba(255,215,0,0.35);
+    }
+    .btn-gold:hover:not(:disabled) {
+      background: linear-gradient(135deg, #FFE96B 0%, #FFB700 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255,215,0,0.45);
+    }
+    .btn-gold:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ── OTP section (hidden initially) ── */
+    .otp-section {
+      display: none;
+      margin-top: 4px;
+    }
+    .otp-section.visible { display: block; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,215,0,0.25), transparent);
+      margin: 20px 0;
+    }
+
+    /* ── Messages ── */
+    .msg {
+      font-size: 0.82rem;
+      text-align: center;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 14px;
+      font-weight: 500;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.error {
+      color: var(--error);
+      background: rgba(255,79,79,0.12);
+      border: 1px solid rgba(255,79,79,0.3);
+    }
+    .msg.success {
+      color: var(--success);
+      background: rgba(76,255,145,0.10);
+      border: 1px solid rgba(76,255,145,0.3);
+    }
+    .msg.info {
+      color: var(--gold-light);
+      background: rgba(255,215,0,0.08);
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(26,15,0,0.3);
+      border-top-color: #1a0f00;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ── reCAPTCHA container (visible / normal size) ── */
+    #recaptcha-container {
+      margin: 16px 0 4px;
+      display: flex;
+      justify-content: center;
+      min-height: 78px;  /* reserves space so card doesn't jump */
+    }
+
+    /* ── Footer note ── */
+    .footer-note {
+      margin-top: 18px;
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.30);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* ════════════════════════
+       KEYFRAME ANIMATIONS
+    ════════════════════════ */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoomIn {
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideRight {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideUpCard {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.4); }
+      50%      { box-shadow: 0 0 0 8px rgba(255,215,0,0); }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      .card { padding: 28px 20px 24px; }
+      html, body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg"></div>
+  <div class="overlay"></div>
+
+  <!-- Page content -->
+  <div class="page">
+
+    <!-- Header -->
+    <p class="ganesh-text">🕉️ &nbsp;श्री गणेशाय नमः&nbsp; 🕉️</p>
+    <h1 class="hotel-name">Hotel Golden Stone</h1>
+    <p class="subtitle">Owner Management System</p>
+
+    <!-- Login Card -->
+    <div class="card" id="loginCard">
+      <h2 class="card-heading">🔐 Owner Login</h2>
+
+      <!-- Phone input -->
+      <div class="input-group" id="phoneGroup">
+        <label class="input-label" for="phoneInput">Mobile Number</label>
+        <div class="phone-wrap">
+          <div class="prefix-box">+91</div>
+          <input type="tel" id="phoneInput" maxlength="10" placeholder="XXXXXXXXXX" autocomplete="tel"/>
+        </div>
+      </div>
+
+      <!-- Send OTP button -->
+      <button class="btn btn-gold" id="sendOtpBtn" onclick="handleSendOtp()">
+        Send OTP
+      </button>
+
+      <!-- OTP Section -->
+      <div class="otp-section" id="otpSection">
+        <div class="divider"></div>
+        <div class="input-group">
+          <label class="input-label" for="otpInput">Enter OTP</label>
+          <input type="text" id="otpInput" maxlength="6" placeholder="6-digit OTP" autocomplete="one-time-code"/>
+        </div>
+        <button class="btn btn-gold" id="verifyBtn" onclick="handleVerifyOtp()">
+          ✅ Verify OTP
+        </button>
+      </div>
+
+      <!-- Messages -->
+      <div class="msg error" id="errorMsg"></div>
+      <div class="msg success" id="successMsg"></div>
+      <div class="msg info" id="infoMsg"></div>
+
+      <!-- Invisible reCAPTCHA anchor -->
+      <div id="recaptcha-container"></div>
+
+      <p class="footer-note">Authorized Personnel Only • Hotel Golden Stone</p>
+    </div>
+
+  </div><!-- /.page -->
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    /* ════════════════════════════════
+       FIREBASE INIT
+    ════════════════════════════════ */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBYRcC0-2dXMAatHF0aWibqKa2RFe-m5Ag",
+      authDomain: "hotel-golden-stone.firebaseapp.com",
+      projectId: "hotel-golden-stone",
+      storageBucket: "hotel-golden-stone.firebasestorage.app",
+      messagingSenderId: "194387186125",
+      appId: "1:194387186125:web:179c0eb8c5dc4ffe28f484"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    /* ── State ── */
+    let confirmationResult = null;
+    let recaptchaVerifier  = null;
+    let recaptchaResolved  = false;
+
+    /* ════════════════════════════════
+       RECAPTCHA SETUP  (lazy – called only on button click)
+       Uses size:'normal' (visible widget) to avoid the
+       reCAPTCHA ToS warning with invisible mode.
+    ════════════════════════════════ */
+    function setupRecaptcha() {
+      // Destroy any existing verifier so we start fresh every time
+      if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch(_) {}
+        recaptchaVerifier = null;
+      }
+      // Clear the container DOM so reCAPTCHA can inject a fresh widget
+      document.getElementById('recaptcha-container').innerHTML = '';
+
+      recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        size: 'normal',           // ← visible checkbox widget
+        callback: () => {
+          recaptchaResolved = true;
+          console.log('[reCAPTCHA] Solved ✅');
+        },
+        'expired-callback': () => {
+          recaptchaResolved = false;
+          showMsg('error', '⚠️ reCAPTCHA expired. Please tick the checkbox again.');
+          console.warn('[reCAPTCHA] Expired – user must re-tick.');
+        }
+      });
+      recaptchaVerifier.render().then(widgetId => {
+        console.log('[reCAPTCHA] Rendered, widgetId =', widgetId);
+      }).catch(e => {
+        console.error('[reCAPTCHA] Render error:', e);
+        showMsg('error', '❌ reCAPTCHA failed to load. Refresh the page.');
+      });
+    }
+
+    /* ════════════════════════════════
+       UI HELPERS
+    ════════════════════════════════ */
+    function showMsg(type, text) {
+      ['errorMsg','successMsg','infoMsg'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('show');
+        el.textContent = '';
+      });
+      const map = { error:'errorMsg', success:'successMsg', info:'infoMsg' };
+      const el = document.getElementById(map[type]);
+      el.textContent = text;
+      el.classList.add('show');
+    }
+    function clearMsgs() {
+      ['errorMsg','successMsg','infoMsg'].forEach(id => {
+        document.getElementById(id).classList.remove('show');
+      });
+    }
+
+    function setLoading(btnId, loading, label) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? `<span class="spinner"></span>&nbsp;Please wait…`
+        : label;
+    }
+
+    /* ════════════════════════════════
+       STEP 1 – SEND OTP
+    ════════════════════════════════ */
+    async function handleSendOtp() {
+      clearMsgs();
+
+      const raw = document.getElementById('phoneInput').value.trim();
+
+      /* Validate 10-digit number */
+      if (!/^\d{10}$/.test(raw)) {
+        showMsg('error', '❌ Please enter a valid 10-digit mobile number.');
+        return;
+      }
+
+      const fullPhone = '+91' + raw;
+
+      setLoading('sendOtpBtn', true, 'Send OTP');
+
+      try {
+        /* ── Security check: is this number in allowed_owners? ── */
+        const snap = await db.collection('allowed_owners').doc(fullPhone).get();
+
+        if (!snap.exists || snap.data().active !== true) {
+          showMsg('error', '❌ Access Denied. Unauthorized Number.');
+          setLoading('sendOtpBtn', false, 'Send OTP');
+          return;
+        }
+
+        /* ── Authorised → init reCAPTCHA fresh (lazy, on-click only) ── */
+        setupRecaptcha();
+
+        /* Wait briefly so the reCAPTCHA widget renders before we call signIn */
+        await new Promise(r => setTimeout(r, 500));
+
+        setLoading('sendOtpBtn', false, 'Send OTP');
+        showMsg('info', '☑️ Please complete the reCAPTCHA above, then we will send your OTP.');
+
+        confirmationResult = await auth.signInWithPhoneNumber(fullPhone, recaptchaVerifier);
+
+        /* Show OTP section */
+        document.getElementById('otpSection').classList.add('visible');
+        document.getElementById('sendOtpBtn').textContent = '🔄 Resend OTP';
+        document.getElementById('sendOtpBtn').disabled = false;
+        document.getElementById('otpInput').focus();
+        showMsg('info', `📲 OTP sent to ${fullPhone}. Check your messages.`);
+
+      } catch (err) {
+        /* ── Show exact Firebase error code for debugging ── */
+        console.error('[Send OTP] Firebase error:', err);
+
+        const code = err.code || 'unknown';
+        const errorMap = {
+          'auth/too-many-requests':       '❌ Too many attempts. Wait a few minutes and try again.',
+          'auth/invalid-phone-number':    '❌ Invalid phone number format. Use 10 digits only.',
+          'auth/captcha-check-failed':    '❌ reCAPTCHA check failed. Please refresh and retry.',
+          'auth/quota-exceeded':          '❌ SMS quota exceeded. Contact support.',
+          'auth/user-disabled':           '❌ This account has been disabled.',
+          'auth/operation-not-allowed':   '❌ Phone sign-in is not enabled in Firebase Console.',
+          'auth/network-request-failed':  '❌ Network error. Check your internet connection.',
+          'auth/internal-error':          '❌ Firebase internal error. Check console for details.',
+        };
+
+        const friendlyMsg = errorMap[code]
+          || `❌ Error [${code}]: ${err.message || 'Unknown error. See console.'}`;
+
+        showMsg('error', friendlyMsg);
+        console.error(`[Debug] Error code: ${code} | Message: ${err.message}`);
+
+        /* Always destroy stale reCAPTCHA on failure so next click starts fresh */
+        if (recaptchaVerifier) {
+          try { recaptchaVerifier.clear(); } catch(_) {}
+          recaptchaVerifier = null;
+        }
+        document.getElementById('recaptcha-container').innerHTML = '';
+        setLoading('sendOtpBtn', false, 'Send OTP');
+      }
+    }
+
+    /* ════════════════════════════════
+       STEP 2 – VERIFY OTP
+    ════════════════════════════════ */
+    async function handleVerifyOtp() {
+      clearMsgs();
+
+      const otp = document.getElementById('otpInput').value.trim();
+      if (!/^\d{6}$/.test(otp)) {
+        showMsg('error', '❌ Please enter the 6-digit OTP.');
+        return;
+      }
+      if (!confirmationResult) {
+        showMsg('error', '❌ Please request OTP first.');
+        return;
+      }
+
+      setLoading('verifyBtn', true, '✅ Verify OTP');
+
+      try {
+        const result = await confirmationResult.confirm(otp);
+        const user   = result.user;
+
+        /* Store session */
+        localStorage.setItem('ownerUID',   user.uid);
+        localStorage.setItem('ownerPhone', user.phoneNumber);
+        localStorage.setItem('ownerLoginAt', new Date().toISOString());
+
+        showMsg('success', '✅ Login Successful! Redirecting to Dashboard…');
+
+        /* Redirect after short delay */
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
+
+      } catch (err) {
+        console.error('Verify OTP error:', err);
+        let errText = '❌ Invalid OTP. Please try again.';
+        if (err.code === 'auth/code-expired')        errText = '❌ OTP expired. Please resend.';
+        if (err.code === 'auth/invalid-verification-code') errText = '❌ Wrong OTP. Double-check and retry.';
+        showMsg('error', errText);
+        setLoading('verifyBtn', false, '✅ Verify OTP');
+      }
+    }
+
+    /* ════════════════════════════════
+       ENTER KEY SUPPORT
+    ════════════════════════════════ */
+    document.getElementById('phoneInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSendOtp();
+    });
+    document.getElementById('otpInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleVerifyOtp();
+    });
+
+    /* Allow only digits in phone field */
+    document.getElementById('phoneInput').addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+    document.getElementById('otpInput').addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
+
+    /* ════════════════════════════════
+       AUTO-LOGIN CHECK
+       If already logged in, skip to dashboard
+    ════════════════════════════════ */
+    auth.onAuthStateChanged(user => {
+      if (user && localStorage.getItem('ownerUID')) {
+        window.location.href = 'dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>
