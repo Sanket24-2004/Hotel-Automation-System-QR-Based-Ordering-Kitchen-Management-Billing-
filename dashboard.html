@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner Dashboard — Hotel Golden Stone</title>
+  <meta name="description" content="Live owner dashboard for Hotel Golden Stone. Monitor revenue, orders, and table status in real-time." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --gold: #FFD700;
+      --gold-dim: rgba(255, 215, 0, 0.25);
+      --gold-glow: rgba(255, 215, 0, 0.4);
+      --white: #FFFFFF;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: 1px solid rgba(255, 215, 0, 0.25);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --radius: 16px;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --navbar-h: 60px;
+      --bottomnav-h: 65px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #0a0a0a;
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: var(--navbar-h);
+      padding-bottom: var(--bottomnav-h);
+    }
+
+    /* =============================================
+       BACKGROUND
+    ============================================= */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      background-image: url('Hotel_image_use_as_bg.png');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      z-index: -2;
+    }
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      z-index: -1;
+    }
+
+    /* =============================================
+       KEYFRAME ANIMATIONS
+    ============================================= */
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+    @keyframes fadeInLeft {
+      from { transform: translateX(-40px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      50%       { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+
+    /* =============================================
+       SECTION 1 — TOP NAVBAR
+    ============================================= */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--navbar-h);
+      background: rgba(0, 0, 0, 0.90);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 1000;
+      animation: slideDown 0.5s ease forwards;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+    }
+    .navbar-brand span.hotel-icon { font-size: 1.4rem; }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .bell-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.3rem;
+      color: var(--white);
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .bell-btn:hover { transform: rotate(20deg); }
+
+    .owner-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.8);
+    }
+    .owner-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #b8860b);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #000;
+    }
+
+    .logout-btn {
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      color: var(--gold);
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+      letter-spacing: 0.5px;
+    }
+    .logout-btn:hover {
+      background: rgba(255, 215, 0, 0.2);
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+      transform: scale(1.04);
+    }
+
+    /* =============================================
+       MAIN CONTENT WRAPPER
+    ============================================= */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+
+    /* =============================================
+       SECTION 2 — WELCOME HEADER
+    ============================================= */
+    .welcome-header {
+      margin-bottom: 32px;
+      animation: fadeInLeft 0.6s ease 0.3s both;
+    }
+
+    #greeting-text {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 0 16px rgba(255, 215, 0, 0.35);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .date-time-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    #live-date {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .dot-sep {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--gold-dim);
+      display: inline-block;
+    }
+
+    #live-clock {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+
+    .dashboard-subtitle {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* Live indicator badge */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #ef4444;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: blink 1.2s infinite;
+    }
+
+    /* =============================================
+       SECTION 3 — STAT CARDS
+    ============================================= */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--glass-shadow);
+      padding: 20px 18px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      opacity: 0;
+    }
+
+    /* Staggered slide-up animations */
+    .stat-card:nth-child(1) { animation: slideUp 0.5s ease 0.4s forwards; }
+    .stat-card:nth-child(2) { animation: slideUp 0.5s ease 0.6s forwards; }
+    .stat-card:nth-child(3) { animation: slideUp 0.5s ease 0.8s forwards; }
+    .stat-card:nth-child(4) { animation: slideUp 0.5s ease 1.0s forwards; }
+
+    .stat-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 18px rgba(255, 215, 0, 0.2);
+    }
+
+    /* Left accent border */
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+    }
+    .stat-card.accent-gold::before  { background: var(--gold); }
+    .stat-card.accent-blue::before  { background: var(--blue); }
+    .stat-card.accent-green::before { background: var(--green); }
+    .stat-card.accent-red::before   { background: var(--red); }
+
+    /* Subtle shimmer overlay */
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      border-radius: var(--radius);
+      pointer-events: none;
+    }
+
+    .stat-icon {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      display: block;
+      line-height: 1;
+    }
+
+    .stat-title {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    /* =============================================
+       BOTTOM NAVIGATION (placeholder spacing)
+    ============================================= */
+    #bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--bottomnav-h);
+      background: rgba(0, 0, 0, 0.95);
+      border-top: 1px solid rgba(255, 215, 0, 0.2);
+      display: flex;
+      align-items: stretch;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-decoration: none;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      position: relative;
+      transition: color 0.2s;
+      padding-bottom: 4px;
+    }
+    .nav-tab .nav-icon { font-size: 1.25rem; line-height: 1; }
+    .nav-tab:hover { color: rgba(255,255,255,0.75); }
+
+    .nav-tab.active {
+      color: var(--gold);
+    }
+    .nav-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+    }
+
+    /* =============================================
+       RESPONSIVE — TABLET
+    ============================================= */
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .navbar-brand { font-size: 1rem; }
+    }
+
+    /* =============================================
+       RESPONSIVE — MOBILE
+    ============================================= */
+    @media (max-width: 600px) {
+      .main-content { padding: 18px 12px 90px; }
+      #greeting-text { font-size: 1.35rem; }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .stat-value { font-size: 1.5rem; }
+      .stat-card { padding: 16px 14px; }
+      .navbar-brand .brand-text { display: none; }
+      .navbar-brand .brand-short { display: inline; }
+    }
+
+    @media (min-width: 601px) {
+      .navbar-brand .brand-short { display: none; }
+    }
+
+    /* Fix main content bottom padding so bottom-nav never hides content */
+    .main-content { padding-bottom: 90px; }
+
+    /* =============================================
+       SECTION HEADER ROW (title + right action)
+    ============================================= */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-right-link {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s;
+    }
+    .section-right-link:hover { opacity: 0.7; }
+
+    /* Live badge inline variant */
+    .live-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #ef4444;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .live-tag .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: blink 1.2s infinite; }
+
+    /* =============================================
+       SECTION 4 — TABLE STATUS GRID
+    ============================================= */
+    .tables-section { margin-bottom: 36px; }
+
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      opacity: 0;
+      animation: fadeIn 0.6s ease 1.2s forwards;
+    }
+
+    .table-cell {
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .table-cell:hover { transform: scale(1.06); }
+
+    .table-cell.available {
+      border: 2px solid var(--green);
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--green);
+    }
+    .table-cell.occupied {
+      border: 2px solid var(--red);
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--red);
+      animation: pulseTable 2s infinite;
+    }
+
+    @keyframes pulseTable {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    }
+
+    .table-num {
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+    .table-status-lbl {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* =============================================
+       TABLE MODAL
+    ============================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      background: rgba(15,15,15,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(255,215,0,0.1);
+      padding: 32px 28px;
+      width: 90%;
+      max-width: 340px;
+      text-align: center;
+      transform: scale(0.88);
+      transition: transform 0.25s;
+    }
+    .modal-backdrop.open .modal-box { transform: scale(1); }
+
+    .modal-table-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .modal-status-badge {
+      display: inline-block;
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .modal-status-badge.available {
+      background: rgba(34,197,94,0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+    }
+    .modal-status-badge.occupied {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid var(--red);
+      color: var(--red);
+    }
+    .modal-btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .modal-billing-btn {
+      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
+      border: 1px solid rgba(255,215,0,0.5);
+      color: var(--gold);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, box-shadow 0.2s;
+      display: block;
+    }
+    .modal-billing-btn:hover {
+      background: rgba(255,215,0,0.25);
+      box-shadow: 0 0 14px rgba(255,215,0,0.3);
+    }
+    .modal-close-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* =============================================
+       SECTION 5 — RECENT ORDERS
+    ============================================= */
+    .orders-section { margin-bottom: 36px; }
+
+    .order-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--glass-shadow);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
+      cursor: default;
+      opacity: 0;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .order-card:hover {
+      transform: scale(1.02);
+      border-color: rgba(255,215,0,0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 14px rgba(255,215,0,0.15);
+    }
+
+    /* Staggered slide-in from right */
+    .order-card:nth-child(1) { animation: slideInRight 0.5s ease 0.2s forwards; }
+    .order-card:nth-child(2) { animation: slideInRight 0.5s ease 0.4s forwards; }
+    .order-card:nth-child(3) { animation: slideInRight 0.5s ease 0.6s forwards; }
+    .order-card:nth-child(4) { animation: slideInRight 0.5s ease 0.8s forwards; }
+
+    @keyframes slideInRight {
+      from { transform: translateX(40px); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    .order-badge {
+      flex-shrink: 0;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .order-badge.new        { background: rgba(234,179,8,0.15);  border: 1px solid #eab308; color: #eab308; }
+    .order-badge.preparing  { background: rgba(249,115,22,0.15); border: 1px solid #f97316; color: #f97316; }
+    .order-badge.completed  { background: rgba(34,197,94,0.15);  border: 1px solid var(--green); color: var(--green); }
+
+    .order-info { flex: 1; min-width: 0; }
+    .order-table-lbl {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .order-items {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .order-meta {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .order-amount {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: block;
+    }
+    .order-time {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* =============================================
+       SECTION 6 — QUICK ACTIONS
+    ============================================= */
+    .actions-section {
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fadeIn 0.6s ease 1.5s forwards;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .action-btn {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: var(--radius);
+      box-shadow: var(--glass-shadow);
+      padding: 26px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .action-btn:hover {
+      transform: scale(1.05);
+      border-color: rgba(255,215,0,0.8);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,215,0,0.25);
+    }
+
+    .action-icon { font-size: 2.5rem; line-height: 1; }
+    .action-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.3px;
+    }
+    .action-sub {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--gold);
+      opacity: 0.85;
+    }
+
+    /* =============================================
+       RESPONSIVE PART 2 — TABLET
+    ============================================= */
+    @media (max-width: 900px) {
+      .tables-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    /* =============================================
+       RESPONSIVE PART 2 — MOBILE
+    ============================================= */
+    @media (max-width: 600px) {
+      .tables-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .table-num { font-size: 0.95rem; }
+      .actions-grid { grid-template-columns: 1fr; gap: 10px; }
+      .order-card { flex-wrap: wrap; gap: 10px; }
+      .order-meta { text-align: left; }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ==================== BACKGROUND ==================== -->
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-overlay" aria-hidden="true"></div>
+
+  <!-- ==================== SECTION 1: NAVBAR ==================== -->
+  <nav id="navbar" role="navigation" aria-label="Owner dashboard navigation">
+
+    <!-- Left: Brand -->
+    <div class="navbar-brand">
+      <span class="hotel-icon" aria-hidden="true">🏨</span>
+      <span class="brand-text">Hotel Golden Stone</span>
+      <span class="brand-short">Golden Stone</span>
+    </div>
+
+    <!-- Right: Actions -->
+    <div class="navbar-right">
+
+      <!-- Bell notification -->
+      <button class="bell-btn" id="bell-btn" aria-label="Notifications" title="Notifications">
+        🔔
+      </button>
+
+      <!-- Owner badge -->
+      <div class="owner-badge">
+        <div class="owner-avatar" aria-hidden="true">O</div>
+        <span>Owner</span>
+      </div>
+
+      <!-- Logout -->
+      <button class="logout-btn" id="logout-btn" onclick="handleLogout()" aria-label="Logout">
+        Logout
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-content">
+
+    <!-- ==================== SECTION 2: WELCOME HEADER ==================== -->
+    <header class="welcome-header" aria-label="Welcome section">
+
+      <!-- Greeting — shown/hidden by JS based on time -->
+      <div id="greeting-text" role="heading" aria-level="1"></div>
+
+      <!-- Date, clock and live badge -->
+      <div class="date-time-row">
+        <span id="live-date" aria-label="Today's date"></span>
+        <span class="dot-sep" aria-hidden="true"></span>
+        <span id="live-clock" aria-label="Current time" aria-live="polite"></span>
+        <span class="dot-sep" aria-hidden="true"></span>
+        <span class="live-badge" aria-label="Live dashboard">
+          <span class="live-dot" aria-hidden="true"></span>
+          LIVE
+        </span>
+      </div>
+
+      <p class="dashboard-subtitle">Hotel Golden Stone — Live Dashboard</p>
+
+    </header>
+
+    <!-- ==================== SECTION 3: STAT CARDS ==================== -->
+    <section aria-label="Key statistics">
+      <p class="section-label">Today's Overview</p>
+
+      <div class="stats-grid">
+
+        <!-- Card 1: Revenue -->
+        <div class="stat-card accent-gold" role="region" aria-label="Today's Revenue">
+          <span class="stat-icon" aria-hidden="true">💰</span>
+          <p class="stat-title">Today's Revenue</p>
+          <p class="stat-value" id="val-revenue">₹0</p>
+          <p class="stat-sub">Total earnings today</p>
+        </div>
+
+        <!-- Card 2: Total Orders -->
+        <div class="stat-card accent-blue" role="region" aria-label="Total Orders">
+          <span class="stat-icon" aria-hidden="true">📦</span>
+          <p class="stat-title">Total Orders</p>
+          <p class="stat-value" id="val-orders">0</p>
+          <p class="stat-sub">Active: 8 | Completed: 37</p>
+        </div>
+
+        <!-- Card 3: Available Tables -->
+        <div class="stat-card accent-green" role="region" aria-label="Available Tables">
+          <span class="stat-icon" aria-hidden="true">🪑</span>
+          <p class="stat-title">Available Tables</p>
+          <p class="stat-value" id="val-available">0</p>
+          <p class="stat-sub">Ready for guests</p>
+        </div>
+
+        <!-- Card 4: Occupied Tables -->
+        <div class="stat-card accent-red" role="region" aria-label="Occupied Tables">
+          <span class="stat-icon" aria-hidden="true">🔴</span>
+          <p class="stat-title">Occupied Tables</p>
+          <p class="stat-value" id="val-occupied">0</p>
+          <p class="stat-sub">Currently serving</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 4: TABLE STATUS GRID ==================== -->
+    <section class="tables-section" aria-label="Live table status">
+      <div class="section-header">
+        <h2 class="section-title">🪑 LIVE TABLE STATUS</h2>
+        <span class="live-tag"><span class="live-dot" aria-hidden="true"></span>LIVE</span>
+      </div>
+
+      <div class="tables-grid" id="tables-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 5: RECENT ORDERS ==================== -->
+    <section class="orders-section" aria-label="Recent orders">
+      <div class="section-header">
+        <h2 class="section-title">🔔 RECENT ORDERS</h2>
+        <a href="order-history.html" class="section-right-link" id="view-all-orders">View All →</a>
+      </div>
+
+      <div id="orders-list">
+        <!-- Row 1 -->
+        <div class="order-card" role="listitem">
+          <span class="order-badge new">NEW</span>
+          <div class="order-info">
+            <p class="order-table-lbl">Table 3</p>
+            <p class="order-items">Paneer Tikka x2, Butter Naan x2</p>
+          </div>
+          <div class="order-meta">
+            <span class="order-amount">₹500</span>
+            <span class="order-time">2 min ago</span>
+          </div>
+        </div>
+        <!-- Row 2 -->
+        <div class="order-card" role="listitem">
+          <span class="order-badge preparing">PREPARING</span>
+          <div class="order-info">
+            <p class="order-table-lbl">Table 7</p>
+            <p class="order-items">Dal Makhani x1, Rice x1</p>
+          </div>
+          <div class="order-meta">
+            <span class="order-amount">₹280</span>
+            <span class="order-time">8 min ago</span>
+          </div>
+        </div>
+        <!-- Row 3 -->
+        <div class="order-card" role="listitem">
+          <span class="order-badge completed">COMPLETED</span>
+          <div class="order-info">
+            <p class="order-table-lbl">Table 1</p>
+            <p class="order-items">Butter Chicken x2, Naan x3</p>
+          </div>
+          <div class="order-meta">
+            <span class="order-amount">₹750</span>
+            <span class="order-time">15 min ago</span>
+          </div>
+        </div>
+        <!-- Row 4 -->
+        <div class="order-card" role="listitem">
+          <span class="order-badge new">NEW</span>
+          <div class="order-info">
+            <p class="order-table-lbl">Table 5</p>
+            <p class="order-items">Masala Papad x3, Lassi x2</p>
+          </div>
+          <div class="order-meta">
+            <span class="order-amount">₹320</span>
+            <span class="order-time">1 min ago</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 6: QUICK ACTIONS ==================== -->
+    <section class="actions-section" aria-label="Quick actions">
+      <div class="section-header">
+        <h2 class="section-title">⚡ QUICK ACTIONS</h2>
+      </div>
+
+      <div class="actions-grid">
+        <a href="billing.html" class="action-btn" id="action-billing" aria-label="Go to Billing">
+          <span class="action-icon" aria-hidden="true">🧾</span>
+          <span class="action-label">Billing</span>
+          <span class="action-sub">Generate bills</span>
+        </a>
+        <a href="menu-control.html" class="action-btn" id="action-menu" aria-label="Go to Menu Control">
+          <span class="action-icon" aria-hidden="true">🍽️</span>
+          <span class="action-label">Menu Control</span>
+          <span class="action-sub">Manage menu items</span>
+        </a>
+        <a href="reports.html" class="action-btn" id="action-reports" aria-label="Go to Reports">
+          <span class="action-icon" aria-hidden="true">📊</span>
+          <span class="action-label">Reports</span>
+          <span class="action-sub">View analytics</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== TABLE MODAL ==================== -->
+  <div class="modal-backdrop" id="table-modal" role="dialog" aria-modal="true" aria-labelledby="modal-table-name">
+    <div class="modal-box">
+      <p class="modal-table-name" id="modal-table-name">Table X</p>
+      <span class="modal-status-badge" id="modal-status-badge">Available</span>
+      <div class="modal-btn-row">
+        <a href="billing.html" class="modal-billing-btn" id="modal-billing-btn" style="display:none;">🧾 Go to Billing →</a>
+        <button class="modal-close-btn" id="modal-close-btn" onclick="closeModal()" aria-label="Close modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 7: BOTTOM NAVIGATION ==================== -->
+  <nav id="bottom-nav" role="navigation" aria-label="Bottom navigation">
+    <a href="dashboard.html"     class="nav-tab active"  aria-current="page" id="nav-home">
+      <span class="nav-icon" aria-hidden="true">🏠</span>Home
+    </a>
+    <a href="billing.html"       class="nav-tab" id="nav-billing">
+      <span class="nav-icon" aria-hidden="true">🧾</span>Billing
+    </a>
+    <a href="menu-control.html"  class="nav-tab" id="nav-menu">
+      <span class="nav-icon" aria-hidden="true">🍽️</span>Menu
+    </a>
+    <a href="reports.html"       class="nav-tab" id="nav-reports">
+      <span class="nav-icon" aria-hidden="true">📊</span>Reports
+    </a>
+    <a href="order-history.html" class="nav-tab" id="nav-history">
+      <span class="nav-icon" aria-hidden="true">📋</span>History
+    </a>
+  </nav>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    /* ================================================
+       LOGOUT
+    ================================================ */
+    function handleLogout() {
+      window.location.href = 'owner-login.html';
+    }
+
+    /* ================================================
+       GREETING LOGIC
+       6am-12pm → Morning | 12pm-5pm → Afternoon
+       5pm-11pm → Evening | 11pm-6am → Hidden
+    ================================================ */
+    function updateGreeting() {
+      const now = new Date();
+      const h = now.getHours();
+      const greetingEl = document.getElementById('greeting-text');
+
+      let msg = '';
+      if (h >= 6 && h < 12) {
+        msg = 'Good Morning, Owner! ☀️';
+      } else if (h >= 12 && h < 17) {
+        msg = 'Good Afternoon, Owner! 🌤️';
+      } else if (h >= 17 && h <= 23) {
+        msg = 'Good Evening, Owner! 🌆';
+      }
+      // 11pm (23:01) to 5:59am → hidden
+      if (msg) {
+        greetingEl.textContent = msg;
+        greetingEl.style.display = 'block';
+      } else {
+        greetingEl.style.display = 'none';
+      }
+    }
+
+    /* ================================================
+       LIVE DATE & CLOCK
+    ================================================ */
+    function updateDateTime() {
+      const now = new Date();
+
+      // Full date: "Wednesday, 24 June 2026"
+      const dateStr = now.toLocaleDateString('en-IN', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      document.getElementById('live-date').textContent = dateStr;
+
+      // Live 12-hr clock
+      const timeStr = now.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      document.getElementById('live-clock').textContent = timeStr.toUpperCase();
+    }
+
+    /* ================================================
+       COUNT-UP ANIMATION
+       Animates a number from 0 to target over 1.5s
+    ================================================ */
+    function countUp(elementId, target, prefix, suffix, duration) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const start = performance.now();
+      function step(now) {
+        const elapsed = Math.min((now - start) / duration, 1);
+        // Ease-out
+        const eased = 1 - Math.pow(1 - elapsed, 3);
+        const value = Math.round(eased * target);
+        el.textContent = prefix + value.toLocaleString('en-IN') + suffix;
+        if (elapsed < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    /* ================================================
+       SECTION 4 — TABLE STATUS GRID
+    ================================================ */
+    const TABLE_DATA = [
+      { id: 1,  occupied: false },
+      { id: 2,  occupied: false },
+      { id: 3,  occupied: true  },
+      { id: 4,  occupied: false },
+      { id: 5,  occupied: true  },
+      { id: 6,  occupied: false },
+      { id: 7,  occupied: false },
+      { id: 8,  occupied: true  },
+      { id: 9,  occupied: false },
+      { id: 10, occupied: false },
+      { id: 11, occupied: false },
+      { id: 12, occupied: false }
+    ];
+
+    function buildTableGrid() {
+      const grid = document.getElementById('tables-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      TABLE_DATA.forEach(function(t) {
+        const cell = document.createElement('div');
+        cell.className = 'table-cell ' + (t.occupied ? 'occupied' : 'available');
+        cell.setAttribute('role', 'button');
+        cell.setAttribute('tabindex', '0');
+        cell.setAttribute('aria-label', 'Table ' + t.id + (t.occupied ? ' Occupied' : ' Available'));
+        cell.innerHTML =
+          '<p class="table-num">Table ' + t.id + '</p>' +
+          '<p class="table-status-lbl">' + (t.occupied ? 'Occupied' : 'Available') + '</p>';
+        cell.addEventListener('click', function() { openModal(t.id, t.occupied); });
+        cell.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(t.id, t.occupied); }
+        });
+        grid.appendChild(cell);
+      });
+    }
+
+    /* ================================================
+       TABLE MODAL
+    ================================================ */
+    function openModal(tableId, isOccupied) {
+      document.getElementById('modal-table-name').textContent = 'Table ' + tableId;
+      var badge = document.getElementById('modal-status-badge');
+      badge.textContent = isOccupied ? 'Occupied' : 'Available';
+      badge.className = 'modal-status-badge ' + (isOccupied ? 'occupied' : 'available');
+      var billingBtn = document.getElementById('modal-billing-btn');
+      billingBtn.style.display = isOccupied ? 'block' : 'none';
+      var backdrop = document.getElementById('table-modal');
+      backdrop.classList.add('open');
+      // Close on backdrop click
+      backdrop.onclick = function(e) { if (e.target === backdrop) closeModal(); };
+    }
+
+    function closeModal() {
+      document.getElementById('table-modal').classList.remove('open');
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    /* ================================================
+       INIT
+    ================================================ */
+    function init() {
+      // Greeting (run once, re-check every minute)
+      updateGreeting();
+      setInterval(updateGreeting, 60000);
+
+      // Clock (update every second)
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+
+      // Count-up animations for stat cards
+      countUp('val-revenue',   12450, '\u20B9', '', 1500);
+      countUp('val-orders',    45,    '',        '', 1500);
+      countUp('val-available', 9,     '',        '', 1500);
+      countUp('val-occupied',  3,     '',        '', 1500);
+
+      // Build table grid
+      buildTableGrid();
+    }
+
+    // Run on DOM ready
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+</body>
+</html>
