@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing — Hotel Golden Stone</title>
+  <meta name="description" content="Billing management for Hotel Golden Stone. Generate bills for occupied tables." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:        #FFD700;
+      --gold-border: rgba(255, 215, 0, 0.3);
+      --gold-focus:  rgba(255, 215, 0, 0.6);
+      --white:       #FFFFFF;
+      --red:         #ef4444;
+      --green:       #22c55e;
+      --orange:      #f97316;
+      --glass-bg:    rgba(255, 255, 255, 0.05);
+      --card-red-bg: rgba(239, 68, 68, 0.08);
+      --card-red-br: rgba(239, 68, 68, 0.4);
+      --radius:      12px;
+      --navbar-h:    60px;
+      --botnav-h:    65px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #0d0d0d;
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: var(--navbar-h);
+      padding-bottom: 90px; /* always clear bottom nav */
+    }
+
+    /* =============================================
+       BACKGROUND
+    ============================================= */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      background-image: url('Hotel_image_use_as_bg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: -2;
+    }
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: -1;
+    }
+
+    /* =============================================
+       KEYFRAMES
+    ============================================= */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    /* =============================================
+       SECTION 1 — NAVBAR
+    ============================================= */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--navbar-h);
+      background: rgba(0, 0, 0, 0.95);
+      border-bottom: 1px solid var(--gold-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.3px;
+    }
+    .navbar-brand .brand-short { display: none; }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .bell-btn {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .bell-btn:hover { transform: rotate(18deg); }
+
+    .owner-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.75);
+    }
+    .owner-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #b8860b);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #000;
+    }
+    .logout-btn {
+      background: rgba(255,215,0,0.08);
+      border: 1px solid rgba(255,215,0,0.35);
+      color: var(--gold);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .logout-btn:hover {
+      background: rgba(255,215,0,0.18);
+      box-shadow: 0 0 10px rgba(255,215,0,0.25);
+    }
+
+    /* =============================================
+       MAIN CONTENT WRAPPER
+    ============================================= */
+    .main-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 32px;
+    }
+
+    /* =============================================
+       SECTION 2 — PAGE TITLE
+    ============================================= */
+    .page-title-wrap {
+      text-align: center;
+      margin-bottom: 28px;
+      animation: fadeInUp 0.5s ease 0.1s both;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: 1px;
+      line-height: 1.2;
+    }
+    .page-subtitle {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+
+    /* =============================================
+       SECTION 3 — SEARCH BAR
+    ============================================= */
+    .search-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 32px;
+      animation: fadeInUp 0.5s ease 0.2s both;
+    }
+    #table-search {
+      width: 100%;
+      max-width: 500px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 50px;
+      padding: 14px 24px;
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      caret-color: var(--gold);
+    }
+    #table-search::placeholder { color: rgba(255,255,255,0.4); }
+    #table-search:focus {
+      border-color: rgba(255,215,0,0.8);
+      box-shadow: 0 0 0 3px rgba(255,215,0,0.15), 0 0 16px rgba(255,215,0,0.2);
+    }
+
+    /* =============================================
+       SECTION 4 — OCCUPIED TABLES GRID
+    ============================================= */
+    .section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-heading {
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .count-badge {
+      background: rgba(239,68,68,0.18);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: var(--red);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+    }
+
+    /* Grid */
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    /* ── Table Card ── */
+    .table-card {
+      background: var(--card-red-bg);
+      border: 1px solid var(--card-red-br);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      animation: fadeInUp 0.45s ease both;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .table-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    /* Red blinking dot — top right */
+    .card-dot {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: blink 1.4s infinite;
+    }
+
+    /* Card top: table name */
+    .card-table-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 14px;
+      padding-right: 20px; /* avoid overlap with dot */
+    }
+
+    /* Divider */
+    .card-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 12px 0;
+    }
+
+    /* Detail rows */
+    .card-detail {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+    .card-detail-label {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 400;
+    }
+    .card-detail-value {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .card-detail-value.gold   { color: var(--gold); }
+    .card-detail-value.normal { color: rgba(255,255,255,0.55); }  /* < 30 min */
+    .card-detail-value.warn   { color: var(--orange); }            /* 30-60 min */
+    .card-detail-value.alert  { color: var(--red); }               /* > 60 min */
+
+    /* Generate Bill button */
+    .gen-bill-btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .gen-bill-btn:hover {
+      background: #16a34a;
+      transform: scale(1.02);
+      box-shadow: 0 4px 16px rgba(34,197,94,0.35);
+    }
+
+    /* =============================================
+       SECTION 4b — NO SEARCH MATCH
+    ============================================= */
+    .no-match-msg {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+    }
+    .no-match-msg .no-match-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .no-match-msg p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    /* =============================================
+       SECTION 5 — EMPTY STATE (all available)
+    ============================================= */
+    #empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      display: none;
+    }
+    #empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    #empty-state h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+    #empty-state p {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* =============================================
+       SECTION 6 — BOTTOM NAVIGATION
+    ============================================= */
+    #bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--botnav-h);
+      background: rgba(0,0,0,0.95);
+      border-top: 1px solid rgba(255,215,0,0.2);
+      display: flex;
+      align-items: stretch;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-decoration: none;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      position: relative;
+      padding-bottom: 4px;
+      transition: color 0.2s;
+    }
+    .nav-tab .nav-icon { font-size: 1.2rem; line-height: 1; }
+    .nav-tab:hover { color: rgba(255,255,255,0.75); }
+    .nav-tab.active { color: var(--gold); }
+    .nav-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+    }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 900px) {
+      .tables-grid { grid-template-columns: repeat(2, 1fr); }
+      .bill-actions { flex-direction: column; }
+      .bill-actions button { width: 100% !important; }
+    }
+    @media (max-width: 580px) {
+      .tables-grid { grid-template-columns: 1fr; }
+      .page-title { font-size: 1.55rem; }
+      .navbar-brand .brand-text  { display: none; }
+      .navbar-brand .brand-short { display: inline; }
+      .bill-info-bar { flex-wrap: wrap; gap: 8px; justify-content: center; }
+      .pay-btns { flex-direction: column; }
+      .pay-btn  { width: 100%; }
+    }
+
+    /* =============================================
+       PART 2 — BILL DETAIL SECTION
+    ============================================= */
+    #bill-detail { display: none; animation: fadeInUp 0.35s ease both; }
+
+    /* Bill header row */
+    .bill-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(0,0,0,0.7);
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+      padding: 16px 20px; border-radius: 12px 12px 0 0; margin-bottom: 0;
+    }
+    .back-btn {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      color: var(--white); padding: 7px 16px; border-radius: 8px;
+      font-family: 'Poppins',sans-serif; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.15); }
+    .bill-header-title { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .bill-number { font-size: 0.8rem; font-weight: 600; color: var(--gold); }
+
+    /* Info bar */
+    .bill-info-bar {
+      display: flex; align-items: center; gap: 20px;
+      background: rgba(0,0,0,0.5); padding: 10px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.78rem; color: var(--gold); flex-wrap: wrap;
+    }
+    .bill-info-bar span { display: flex; align-items: center; gap: 5px; }
+
+    /* Bill body card */
+    .bill-body {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,215,0,0.15);
+      border-radius: 0 0 12px 12px;
+      padding: 20px;
+    }
+
+    /* Section sub-heading */
+    .bill-section-title {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5);
+      margin-bottom: 12px; margin-top: 20px;
+    }
+    .bill-section-title:first-child { margin-top: 0; }
+
+    /* Items table */
+    .items-table { width: 100%; border-collapse: collapse; }
+    .items-table th {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: rgba(255,255,255,0.4);
+      padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .items-table th:nth-child(2),
+    .items-table th:nth-child(3) { text-align: center; }
+    .items-table th:nth-child(4) { text-align: right; }
+    .items-table td {
+      padding: 10px 10px; font-size: 0.85rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .items-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .item-name { font-weight: 600; color: var(--white); }
+    .item-qty  { text-align: center; color: var(--gold); font-weight: 600; }
+    .item-price{ text-align: center; color: rgba(255,255,255,0.45); font-size: 0.78rem; }
+    .item-total{ text-align: right; font-weight: 700; color: var(--white); }
+    /* qty controls */
+    .qty-ctrl { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .qty-btn {
+      width: 24px; height: 24px; border-radius: 6px;
+      border: 1px solid rgba(255,215,0,0.5); background: rgba(255,215,0,0.08);
+      color: var(--gold); font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .qty-btn:hover { background: rgba(255,215,0,0.2); }
+    .qty-num { font-size: 0.85rem; font-weight: 700; color: var(--white); min-width: 18px; text-align: center; }
+
+    /* Add extra item search */
+    .extra-search-wrap { position: relative; margin-bottom: 6px; }
+    #extra-search {
+      width: 100%; background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,215,0,0.3); border-radius: 50px;
+      padding: 12px 20px; color: var(--white);
+      font-family: 'Poppins',sans-serif; font-size: 0.88rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      caret-color: var(--gold);
+    }
+    #extra-search::placeholder { color: rgba(255,255,255,0.35); }
+    #extra-search:focus { border-color: rgba(255,215,0,0.7); box-shadow: 0 0 0 3px rgba(255,215,0,0.12); }
+
+    /* Menu dropdown list */
+    #menu-list {
+      max-height: 220px; overflow-y: auto;
+      background: rgba(10,10,10,0.97); border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 12px; margin-top: 8px;
+    }
+    #menu-list::-webkit-scrollbar { width: 5px; }
+    #menu-list::-webkit-scrollbar-track { background: transparent; }
+    #menu-list::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 3px; }
+    .menu-item-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .menu-item-row:last-child { border-bottom: none; }
+    .menu-item-row:hover { background: rgba(255,215,0,0.1); }
+    .menu-item-name { font-size: 0.85rem; font-weight: 600; color: var(--white); }
+    .menu-item-price { font-size: 0.82rem; font-weight: 700; color: var(--gold); }
+
+    /* Bill summary box */
+    .summary-box {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 12px; padding: 18px 20px; margin-top: 4px;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: rgba(255,255,255,0.55); }
+    .summary-value { font-weight: 600; color: var(--white); }
+    .summary-total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0 0; margin-top: 6px;
+    }
+    .summary-total-label { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .summary-total-value { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+
+    /* Discount controls */
+    .discount-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 8px; }
+    .disc-type-btn {
+      padding: 5px 14px; border-radius: 8px; font-family: 'Poppins',sans-serif;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      border: 1px solid var(--gold);
+    }
+    .disc-type-btn.active { background: var(--gold); color: #000; }
+    .disc-type-btn:not(.active) { background: transparent; color: var(--white); }
+    #discount-input {
+      width: 90px; padding: 5px 12px; border-radius: 8px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,215,0,0.3);
+      color: var(--white); font-family: 'Poppins',sans-serif; font-size: 0.85rem;
+      outline: none;
+    }
+    #discount-input:focus { border-color: rgba(255,215,0,0.7); }
+
+    /* Payment method */
+    .pay-btns { display: flex; gap: 10px; margin-top: 10px; }
+    .pay-btn {
+      flex: 1; padding: 11px 8px; border-radius: 10px; font-family: 'Poppins',sans-serif;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      text-align: center;
+    }
+    .pay-btn.selected {
+      background: rgba(255,215,0,0.15); border: 2px solid var(--gold); color: var(--gold);
+    }
+    .pay-btn:not(.selected) {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Action buttons */
+    .bill-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .print-btn {
+      flex: 1; padding: 13px; background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3); color: var(--white);
+      border-radius: 10px; font-family: 'Poppins',sans-serif;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .print-btn:hover { background: rgba(255,255,255,0.18); }
+    .complete-btn {
+      flex: 1; padding: 13px; background: var(--green); border: none;
+      color: var(--white); border-radius: 10px; font-family: 'Poppins',sans-serif;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s;
+    }
+    .complete-btn:hover { background: #16a34a; transform: scale(1.01); }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 80px; right: 16px;
+      background: #16a34a; color: #fff; padding: 10px 18px;
+      border-radius: 10px; font-size: 0.83rem; font-weight: 600;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 3000;
+    }
+    #toast.show { opacity: 1; }
+
+    /* =============================================
+       PRINT STYLES
+    ============================================= */
+    @media print {
+      body * { visibility: hidden; }
+      #print-receipt, #print-receipt * { visibility: visible; }
+      #print-receipt {
+        position: fixed; inset: 0; background: #fff; color: #000;
+        max-width: 300px; margin: 0 auto; padding: 20px;
+        font-family: 'Courier New', monospace; font-size: 13px;
+        visibility: visible;
+      }
+      .pr-hotel { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+      .pr-line { border-top: 1px dashed #000; margin: 8px 0; }
+      .pr-row { display: flex; justify-content: space-between; margin: 3px 0; }
+      .pr-total { font-size: 15px; font-weight: bold; }
+      .pr-center { text-align: center; margin-top: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── BACKGROUND ── -->
+  <div class="bg-layer"   aria-hidden="true"></div>
+  <div class="bg-overlay" aria-hidden="true"></div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1 — NAVBAR
+  ══════════════════════════════════════════ -->
+  <nav id="navbar" role="navigation" aria-label="Owner navigation">
+
+    <div class="navbar-brand">
+      <span aria-hidden="true">🏨</span>
+      <span class="brand-text">Hotel Golden Stone</span>
+      <span class="brand-short">Golden Stone</span>
+    </div>
+
+    <div class="navbar-right">
+      <button class="bell-btn" aria-label="Notifications">🔔</button>
+      <div class="owner-badge">
+        <div class="owner-avatar" aria-hidden="true">O</div>
+        <span>Owner</span>
+      </div>
+      <button class="logout-btn" onclick="window.location.href='owner-login.html'" aria-label="Logout">
+        Logout
+      </button>
+    </div>
+
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ── SECTION 2: PAGE TITLE ── -->
+    <div class="page-title-wrap" id="page-title-section">
+      <h1 class="page-title">🧾 BILLING</h1>
+      <p class="page-subtitle">Select a table to generate bill</p>
+    </div>
+
+    <!-- ── SECTION 3: SEARCH BAR ── -->
+    <div class="search-wrap" id="search-section">
+      <input
+        type="search"
+        id="table-search"
+        placeholder="🔍 Search table number... (e.g. Table 3)"
+        autocomplete="off"
+        aria-label="Search occupied tables"
+        oninput="handleSearch(this.value)"
+      />
+    </div>
+
+    <!-- ── SECTION 4: OCCUPIED TABLES ── -->
+    <div id="occupied-section">
+
+      <div class="section-header-row">
+        <span class="section-heading">
+          🔴 OCCUPIED TABLES
+          <span class="count-badge" id="count-badge">3</span>
+        </span>
+      </div>
+
+      <!-- Cards grid — rendered by JS -->
+      <div class="tables-grid" id="tables-grid"></div>
+
+      <!-- No match state (shown when search has no results) -->
+      <div class="no-match-msg" id="no-match-msg" role="alert">
+        <div class="no-match-icon">❌</div>
+        <p>No occupied table found<br>with this number.</p>
+      </div>
+
+    </div>
+
+    <!-- ── SECTION 5: EMPTY STATE ── -->
+    <div id="empty-state" role="status" aria-live="polite">
+      <div class="empty-icon">✅</div>
+      <h2>All Tables Available</h2>
+      <p>No pending bills at the moment.</p>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PART 2 — BILL DETAIL SECTION
+    ══════════════════════════════════════════ -->
+    <div id="bill-detail" aria-label="Bill detail">
+
+      <!-- Bill header -->
+      <div class="bill-header">
+        <button class="back-btn" onclick="showTablesView()" aria-label="Back to tables">← Back</button>
+        <span class="bill-header-title" id="bill-header-title">🧾 Table — Bill</span>
+        <span class="bill-number" id="bill-number-display">Bill #—</span>
+      </div>
+
+      <!-- Info bar -->
+      <div class="bill-info-bar" id="bill-info-bar">
+        <span>📅 <span id="bi-date"></span></span>
+        <span>🕐 <span id="bi-time"></span></span>
+        <span>🪑 <span id="bi-table"></span></span>
+        <span>⏱️ Sitting: <span id="bi-sitting"></span></span>
+      </div>
+
+      <!-- Bill body -->
+      <div class="bill-body">
+
+        <!-- Ordered items -->
+        <p class="bill-section-title">📋 Ordered Items</p>
+        <table class="items-table" id="items-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+
+        <!-- Add extra item -->
+        <p class="bill-section-title" style="margin-top:24px">➕ Add Extra Item</p>
+        <p style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:8px">Search and select item from menu</p>
+        <div class="extra-search-wrap">
+          <input type="search" id="extra-search" placeholder="🔍 Search item..."
+            autocomplete="off" oninput="filterMenu(this.value)" aria-label="Search menu items" />
+        </div>
+        <div id="menu-list"></div>
+
+        <!-- Bill summary -->
+        <p class="bill-section-title" style="margin-top:24px">💰 Bill Summary</p>
+        <div class="summary-box">
+          <div class="summary-row">
+            <span class="summary-label">Subtotal</span>
+            <span class="summary-value" id="sum-subtotal">₹0</span>
+          </div>
+
+          <!-- Discount -->
+          <div class="summary-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <span class="summary-label">Discount</span>
+            <div class="discount-row">
+              <button class="disc-type-btn active" id="disc-pct-btn" onclick="setDiscType('pct')">% Percent</button>
+              <button class="disc-type-btn" id="disc-flat-btn" onclick="setDiscType('flat')">₹ Flat Amount</button>
+              <input type="number" id="discount-input" value="0" min="0" placeholder="0"
+                oninput="recalc()" aria-label="Discount value" />
+            </div>
+          </div>
+          <div class="summary-row" id="discount-row">
+            <span class="summary-label" id="discount-label">Discount (0%)</span>
+            <span class="summary-value" id="sum-discount" style="color:#f97316">-₹0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">GST (5%)</span>
+            <span class="summary-value" id="sum-gst">₹0</span>
+          </div>
+          <div class="summary-total-row">
+            <span class="summary-total-label">TOTAL</span>
+            <span class="summary-total-value" id="sum-total">₹0</span>
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <p class="bill-section-title" style="margin-top:20px">💳 Select Payment Method</p>
+        <div class="pay-btns">
+          <button class="pay-btn selected" id="pay-cash" onclick="selectPayment('Cash')">💵 Cash</button>
+          <button class="pay-btn" id="pay-upi"  onclick="selectPayment('UPI')">📱 UPI</button>
+          <button class="pay-btn" id="pay-card" onclick="selectPayment('Card')">💳 Card</button>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="bill-actions">
+          <button class="print-btn" onclick="doPrint()">🖨️ Print Bill</button>
+          <button class="complete-btn" onclick="completePayment()">✅ Complete Payment</button>
+        </div>
+
+      </div><!-- end bill-body -->
+    </div><!-- end bill-detail -->
+
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- Print receipt (hidden on screen, visible on print) -->
+  <div id="print-receipt" style="display:none">
+    <div class="pr-hotel">🏨 HOTEL GOLDEN STONE</div>
+    <div class="pr-line"></div>
+    <div class="pr-row"><span>Bill No:</span><span id="pr-bill"></span></div>
+    <div class="pr-row"><span>Table:</span><span id="pr-table"></span></div>
+    <div class="pr-row"><span>Date:</span><span id="pr-date"></span></div>
+    <div class="pr-row"><span>Time:</span><span id="pr-time"></span></div>
+    <div class="pr-line"></div>
+    <div id="pr-items"></div>
+    <div class="pr-line"></div>
+    <div class="pr-row"><span>Subtotal:</span><span id="pr-subtotal"></span></div>
+    <div class="pr-row"><span id="pr-disc-label">Discount:</span><span id="pr-discount"></span></div>
+    <div class="pr-row"><span>GST (5%):</span><span id="pr-gst"></span></div>
+    <div class="pr-line"></div>
+    <div class="pr-row pr-total"><span>TOTAL:</span><span id="pr-total"></span></div>
+    <div class="pr-row"><span>Payment:</span><span id="pr-payment"></span></div>
+    <div class="pr-line"></div>
+    <div class="pr-center">Thank You! 😊<br>Please Visit Again!</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 6 — BOTTOM NAVIGATION
+  ══════════════════════════════════════════ -->
+  <nav id="bottom-nav" role="navigation" aria-label="Bottom navigation">
+    <a href="dashboard.html"    class="nav-tab" id="nav-home">
+      <span class="nav-icon" aria-hidden="true">🏠</span>Home
+    </a>
+    <a href="billing.html"      class="nav-tab active" id="nav-billing" aria-current="page">
+      <span class="nav-icon" aria-hidden="true">🧾</span>Billing
+    </a>
+    <a href="menu-control.html" class="nav-tab" id="nav-menu">
+      <span class="nav-icon" aria-hidden="true">🍽️</span>Menu
+    </a>
+    <a href="reports.html"      class="nav-tab" id="nav-reports">
+      <span class="nav-icon" aria-hidden="true">📊</span>Reports
+    </a>
+    <a href="order-history.html" class="nav-tab" id="nav-history">
+      <span class="nav-icon" aria-hidden="true">📋</span>History
+    </a>
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════════ -->
+  <script>
+    /* ================================================
+       STATIC DATA — replace with Firestore in Phase 2
+    ================================================ */
+    var OCCUPIED_TABLES = [
+      { id: 3,  items: 4, amount: 500, minutesAgo: 25 },
+      { id: 5,  items: 3, amount: 320, minutesAgo: 47 },
+      { id: 8,  items: 6, amount: 980, minutesAgo: 75 }
+    ];
+
+    /* Per-table demo ordered items */
+    var TABLE_ITEMS = {
+      3: [
+        { name: 'Paneer Tikka',  qty: 2, price: 125 },
+        { name: 'Butter Naan',   qty: 4, price: 30  },
+        { name: 'Masala Papad',  qty: 1, price: 60  },
+        { name: 'Cold Drink',    qty: 2, price: 40  }
+      ],
+      5: [
+        { name: 'Dal Makhani',   qty: 1, price: 180 },
+        { name: 'Rice',          qty: 2, price: 50  }
+      ],
+      8: [
+        { name: 'Butter Chicken',qty: 2, price: 250 },
+        { name: 'Naan',          qty: 4, price: 30  },
+        { name: 'Lassi',         qty: 2, price: 60  }
+      ]
+    };
+
+    /* Full menu list for "Add Extra Item" */
+    var FULL_MENU = [
+      { name: 'Paneer Tikka',         price: 125 },
+      { name: 'Masala Papad',         price: 60  },
+      { name: 'Veg Spring Roll',      price: 90  },
+      { name: 'Hara Bhara Kebab',     price: 110 },
+      { name: 'Dal Makhani',          price: 180 },
+      { name: 'Butter Chicken',       price: 250 },
+      { name: 'Paneer Butter Masala', price: 220 },
+      { name: 'Mix Veg',              price: 160 },
+      { name: 'Shahi Paneer',         price: 230 },
+      { name: 'Butter Naan',          price: 30  },
+      { name: 'Tandoori Roti',        price: 20  },
+      { name: 'Garlic Naan',          price: 40  },
+      { name: 'Paratha',              price: 35  },
+      { name: 'Steamed Rice',         price: 50  },
+      { name: 'Jeera Rice',           price: 70  },
+      { name: 'Veg Biryani',          price: 150 },
+      { name: 'Lassi',                price: 60  },
+      { name: 'Cold Drink',           price: 40  },
+      { name: 'Masala Chai',          price: 25  },
+      { name: 'Fresh Lime Soda',      price: 50  },
+      { name: 'Water Bottle',         price: 20  },
+      { name: 'Gulab Jamun',          price: 70  },
+      { name: 'Ice Cream',            price: 90  },
+      { name: 'Kheer',                price: 80  }
+    ];
+
+    /* ── State ── */
+    var currentTableId   = null;
+    var currentItems     = [];   /* working copy of bill items */
+    var discountType     = 'pct';
+    var selectedPayment  = 'Cash';
+    var billCounter      = 1045; /* auto-increment bill number */
+
+    /* ================================================
+       HELPERS
+    ================================================ */
+    function formatTime(mins) {
+      if (mins < 60) return mins + ' min';
+      var h = Math.floor(mins / 60), m = mins % 60;
+      return m > 0 ? h + ' hr ' + m + ' min' : h + ' hr';
+    }
+    function timeClass(mins) {
+      if (mins > 60) return { cls: 'alert',  prefix: '🔴 ' };
+      if (mins >= 30) return { cls: 'warn',  prefix: '⚠️ ' };
+      return               { cls: 'normal', prefix: '' };
+    }
+    function fmt(n) { return '₹' + n.toLocaleString('en-IN'); }
+    function now() { return new Date(); }
+    function dateStr(d) {
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    function timeStr(d) {
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+    }
+
+    /* ================================================
+       TOAST
+    ================================================ */
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function() { t.classList.remove('show'); }, 2000);
+    }
+
+    /* ================================================
+       VIEW SWITCHING
+    ================================================ */
+    function showTablesView() {
+      document.getElementById('bill-detail').style.display = 'none';
+      document.getElementById('occupied-section').style.display = 'block';
+      document.getElementById('empty-state').style.display =
+        OCCUPIED_TABLES.length === 0 ? 'block' : 'none';
+      document.getElementById('page-title-section').style.display = 'block';
+      document.getElementById('search-section').style.display = 'flex';
+      renderCards(OCCUPIED_TABLES);
+    }
+
+    function showBillView(tableId) {
+      currentTableId = tableId;
+      var tableData  = OCCUPIED_TABLES.find(function(t){ return t.id === tableId; });
+      if (!tableData) return;
+
+      /* deep copy items so edits don't touch source */
+      currentItems = (TABLE_ITEMS[tableId] || []).map(function(i){
+        return { name: i.name, qty: i.qty, price: i.price };
+      });
+
+      /* Hide tables, show bill */
+      document.getElementById('occupied-section').style.display = 'none';
+      document.getElementById('empty-state').style.display = 'none';
+      document.getElementById('page-title-section').style.display = 'none';
+      document.getElementById('search-section').style.display = 'none';
+
+      var detail = document.getElementById('bill-detail');
+      detail.style.display = 'block';
+
+      /* Bill header */
+      var bn = '#' + billCounter;
+      document.getElementById('bill-header-title').textContent = '🧾 Table ' + tableId + ' — Bill';
+      document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+
+      /* Info bar */
+      var d = now();
+      document.getElementById('bi-date').textContent    = dateStr(d);
+      document.getElementById('bi-time').textContent    = timeStr(d);
+      document.getElementById('bi-table').textContent   = 'Table ' + tableId;
+      document.getElementById('bi-sitting').textContent = formatTime(tableData.minutesAgo);
+
+      /* Reset discount + payment */
+      document.getElementById('discount-input').value = '0';
+      discountType = 'pct';
+      setDiscType('pct', true);
+      selectPayment('Cash', true);
+
+      renderItemsTable();
+      renderMenuList(FULL_MENU);
+      recalc();
+    }
+
+    /* ================================================
+       ITEMS TABLE RENDER
+    ================================================ */
+    function renderItemsTable() {
+      var tbody = document.getElementById('items-tbody');
+      tbody.innerHTML = '';
+      currentItems.forEach(function(item, idx) {
+        var row = document.createElement('tr');
+        var total = item.qty * item.price;
+        row.innerHTML =
+          '<td class="item-name">' + item.name + '</td>' +
+          '<td class="item-qty">' + item.qty + '</td>' +
+          '<td class="item-price">' + fmt(item.price) + '</td>' +
+          '<td class="item-total">' + fmt(total) + '</td>';
+        tbody.appendChild(row);
+      });
+    }
+
+
+    /* ================================================
+       MENU SEARCH — sorts by match, never hides
+    ================================================ */
+    function renderMenuList(sorted) {
+      var list = document.getElementById('menu-list');
+      list.innerHTML = '';
+      sorted.forEach(function(item) {
+        var row = document.createElement('div');
+        row.className = 'menu-item-row';
+        row.setAttribute('role', 'button');
+        row.setAttribute('tabindex', '0');
+        row.innerHTML =
+          '<span class="menu-item-name">' + item.name + '</span>' +
+          '<span class="menu-item-price">' + fmt(item.price) + '</span>';
+        row.addEventListener('click', function() { addMenuItemToBill(item); });
+        row.addEventListener('keydown', function(e){
+          if (e.key==='Enter'||e.key===' '){ e.preventDefault(); addMenuItemToBill(item); }
+        });
+        list.appendChild(row);
+      });
+    }
+
+    function filterMenu(query) {
+      var q = query.trim().toLowerCase();
+      if (!q) { renderMenuList(FULL_MENU); return; }
+      var matches = [], rest = [];
+      FULL_MENU.forEach(function(item) {
+        if (item.name.toLowerCase().indexOf(q) !== -1) matches.push(item);
+        else rest.push(item);
+      });
+      renderMenuList(matches.concat(rest));
+    }
+
+    function addMenuItemToBill(menuItem) {
+      /* If item already in bill, increment qty */
+      var existing = currentItems.find(function(i){ return i.name === menuItem.name; });
+      if (existing) {
+        existing.qty++;
+      } else {
+        currentItems.push({ name: menuItem.name, qty: 1, price: menuItem.price });
+      }
+      document.getElementById('extra-search').value = '';
+      renderMenuList(FULL_MENU);
+      renderItemsTable();
+      recalc();
+      showToast('✅ ' + menuItem.name + ' added!');
+    }
+
+    /* ================================================
+       RECALCULATE TOTALS
+    ================================================ */
+    function recalc() {
+      var subtotal = currentItems.reduce(function(s, i){ return s + i.qty * i.price; }, 0);
+      var discVal  = parseFloat(document.getElementById('discount-input').value) || 0;
+      var discAmt  = 0;
+
+      if (discountType === 'pct') {
+        discAmt = Math.round(subtotal * discVal / 100);
+        document.getElementById('discount-label').textContent = 'Discount (' + discVal + '%)';
+      } else {
+        discAmt = Math.min(discVal, subtotal);
+        document.getElementById('discount-label').textContent = 'Discount (Flat)';
+      }
+
+      var afterDisc = subtotal - discAmt;
+      var gst       = Math.round(afterDisc * 0.05);
+      var total     = afterDisc + gst;
+
+      document.getElementById('sum-subtotal').textContent = fmt(subtotal);
+      document.getElementById('sum-discount').textContent = '-' + fmt(discAmt);
+      document.getElementById('sum-gst').textContent      = fmt(gst);
+      document.getElementById('sum-total').textContent    = fmt(total);
+    }
+
+    /* ================================================
+       DISCOUNT TYPE TOGGLE
+    ================================================ */
+    function setDiscType(type, silent) {
+      discountType = type;
+      document.getElementById('disc-pct-btn').classList.toggle('active', type === 'pct');
+      document.getElementById('disc-flat-btn').classList.toggle('active', type === 'flat');
+      if (!silent) recalc();
+    }
+
+    /* ================================================
+       PAYMENT METHOD
+    ================================================ */
+    function selectPayment(method, silent) {
+      selectedPayment = method;
+      ['Cash','UPI','Card'].forEach(function(m) {
+        var id = 'pay-' + m.toLowerCase();
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle('selected', m === method);
+      });
+    }
+
+    /* ================================================
+       PRINT
+    ================================================ */
+    function doPrint() {
+      var d        = now();
+      var discVal  = parseFloat(document.getElementById('discount-input').value) || 0;
+      var subtotal = currentItems.reduce(function(s,i){ return s+i.qty*i.price; },0);
+      var discAmt  = discountType === 'pct'
+        ? Math.round(subtotal * discVal / 100)
+        : Math.min(discVal, subtotal);
+      var afterDisc = subtotal - discAmt;
+      var gst       = Math.round(afterDisc * 0.05);
+      var total     = afterDisc + gst;
+
+      document.getElementById('pr-bill').textContent    = '#' + billCounter;
+      document.getElementById('pr-table').textContent   = 'Table ' + currentTableId;
+      document.getElementById('pr-date').textContent    = dateStr(d);
+      document.getElementById('pr-time').textContent    = timeStr(d);
+      document.getElementById('pr-subtotal').textContent= fmt(subtotal);
+      document.getElementById('pr-disc-label').textContent =
+        discountType === 'pct' ? 'Discount (' + discVal + '%):' : 'Discount (Flat):';
+      document.getElementById('pr-discount').textContent = '-' + fmt(discAmt);
+      document.getElementById('pr-gst').textContent     = fmt(gst);
+      document.getElementById('pr-total').textContent   = fmt(total);
+      document.getElementById('pr-payment').textContent = selectedPayment;
+
+      var itemsHtml = '';
+      currentItems.forEach(function(i){
+        itemsHtml += '<div class="pr-row"><span>' + i.name + ' x' + i.qty + '</span><span>' + fmt(i.qty*i.price) + '</span></div>';
+      });
+      document.getElementById('pr-items').innerHTML = itemsHtml;
+
+      /* Make print receipt visible for printing */
+      var pr = document.getElementById('print-receipt');
+      pr.style.display = 'block';
+      window.print();
+      pr.style.display = 'none';
+    }
+
+    /* ================================================
+       COMPLETE PAYMENT
+    ================================================ */
+    function completePayment() {
+      var d        = now();
+      var discVal  = parseFloat(document.getElementById('discount-input').value) || 0;
+      var subtotal = currentItems.reduce(function(s,i){ return s+i.qty*i.price; },0);
+      var discAmt  = discountType === 'pct'
+        ? Math.round(subtotal * discVal / 100)
+        : Math.min(discVal, subtotal);
+      var afterDisc = subtotal - discAmt;
+      var gst       = Math.round(afterDisc * 0.05);
+      var total     = afterDisc + gst;
+
+      /* 1. Save to localStorage for order-history.html */
+      var history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+      history.unshift({
+        billNumber:     '#' + billCounter,
+        tableNumber:    'Table ' + currentTableId,
+        date:           dateStr(d),
+        time:           timeStr(d),
+        items:          currentItems.slice(),
+        subtotal:       subtotal,
+        discount:       discAmt,
+        discountType:   discountType,
+        gst:            gst,
+        totalAmount:    total,
+        paymentMethod:  selectedPayment,
+        status:         'Completed',
+        timestamp:      Date.now()
+      });
+      localStorage.setItem('orderHistory', JSON.stringify(history));
+
+      /* 2. Remove table from occupied list */
+      OCCUPIED_TABLES = OCCUPIED_TABLES.filter(function(t){ return t.id !== currentTableId; });
+      billCounter++;
+
+      /* 3. Return to tables view */
+      showTablesView();
+    }
+
+    /* ================================================
+       PART 1 HELPERS
+    ================================================ */
+    function renderCards(data) {
+      var grid    = document.getElementById('tables-grid');
+      var noMatch = document.getElementById('no-match-msg');
+      var empty   = document.getElementById('empty-state');
+      var section = document.getElementById('occupied-section');
+      var badge   = document.getElementById('count-badge');
+      grid.innerHTML = '';
+
+      if (OCCUPIED_TABLES.length === 0) {
+        section.style.display = 'none';
+        empty.style.display   = 'block';
+        return;
+      }
+      section.style.display = 'block';
+      empty.style.display   = 'none';
+
+      if (data.length === 0) {
+        noMatch.style.display = 'block';
+        badge.textContent     = '0';
+        return;
+      }
+      noMatch.style.display = 'none';
+      badge.textContent     = data.length;
+
+      data.forEach(function(t, idx) {
+        var tc      = timeClass(t.minutesAgo);
+        var tStr    = formatTime(t.minutesAgo);
+        var card    = document.createElement('div');
+        card.className = 'table-card';
+        card.style.animationDelay = (idx * 0.08) + 's';
+        card.innerHTML =
+          '<div class="card-dot" aria-hidden="true"></div>' +
+          '<p class="card-table-name">Table ' + t.id + '</p>' +
+          '<div class="card-divider"></div>' +
+          '<div class="card-detail"><span class="card-detail-label">Items</span>' +
+            '<span class="card-detail-value gold">' + t.items + ' items</span></div>' +
+          '<div class="card-detail"><span class="card-detail-label">Amount</span>' +
+            '<span class="card-detail-value">' + fmt(t.amount) + '</span></div>' +
+          '<div class="card-detail"><span class="card-detail-label">Time</span>' +
+            '<span class="card-detail-value ' + tc.cls + '">' + tc.prefix + tStr + '</span></div>' +
+          '<div class="card-divider"></div>' +
+          '<button class="gen-bill-btn" onclick="generateBill(' + t.id + ')"' +
+            ' aria-label="Generate bill for Table ' + t.id + '">🧾 Generate Bill</button>';
+        grid.appendChild(card);
+      });
+    }
+
+    function handleSearch(raw) {
+      var query = raw.trim().toLowerCase();
+      if (!query) { renderCards(OCCUPIED_TABLES); return; }
+      var numMatch = query.match(/\d+/);
+      var num      = numMatch ? parseInt(numMatch[0], 10) : null;
+      if (num === null) { renderCards([]); return; }
+      renderCards(OCCUPIED_TABLES.filter(function(t){ return t.id === num; }));
+    }
+
+    function generateBill(tableId) { showBillView(tableId); }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderCards(OCCUPIED_TABLES);
+    });
+  </script>
+
+</body>
+</html>
+

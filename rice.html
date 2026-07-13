@@ -375,7 +375,6 @@
 
   <!-- ITEMS SECTION -->
   <section class="items-section" aria-label="Rice and Biryani Items">
-    <div class="section-label" id="labelRice">— Aromatic Rice Dishes —</div>
     <div class="items-grid" id="itemsGrid"></div>
   </section>
 
@@ -399,6 +398,7 @@
     </div>
   </div>
 
+  <script src="menu-page.js"></script>
   <script>
     'use strict';
 
@@ -421,141 +421,33 @@
     document.getElementById('backBtn').childNodes[1].textContent = ' ' + ui.back.replace('← ','');
     document.querySelector('.back-arrow').textContent = '←';
     document.getElementById('cartBtn').textContent = ui.confirmOrder;
-
-    /* ── Menu data with translations ── */
+    /* ── Menu data (loaded from DB) ── */
     const PAGE_CATEGORY = 'rice_biryani';
-    const MENU = [
-      { id:301, en:'Steamed Rice',           hi:'स्टीम्ड राइस',            mr:'स्टीम राईस',            price:99,  img:'Rice & Biryanies/Steamed Rice.png' },
-      { id:302, en:'Jeera Rice',              hi:'जीरा राइस',               mr:'जीरा राईस',             price:149, img:'Rice & Biryanies/Jeera Rice.png' },
-      { id:303, en:'Veg Pulao',               hi:'वेज पुलाव',               mr:'व्हेज पुलाव',            price:199, img:'Rice & Biryanies/Veg Pulao.png' },
-      { id:304, en:'Peas Pulao',              hi:'मटर पुलाव',               mr:'मटार पुलाव',            price:209, img:'Rice & Biryanies/Peas Pulao.png' },
-      { id:305, en:'Paneer Pulao',            hi:'पनीर पुलाव',              mr:'पनीर पुलाव',            price:249, img:'Rice & Biryanies/Paneer Pulao.png' },
-      { id:306, en:'Kashmiri Pulao',          hi:'कश्मीरी पुलाव',            mr:'काश्मिरी पुलाव',         price:269, img:'Rice & Biryanies/Kashmiri Pulao.png' },
-      { id:307, en:'Tawa Pulao',              hi:'तवा पुलाव',               mr:'तवा पुलाव',             price:219, img:'Rice & Biryanies/Tawa Pulao.png' },
-      
-      { id:308, en:'Veg Fried Rice',          hi:'वेज फ्राइड राइस',          mr:'व्हेज फ्राइड राईस',       price:199, img:'Rice & Biryanies/Veg Fried Rice.png' },
-      { id:309, en:'Schezwan Fried Rice',     hi:'सेजवान फ्राइड राइस',       mr:'शेजवान फ्राइड राईस',     price:229, img:'Rice & Biryanies/Schezwan Fried Rice.png' },
-      { id:310, en:'Paneer Fried Rice',       hi:'पनीर फ्राइड राइस',         mr:'पनीर फ्राइड राईस',       price:249, img:'Rice & Biryanies/Paneer Fried Rice.png' },
-      
-      { id:311, en:'Veg Biryani',             hi:'वेज बिरयानी',             mr:'व्हेज बिर्याणी',          price:249, img:'Rice & Biryanies/Veg Biryani.png' },
-      { id:312, en:'Hyderabadi Veg Biryani',  hi:'हैदराबादी वेज बिरयानी',     mr:'हैदराबादी व्हेज बिर्याणी',  price:279, img:'Rice & Biryanies/Hyderabadi Veg Biryani.png' },
-      { id:313, en:'Paneer Biryani',          hi:'पनीर बिरयानी',            mr:'पनीर बिर्याणी',          price:299, img:'Rice & Biryanies/Paneer Biryani.png' },
-      { id:314, en:'Dum Veg Biryani',         hi:'दम वेज बिरयानी',          mr:'दम व्हेज बिर्याणी',       price:289, img:'Rice & Biryanies/Dum Veg Biryani.png' },
-      { id:315, en:'Mushroom Biryani',        hi:'मशरूम बिरयानी',           mr:'मशरूम बिर्याणी',         price:299, img:'Rice & Biryanies/Mushroom Biryani.png' }
-    ];
 
     /* resolve display name per language */
     function getName(item) { return item[lang] || item.en; }
     const cart = {};
 
-    /* ── Render items ── */
+    /* ── Render via shared helper (fetches DB, builds grid + section labels + search) ── */
     const grid = document.getElementById('itemsGrid');
-
-    MENU.forEach((item, idx) => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
-      card.id = 'card-' + item.id;
-      card.innerHTML = `
-        <div class="item-img-wrap">
-          <img src="${item.img}" alt="${item.en}" loading="${idx < 4 ? 'eager' : 'lazy'}"
-               onerror="this.src='Rice_and_Biryani.png'"/>
-        </div>
-        <div class="item-info">
-          <div class="item-name">${getName(item)}</div>
-          <div class="item-price-row">
-            <div class="item-price">&#8377;${item.price}</div>
-            <div class="order-counter" id="counter-${item.id}">
-              <button class="counter-btn minus" onclick="changeQty(${item.id}, -1)" aria-label="Remove one ${item.en}">&#8722;</button>
-              <span class="counter-display" id="qty-${item.id}">0</span>
-              <button class="counter-btn plus" onclick="changeQty(${item.id}, 1)" aria-label="Add ${item.en}">&#43;</button>
-            </div>
-          </div>
-        </div>
-      `;
-      grid.appendChild(card);
-
-      /* add section labels dynamically */
-      if (idx === 6) { // After Tawa Pulao, before Fried Rice
-        const lbl = document.createElement('div');
-        lbl.className = 'section-label';
-        lbl.id = 'labelFried';
-        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
-        lbl.textContent = ui.fried;
-        grid.appendChild(lbl);
-      } else if (idx === 9) { // After Paneer Fried Rice, before Veg Biryani
-        const lbl = document.createElement('div');
-        lbl.className = 'section-label';
-        lbl.id = 'labelBiryanies';
-        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
-        lbl.textContent = ui.biryani;
-        grid.appendChild(lbl);
-      }
-    });
-    document.getElementById('labelRice').textContent = ui.rice;
-
-    /* ── Search ── */
-    const searchInput = document.getElementById('searchInput');
-    const noResultCard = document.createElement('div');
-    noResultCard.className = 'no-results-card';
-    noResultCard.id = 'noResultCard';
-    noResultCard.style.display = 'none';
-    grid.appendChild(noResultCard);
-
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-
-      let visibleRice = 0, visibleFried = 0, visibleBiryani = 0;
-
-      MENU.forEach((item, idx) => {
-        const card = document.getElementById('card-' + item.id);
-        const nameMatch = getName(item).toLowerCase().includes(q) || item.en.toLowerCase().includes(q);
-        if (!q || nameMatch) {
-          card.classList.remove('hidden');
-          if (idx < 7) visibleRice++;
-          else if (idx < 10) visibleFried++;
-          else visibleBiryani++;
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-
-      /* show/hide section labels */
-      const lblR = document.getElementById('labelRice');
-      const lblF = document.getElementById('labelFried');
-      const lblB = document.getElementById('labelBiryanies');
-      if (lblR) lblR.classList.toggle('hidden', visibleRice === 0);
-      if (lblF) lblF.classList.toggle('hidden', visibleFried === 0);
-      if (lblB) lblB.classList.toggle('hidden', visibleBiryani === 0);
-
-      /* no results message */
-      if (q && visibleRice === 0 && visibleFried === 0 && visibleBiryani === 0) {
-        noResultCard.textContent = ui.noResults;
-        noResultCard.style.display = '';
-      } else {
-        noResultCard.style.display = 'none';
-      }
-    });
+    initMenuPage({ category: PAGE_CATEGORY, fallbackImg: 'Rice_and_Biryani.png', ui, getName });
 
     /* ── Quantity change ── */
     function changeQty(id, delta) {
       const current = cart[id] || 0;
       const next = Math.max(0, current + delta);
       cart[id] = next;
-
       const counter = document.getElementById('counter-' + id);
       const qtyEl   = document.getElementById('qty-' + id);
-      qtyEl.textContent = next;
-      
+      if (qtyEl) qtyEl.textContent = next;
       const card = document.getElementById('card-' + id);
-
       if (next > 0) {
-        counter.classList.add('has-items');
+        if (counter) counter.classList.add('has-items');
         if (card) card.classList.add('ordered');
       } else {
-        counter.classList.remove('has-items');
+        if (counter) counter.classList.remove('has-items');
         if (card) card.classList.remove('ordered');
       }
-
       updateCart();
     }
 
@@ -567,101 +459,60 @@
       MENU.forEach(item => {
         const q = cart[item.id] || 0;
         if (q > 0) {
-          activeItems.push({
-            name: getName(item),
-            qty: q,
-            price: q * item.price
-          });
+          activeItems.push({ name: getName(item), qty: q, price: q * item.price });
           totalItems += q;
           totalPrice += q * item.price;
         }
       });
-
       const bar = document.getElementById('cartBar');
       const cartCountEl = document.getElementById('cartCount');
       const cartTotalEl = document.getElementById('cartTotal');
-
       if (activeItems.length === 1) {
-        cartCountEl.textContent = `${activeItems[0].name} (${activeItems[0].qty})`;
+        cartCountEl.textContent = activeItems[0].name + ' (' + activeItems[0].qty + ')';
         cartTotalEl.textContent = '₹' + activeItems[0].price;
       } else if (activeItems.length > 1) {
-        cartCountEl.textContent = activeItems.map(item => `${item.name} (${item.qty})`).join(', ');
+        cartCountEl.textContent = activeItems.map(it => it.name + ' (' + it.qty + ')').join(', ');
         cartTotalEl.textContent = 'Total: ₹' + totalPrice;
       } else {
         cartCountEl.textContent = '0 items';
         cartTotalEl.textContent = '₹0';
       }
-
       if (totalItems > 0) bar.classList.add('visible');
       else bar.classList.remove('visible');
     }
 
     /* ── Place order ── */
     function placeOrder() {
-      console.log("--- placeOrder() EXECUTION START ---");
       const items = MENU.filter(i => (cart[i.id] || 0) > 0);
-      console.log("1. Selected items:", items);
-      if (items.length === 0) {
-        console.warn("2. Items array is empty. Execution STOPS here.");
-        return;
-      }
+      if (items.length === 0) return;
 
       let stored = [];
       const orderKey = 'hotel_confirmed_orders_' + table;
-      try { 
-        stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); 
-        console.log("3. SessionStorage retrieved:", stored);
-      } catch (e) { 
-        stored = []; 
-        console.error("3. SessionStorage parse error:", e);
-      }
+      try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
 
       items.forEach(item => {
         const qty = cart[item.id];
         const existing = stored.find(s => s.id === item.id);
-        if (existing) {
-          existing.qty += qty;
-        } else {
-          stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
-        }
+        if (existing) existing.qty += qty;
+        else stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
       });
       sessionStorage.setItem(orderKey, JSON.stringify(stored));
-      console.log("4. SessionStorage updated with new items.");
 
-      // ─── Send order to kitchen backend (MySQL) ───
       const apiItems = items.map(item => ({
         id: item.id, name: item.en, category: PAGE_CATEGORY,
         price: item.price, qty: cart[item.id]
       }));
-      console.log("5. apiItems payload mapped:", apiItems);
+      const fetchPayload = { table: table, persons: parseInt(persons) || 1, customer_notes: '', items: apiItems };
 
-      const fetchPayload = { table: table, persons: parseInt(persons)||1, customer_notes: '', items: apiItems };
-      console.log("6. Final POST body:", JSON.stringify(fetchPayload));
-
-      try {
-        console.log("7. About to call fetch('api/create-order.php')...");
-        fetch('api/create-order.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fetchPayload)
-        }).then(async r => {
-          console.log("8. Fetch response received. Status:", r.status, r.statusText);
-          if (!r.ok) {
-            const text = await r.text();
-            console.error("9. Fetch HTTP error text:", text);
-            throw new Error(`HTTP Error: ${r.status}`);
-          }
-          return r.json();
-        }).then(d => { 
-          console.log("9. Fetch parsed JSON:", d);
-          if (!d.success) console.error('Order API error:', d.error); 
-        }).catch(e => {
-          console.error("10. Fetch caught error (network or parsing):", e);
-        });
-        console.log("8. fetch() was called asynchronously without throwing sync errors.");
-      } catch (err) {
-        console.error("11. fetch() threw a SYNCHRONOUS ERROR. Execution STOPS here:", err);
-      }
+      fetch('api/create-order.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fetchPayload)
+      }).then(async r => {
+        if (!r.ok) { const t = await r.text(); throw new Error('HTTP ' + r.status + ': ' + t); }
+        return r.json();
+      }).then(d => { if (!d.success) console.error('Order API error:', d.error); })
+        .catch(e => console.error('Order POST failed:', e));
 
       for (let id in cart) {
         if (cart.hasOwnProperty(id)) {
@@ -679,14 +530,13 @@
       const popup = document.getElementById('orderPopupOverlay');
       const popupDesc = document.getElementById('popupDesc');
       const msgs = {
-        en: 'Your order has been sent to the kitchen and is expected to arrive within 5 minutes. Thank you 😊.',
-        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और 5 मिनट के भीतर आने की उम्मीद है। धन्यवाद 😊।',
-        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि 5 मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+        en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
+        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
+        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
       };
       const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
       document.querySelector('.popup-title').textContent = titles[lang] || titles.en;
       popupDesc.textContent = msgs[lang] || msgs.en;
-      
       popup.classList.add('show');
       setTimeout(() => popup.classList.remove('show'), 5000);
     }
@@ -724,21 +574,13 @@
         c.appendChild(p);
       }
     })();
-
-    /* ── Entrance animation ── */
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(en => {
-        if (en.isIntersecting) {
-          en.target.classList.add('visible');
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.05 });
-
-    document.querySelectorAll('.item-card').forEach((card, i) => {
-      card.style.transition = `opacity .45s ${.06 + i * .04}s ease, transform .45s ${.06 + i * .04}s ease`;
-      io.observe(card);
-    });
   </script>
 </body>
 </html>
+
+
+
+
+
+
+

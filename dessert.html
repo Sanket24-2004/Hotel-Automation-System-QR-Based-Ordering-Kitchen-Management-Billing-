@@ -380,7 +380,6 @@
 
   <!-- ITEMS SECTION -->
   <section class="items-section" aria-label="Dessert Items">
-    <div class="section-label" id="labelTraditional">— Traditional Desserts —</div>
     <div class="items-grid" id="itemsGrid"></div>
   </section>
 
@@ -404,6 +403,7 @@
     </div>
   </div>
 
+  <script src="menu-page.js"></script>
   <script>
     'use strict';
 
@@ -426,131 +426,33 @@
     document.getElementById('backBtn').childNodes[1].textContent = ' ' + ui.back.replace('← ','');
     document.querySelector('.back-arrow').textContent = '←';
     document.getElementById('cartBtn').textContent = ui.confirmOrder;
-
-    /* ── Menu data with translations ── */
+    /* ── Menu data (loaded from DB) ── */
     const PAGE_CATEGORY = 'dessert';
-    const MENU = [
-      { id:101, en:'Gulab Jamun (2 pcs)',        hi:'गुलाब जामुन (2 नग)',      mr:'गुलाब जामुन (२ नग)',     price:79,  img:'Desserts/Gulab Jamun (2 pcs).png' },
-      { id:102, en:'Kala Jamun (2 pcs)',         hi:'काला जामुन (2 नग)',       mr:'काळा जामुन (२ नग)',      price:89,  img:'Desserts/Kala Jamun (2 pcs).png' },
-      { id:103, en:'Rasmalai (2 pcs)',           hi:'रसमलाई (2 नग)',          mr:'रसमलाई (२ नग)',         price:99,  img:'Desserts/Rasmalai (2 pcs).png' },
-      { id:104, en:'Angoori Rasmalai',           hi:'अंगूरी रसमलाई',           mr:'अंगुरी रसमलाई',         price:119, img:'Desserts/Angoori Rasmalai.png' },
-      { id:105, en:'Gajar Halwa',                hi:'गाजर हलवा',              mr:'गाजर हलवा',             price:129, img:'Desserts/Gajar Halwa.png' },
-      { id:106, en:'Moong Dal Halwa',            hi:'मूंग दाल हलवा',           mr:'मुग डाळ हलवा',          price:139, img:'Desserts/Moong Dal Halwa.png' },
-      { id:107, en:'Rabdi',                      hi:'रबड़ी',                  mr:'रबडी',                  price:129, img:'Desserts/Rabdi.png' },
-      { id:108, en:'Shrikhand',                  hi:'श्रीखंड',                mr:'श्रीखंड',               price:119, img:'Desserts/Shrikhand.png' },
-      { id:109, en:'Mango Shrikhand',            hi:'मैंगो श्रीखंड',            mr:'मँगो श्रीखंड',           price:129, img:'Desserts/Mango Shrikhand (Seasonal).png' },
-      { id:110, en:'Fruit Salad',                hi:'फ्रूट सलाद',              mr:'फ्रुट सॅलड',            price:119, img:'Desserts/Fruit Salad.png' },
-      { id:111, en:'Fruit Salad with Ice Cream', hi:'आइसक्रीम के साथ फ्रूट सलाद', mr:'आईस्क्रीमसह फ्रुट सॅलड',  price:149, img:'Desserts/Fruit Salad with Ice Cream.png' },
-      { id:112, en:'Vanilla Ice Cream',          hi:'वैनिला आइसक्रीम',          mr:'व्हॅनिला आईस्क्रीम',       price:79,  img:'Desserts/Vanilla Ice Cream.png' },
-      { id:113, en:'Butterscotch Ice Cream',     hi:'बटरस्कॉच आइसक्रीम',       mr:'बटरस्कॉच आईस्क्रीम',      price:89,  img:'Desserts/Butterscotch Ice Cream.png' },
-      { id:114, en:'Chocolate Ice Cream',        hi:'चॉकलेट आइसक्रीम',          mr:'चॉकलेट आईस्क्रीम',        price:89,  img:'Desserts/Chocolate Ice Cream.png' },
-      { id:115, en:'Kesar Pista Ice Cream',      hi:'केसर पिस्ता आइसक्रीम',     mr:'केसर पिस्ता आईस्क्रीम',     price:99,  img:'Desserts/Kesar Pista Ice Cream.png' },
-      { id:116, en:'Brownie with Ice Cream',     hi:'आइसक्रीम के साथ ब्राउनी',   mr:'आईस्क्रीमसह ब्राउनी',     price:179, img:'Desserts/Brownie with Ice Cream.png' },
-      { id:117, en:'Kulfi',                      hi:'कुल्फी',                 mr:'कुल्फी',                price:99,  img:'Desserts/Kulfi.png' },
-      { id:118, en:'Matka Kulfi',                hi:'मटका कुल्फी',            mr:'मटका कुल्फी',           price:129, img:'Desserts/Matka Kulfi.png' }
-    ];
 
     /* resolve display name per language */
     function getName(item) { return item[lang] || item.en; }
-    const cart = {}; // { id: qty }
+    const cart = {};
 
-    /* ── Render items ── */
+    /* ── Render via shared helper (fetches DB, builds grid + section labels + search) ── */
     const grid = document.getElementById('itemsGrid');
-
-    MENU.forEach((item, idx) => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
-      card.id = 'card-' + item.id;
-      card.innerHTML = `
-        <div class="item-img-wrap">
-          <img src="${item.img}" alt="${item.en}" loading="${idx < 4 ? 'eager' : 'lazy'}"
-               onerror="this.src='Dessert_Rasmalai.png'"/>
-        </div>
-        <div class="item-info">
-          <div class="item-name">${getName(item)}</div>
-          <div class="item-price-row">
-            <div class="item-price">&#8377;${item.price}</div>
-            <div class="order-counter" id="counter-${item.id}">
-              <button class="counter-btn minus" onclick="changeQty(${item.id}, -1)" aria-label="Remove one ${item.en}">&#8722;</button>
-              <span class="counter-display" id="qty-${item.id}">0</span>
-              <button class="counter-btn plus" onclick="changeQty(${item.id}, 1)" aria-label="Add ${item.en}">&#43;</button>
-            </div>
-          </div>
-        </div>
-      `;
-      grid.appendChild(card);
-
-      /* add section label before Ice Creams (idx = 11, starting with Vanilla Ice Cream) */
-      if (idx === 10) { // Inserts label right after Fruit Salad with Ice Cream
-        const lbl = document.createElement('div');
-        lbl.className = 'section-label';
-        lbl.id = 'labelIceCreams';
-        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
-        lbl.textContent = ui.icecreams;
-        grid.appendChild(lbl);
-      }
-    });
-    document.getElementById('labelTraditional').textContent = ui.traditional;
-
-    /* ── Search ── */
-    const searchInput = document.getElementById('searchInput');
-    const noResultCard = document.createElement('div');
-    noResultCard.className = 'no-results-card';
-    noResultCard.id = 'noResultCard';
-    noResultCard.style.display = 'none';
-    grid.appendChild(noResultCard);
-
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-
-      let visibleTraditional = 0, visibleIcecream = 0;
-
-      MENU.forEach((item, idx) => {
-        const card = document.getElementById('card-' + item.id);
-        const nameMatch = getName(item).toLowerCase().includes(q) || item.en.toLowerCase().includes(q);
-        if (!q || nameMatch) {
-          card.classList.remove('hidden');
-          if (idx < 11) visibleTraditional++; else visibleIcecream++;
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-
-      /* show/hide section labels */
-      const lblT = document.getElementById('labelTraditional');
-      const lblI = document.getElementById('labelIceCreams');
-      if (lblT) lblT.classList.toggle('hidden', visibleTraditional === 0);
-      if (lblI) lblI.classList.toggle('hidden', visibleIcecream === 0);
-
-      /* no results message */
-      if (q && visibleTraditional === 0 && visibleIcecream === 0) {
-        noResultCard.textContent = ui.noResults;
-        noResultCard.style.display = '';
-      } else {
-        noResultCard.style.display = 'none';
-      }
-    });
+    initMenuPage({ category: PAGE_CATEGORY, fallbackImg: 'Dessert_Rasmalai.png', ui, getName });
 
     /* ── Quantity change ── */
     function changeQty(id, delta) {
       const current = cart[id] || 0;
       const next = Math.max(0, current + delta);
       cart[id] = next;
-
       const counter = document.getElementById('counter-' + id);
       const qtyEl   = document.getElementById('qty-' + id);
-      qtyEl.textContent = next;
-      
+      if (qtyEl) qtyEl.textContent = next;
       const card = document.getElementById('card-' + id);
-
       if (next > 0) {
-        counter.classList.add('has-items');
+        if (counter) counter.classList.add('has-items');
         if (card) card.classList.add('ordered');
       } else {
-        counter.classList.remove('has-items');
+        if (counter) counter.classList.remove('has-items');
         if (card) card.classList.remove('ordered');
       }
-
       updateCart();
     }
 
@@ -562,101 +464,60 @@
       MENU.forEach(item => {
         const q = cart[item.id] || 0;
         if (q > 0) {
-          activeItems.push({
-            name: getName(item),
-            qty: q,
-            price: q * item.price
-          });
+          activeItems.push({ name: getName(item), qty: q, price: q * item.price });
           totalItems += q;
           totalPrice += q * item.price;
         }
       });
-
       const bar = document.getElementById('cartBar');
       const cartCountEl = document.getElementById('cartCount');
       const cartTotalEl = document.getElementById('cartTotal');
-
       if (activeItems.length === 1) {
-        cartCountEl.textContent = `${activeItems[0].name} (${activeItems[0].qty})`;
+        cartCountEl.textContent = activeItems[0].name + ' (' + activeItems[0].qty + ')';
         cartTotalEl.textContent = '₹' + activeItems[0].price;
       } else if (activeItems.length > 1) {
-        cartCountEl.textContent = activeItems.map(item => `${item.name} (${item.qty})`).join(', ');
+        cartCountEl.textContent = activeItems.map(it => it.name + ' (' + it.qty + ')').join(', ');
         cartTotalEl.textContent = 'Total: ₹' + totalPrice;
       } else {
         cartCountEl.textContent = '0 items';
         cartTotalEl.textContent = '₹0';
       }
-
       if (totalItems > 0) bar.classList.add('visible');
       else bar.classList.remove('visible');
     }
 
     /* ── Place order ── */
     function placeOrder() {
-      console.log("--- placeOrder() EXECUTION START ---");
       const items = MENU.filter(i => (cart[i.id] || 0) > 0);
-      console.log("1. Selected items:", items);
-      if (items.length === 0) {
-        console.warn("2. Items array is empty. Execution STOPS here.");
-        return;
-      }
+      if (items.length === 0) return;
 
       let stored = [];
       const orderKey = 'hotel_confirmed_orders_' + table;
-      try { 
-        stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); 
-        console.log("3. SessionStorage retrieved:", stored);
-      } catch (e) { 
-        stored = []; 
-        console.error("3. SessionStorage parse error:", e);
-      }
+      try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
 
       items.forEach(item => {
         const qty = cart[item.id];
         const existing = stored.find(s => s.id === item.id);
-        if (existing) {
-          existing.qty += qty;
-        } else {
-          stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
-        }
+        if (existing) existing.qty += qty;
+        else stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
       });
       sessionStorage.setItem(orderKey, JSON.stringify(stored));
-      console.log("4. SessionStorage updated with new items.");
 
-      // ─── Send order to kitchen backend (MySQL) ───
       const apiItems = items.map(item => ({
         id: item.id, name: item.en, category: PAGE_CATEGORY,
         price: item.price, qty: cart[item.id]
       }));
-      console.log("5. apiItems payload mapped:", apiItems);
+      const fetchPayload = { table: table, persons: parseInt(persons) || 1, customer_notes: '', items: apiItems };
 
-      const fetchPayload = { table: table, persons: parseInt(persons)||1, customer_notes: '', items: apiItems };
-      console.log("6. Final POST body:", JSON.stringify(fetchPayload));
-
-      try {
-        console.log("7. About to call fetch('api/create-order.php')...");
-        fetch('api/create-order.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fetchPayload)
-        }).then(async r => {
-          console.log("8. Fetch response received. Status:", r.status, r.statusText);
-          if (!r.ok) {
-            const text = await r.text();
-            console.error("9. Fetch HTTP error text:", text);
-            throw new Error(`HTTP Error: ${r.status}`);
-          }
-          return r.json();
-        }).then(d => { 
-          console.log("9. Fetch parsed JSON:", d);
-          if (!d.success) console.error('Order API error:', d.error); 
-        }).catch(e => {
-          console.error("10. Fetch caught error (network or parsing):", e);
-        });
-        console.log("8. fetch() was called asynchronously without throwing sync errors.");
-      } catch (err) {
-        console.error("11. fetch() threw a SYNCHRONOUS ERROR. Execution STOPS here:", err);
-      }
+      fetch('api/create-order.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fetchPayload)
+      }).then(async r => {
+        if (!r.ok) { const t = await r.text(); throw new Error('HTTP ' + r.status + ': ' + t); }
+        return r.json();
+      }).then(d => { if (!d.success) console.error('Order API error:', d.error); })
+        .catch(e => console.error('Order POST failed:', e));
 
       for (let id in cart) {
         if (cart.hasOwnProperty(id)) {
@@ -674,14 +535,13 @@
       const popup = document.getElementById('orderPopupOverlay');
       const popupDesc = document.getElementById('popupDesc');
       const msgs = {
-        en: 'Your order has been sent to the kitchen and is expected to arrive within 2 minutes. Thank you 😊.',
-        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और 2 मिनट के भीतर आने की उम्मीद है। धन्यवाद 😊।',
-        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि 2 मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+        en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
+        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
+        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
       };
       const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
       document.querySelector('.popup-title').textContent = titles[lang] || titles.en;
       popupDesc.textContent = msgs[lang] || msgs.en;
-      
       popup.classList.add('show');
       setTimeout(() => popup.classList.remove('show'), 5000);
     }
@@ -719,21 +579,13 @@
         c.appendChild(p);
       }
     })();
-
-    /* ── Intersection observer entrance animation ── */
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(en => {
-        if (en.isIntersecting) {
-          en.target.classList.add('visible');
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.05 });
-
-    document.querySelectorAll('.item-card').forEach((card, i) => {
-      card.style.transition = `opacity .45s ${.06 + i * .04}s ease, transform .45s ${.06 + i * .04}s ease`;
-      io.observe(card);
-    });
   </script>
 </body>
 </html>
+
+
+
+
+
+
+

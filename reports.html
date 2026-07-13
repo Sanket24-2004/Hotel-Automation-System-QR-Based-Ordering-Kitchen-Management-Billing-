@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports — Hotel Golden Stone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--gold:#FFD700;--gold-border:rgba(255,215,0,.3);--white:#fff;--green:#22c55e;--blue:#3b82f6;--orange:#f97316;--glass-bg:rgba(255,255,255,.05);--radius:14px;--navbar-h:60px;--botnav-h:65px}
+    html{scroll-behavior:smooth}
+    body{font-family:'Poppins',sans-serif;background:#0d0d0d;color:var(--white);min-height:100vh;overflow-x:hidden;padding-top:var(--navbar-h);padding-bottom:90px}
+    .bg-layer{position:fixed;inset:0;background-image:url('Hotel_image_use_as_bg.png');background-size:cover;background-position:center;z-index:-2}
+    .bg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:-1}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    #navbar{position:fixed;top:0;left:0;right:0;height:var(--navbar-h);background:rgba(0,0,0,.95);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;backdrop-filter:blur(10px)}
+    .navbar-brand{display:flex;align-items:center;gap:9px;font-size:1.1rem;font-weight:700;color:var(--gold)}
+    .navbar-brand .brand-short{display:none}
+    .navbar-right{display:flex;align-items:center;gap:14px}
+    .owner-badge{display:flex;align-items:center;gap:6px;font-size:.83rem;color:rgba(255,255,255,.75)}
+    .owner-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#b8860b);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#000}
+    .logout-btn{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.35);color:var(--gold);padding:6px 14px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:background .2s}
+    .logout-btn:hover{background:rgba(255,215,0,.18)}
+    .main-content{max-width:1000px;margin:0 auto;padding:28px 16px 32px}
+    .page-title-wrap{text-align:center;margin-bottom:28px;animation:fadeInUp .5s ease .1s both}
+    .page-title{font-size:2rem;font-weight:800;color:var(--white);letter-spacing:1px}
+    .page-subtitle{margin-top:6px;font-size:.85rem;color:var(--gold)}
+    .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;animation:fadeInUp .5s ease .15s both}
+    .period-btn{padding:8px 18px;border-radius:50px;font-family:'Poppins',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid rgba(255,215,0,.4)}
+    .period-btn.active{background:var(--gold);color:#000}
+    .period-btn:not(.active){background:transparent;color:var(--white)}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;animation:fadeInUp .5s ease .2s both}
+    .stat-card{background:var(--glass-bg);border:1px solid rgba(255,215,0,.25);border-radius:var(--radius);padding:18px 16px;position:relative;overflow:hidden}
+    .stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+    .stat-card.c-gold::before{background:var(--gold)}
+    .stat-card.c-green::before{background:var(--green)}
+    .stat-card.c-blue::before{background:var(--blue)}
+    .stat-card.c-orange::before{background:var(--orange)}
+    .stat-icon{font-size:1.5rem;margin-bottom:8px;display:block}
+    .stat-label{font-size:.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px}
+    .stat-value{font-size:1.65rem;font-weight:800;color:var(--white)}
+    .stat-sub{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:3px}
+    .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;animation:fadeInUp .5s ease .3s both}
+    .chart-card{background:var(--glass-bg);border:1px solid rgba(255,215,0,.2);border-radius:var(--radius);padding:20px}
+    .chart-title{font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:16px}
+    .chart-wrap{position:relative;height:200px}
+    .pay-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+    .pay-item{background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center}
+    .pay-icon{font-size:1.4rem;margin-bottom:4px}
+    .pay-label{font-size:.7rem;color:rgba(255,255,255,.45);font-weight:500}
+    .pay-count{font-size:1.1rem;font-weight:800;color:var(--gold)}
+    .card{background:var(--glass-bg);border:1px solid rgba(255,215,0,.2);border-radius:var(--radius);padding:20px;animation:fadeInUp .5s ease .35s both}
+    .section-title{font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:14px}
+    .items-list{list-style:none}
+    .item-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .item-row:last-child{border:none}
+    .item-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0}
+    .item-rank.r1{background:rgba(255,215,0,.25);color:var(--gold)}
+    .item-rank.r2{background:rgba(192,192,192,.2);color:#ccc}
+    .item-rank.r3{background:rgba(205,127,50,.2);color:#cd7f32}
+    .item-rank.rn{background:rgba(255,255,255,.07);color:rgba(255,255,255,.4)}
+    .item-name-col{flex:1;font-size:.88rem;font-weight:500;color:var(--white)}
+    .item-qty-col{font-size:.82rem;font-weight:700;color:var(--gold);min-width:40px;text-align:right}
+    .item-rev-col{font-size:.82rem;font-weight:600;color:rgba(255,255,255,.55);min-width:70px;text-align:right}
+    .export-card{background:var(--glass-bg);border:1px solid rgba(255,215,0,.2);border-radius:var(--radius);padding:20px;margin-top:20px;animation:fadeInUp .5s ease .4s both}
+    .export-btn{padding:10px 22px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;margin-top:12px}
+    .export-btn:hover{opacity:.88;transform:scale(1.02)}
+    #bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--botnav-h);background:rgba(0,0,0,.95);border-top:1px solid rgba(255,215,0,.2);display:flex;align-items:stretch;z-index:1000;backdrop-filter:blur(10px)}
+    .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:rgba(255,255,255,.45);font-size:.6rem;font-weight:500;letter-spacing:.3px;text-transform:uppercase;position:relative;padding-bottom:4px;transition:color .2s}
+    .nav-tab .nav-icon{font-size:1.2rem;line-height:1}
+    .nav-tab:hover{color:rgba(255,255,255,.75)}
+    .nav-tab.active{color:var(--gold)}
+    .nav-tab.active::after{content:'';position:absolute;bottom:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:650px){.charts-row{grid-template-columns:1fr}.page-title{font-size:1.5rem}.navbar-brand .brand-text{display:none}.navbar-brand .brand-short{display:inline}}
+    @media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="bg-layer" aria-hidden="true"></div>
+<div class="bg-overlay" aria-hidden="true"></div>
+
+<nav id="navbar">
+  <div class="navbar-brand">
+    <span>🏨</span>
+    <span class="brand-text">Hotel Golden Stone</span>
+    <span class="brand-short">Golden Stone</span>
+  </div>
+  <div class="navbar-right">
+    <div class="owner-badge">
+      <div class="owner-avatar">O</div>
+      <span>Owner</span>
+    </div>
+    <button class="logout-btn" onclick="window.location.href='owner-login.html'">Logout</button>
+  </div>
+</nav>
+
+<main class="main-content">
+  <div class="page-title-wrap">
+    <h1 class="page-title">📊 REPORTS</h1>
+    <p class="page-subtitle">Sales analytics and billing overview</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="period-btn active" onclick="setPeriod(7,this)">7 Days</button>
+    <button class="period-btn" onclick="setPeriod(30,this)">30 Days</button>
+    <button class="period-btn" onclick="setPeriod(0,this)">All Time</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card c-gold"><span class="stat-icon">💰</span><div class="stat-label">Revenue</div><div class="stat-value" id="sRevenue">₹0</div><div class="stat-sub" id="sRevSub">in period</div></div>
+    <div class="stat-card c-blue"><span class="stat-icon">📦</span><div class="stat-label">Bills Raised</div><div class="stat-value" id="sBills">0</div><div class="stat-sub">completed orders</div></div>
+    <div class="stat-card c-green"><span class="stat-icon">📋</span><div class="stat-label">GST Collected</div><div class="stat-value" id="sGst">₹0</div><div class="stat-sub">5% on subtotal</div></div>
+    <div class="stat-card c-orange"><span class="stat-icon">🪑</span><div class="stat-label">Avg Bill</div><div class="stat-value" id="sAvg">₹0</div><div class="stat-sub">per order</div></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Revenue by Day</div>
+      <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Payment Methods</div>
+      <div class="chart-wrap" style="height:160px"><canvas id="payChart"></canvas></div>
+      <div class="pay-breakdown" id="payBreakdown"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-title">🏆 Top Items by Revenue</div>
+    <ul class="items-list" id="topItems"></ul>
+  </div>
+
+  <div class="export-card">
+    <div class="section-title">⬇️ Export Data</div>
+    <p style="font-size:.82rem;color:rgba(255,255,255,.4)">Download billing history as CSV for accounting or reporting.</p>
+    <button class="export-btn" onclick="exportCSV()">⬇ Download CSV</button>
+  </div>
+</main>
+
+<nav id="bottom-nav">
+  <a href="dashboard.html" class="nav-tab"><span class="nav-icon">🏠</span>Home</a>
+  <a href="billing.html" class="nav-tab"><span class="nav-icon">🧾</span>Billing</a>
+  <a href="menu-control.html" class="nav-tab"><span class="nav-icon">🍽️</span>Menu</a>
+  <a href="reports.html" class="nav-tab active" aria-current="page"><span class="nav-icon">📊</span>Reports</a>
+  <a href="order-history.html" class="nav-tab"><span class="nav-icon">📋</span>History</a>
+</nav>
+
+<script>
+  var activePeriod=7,revChart=null,payChart=null;
+  function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN')}
+  function getHistory(){try{return JSON.parse(localStorage.getItem('orderHistory')||'[]')}catch(e){return[]}}
+  function filterByPeriod(all,days){if(!days)return all;var c=Date.now()-days*86400000;return all.filter(function(h){return(h.timestamp||0)>=c})}
+  function setPeriod(days,btn){activePeriod=days;document.querySelectorAll('.period-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');renderReports()}
+  function renderReports(){
+    var all=getHistory(),data=filterByPeriod(all,activePeriod);
+    var revenue=data.reduce(function(s,h){return s+(h.totalAmount||0)},0);
+    var gst=data.reduce(function(s,h){return s+(h.gst||0)},0);
+    var avg=data.length?revenue/data.length:0;
+    document.getElementById('sRevenue').textContent=fmt(revenue);
+    document.getElementById('sBills').textContent=data.length;
+    document.getElementById('sGst').textContent=fmt(gst);
+    document.getElementById('sAvg').textContent=fmt(avg);
+    document.getElementById('sRevSub').textContent=activePeriod?'last '+activePeriod+' days':'all time';
+    renderRevenueChart(data);renderPayChart(data);renderTopItems(data);
+  }
+  function renderRevenueChart(data){
+    var days=activePeriod||14,labels=[],revMap={};
+    for(var i=days-1;i>=0;i--){var d=new Date(Date.now()-i*86400000);var k=d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});labels.push(k);revMap[k]=0}
+    data.forEach(function(h){if(!h.timestamp)return;var k=new Date(h.timestamp).toLocaleDateString('en-IN',{day:'numeric',month:'short'});if(revMap.hasOwnProperty(k))revMap[k]+=(h.totalAmount||0)});
+    var values=labels.map(function(l){return revMap[l]});
+    if(revChart)revChart.destroy();
+    revChart=new Chart(document.getElementById('revenueChart'),{type:'bar',data:{labels:labels,datasets:[{label:'Revenue (₹)',data:values,backgroundColor:'rgba(255,215,0,.55)',borderColor:'#FFD700',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'rgba(255,255,255,.4)',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'rgba(255,255,255,.4)',font:{size:10},callback:function(v){return'₹'+v}},grid:{color:'rgba(255,255,255,.07)'},beginAtZero:true}}}});
+  }
+  function renderPayChart(data){
+    var counts={Cash:0,UPI:0,Card:0};
+    data.forEach(function(h){var m=h.paymentMethod||'Cash';if(counts.hasOwnProperty(m))counts[m]++});
+    var total=data.length||1;
+    if(payChart)payChart.destroy();
+    payChart=new Chart(document.getElementById('payChart'),{type:'doughnut',data:{labels:['Cash','UPI','Card'],datasets:[{data:[counts.Cash,counts.UPI,counts.Card],backgroundColor:['rgba(255,215,0,.7)','rgba(59,130,246,.7)','rgba(34,197,94,.7)'],borderColor:['#FFD700','#3b82f6','#22c55e'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
+    var icons={Cash:'💵',UPI:'📱',Card:'💳'};
+    document.getElementById('payBreakdown').innerHTML=['Cash','UPI','Card'].map(function(m){var pct=Math.round(counts[m]/total*100);return'<div class="pay-item"><div class="pay-icon">'+icons[m]+'</div><div class="pay-count">'+pct+'%</div><div class="pay-label">'+m+' · '+counts[m]+'</div></div>'}).join('');
+  }
+  function renderTopItems(data){
+    var map={};
+    data.forEach(function(h){(h.items||[]).forEach(function(it){if(!map[it.name])map[it.name]={qty:0,rev:0};map[it.name].qty+=it.qty;map[it.name].rev+=it.qty*it.price})});
+    var sorted=Object.keys(map).map(function(n){return{name:n,qty:map[n].qty,rev:map[n].rev}}).sort(function(a,b){return b.rev-a.rev}).slice(0,10);
+    var rc=['r1','r2','r3'];
+    document.getElementById('topItems').innerHTML=sorted.length?sorted.map(function(it,i){return'<li class="item-row"><div class="item-rank '+(rc[i]||'rn')+'">'+(i+1)+'</div><div class="item-name-col">'+it.name+'</div><div class="item-qty-col">×'+it.qty+'</div><div class="item-rev-col">'+fmt(it.rev)+'</div></li>'}).join(''):'<li style="padding:20px 0;text-align:center;color:rgba(255,255,255,.35);font-size:.85rem">No billing data for this period.</li>';
+  }
+  function exportCSV(){
+    var all=getHistory(),data=filterByPeriod(all,activePeriod);
+    if(!data.length){alert('No data to export.');return}
+    var rows=[['Bill No','Table','Date','Time','Items','Subtotal','Discount','GST','Total','Payment']];
+    data.forEach(function(h){var s=(h.items||[]).map(function(i){return i.name+'×'+i.qty}).join('; ');rows.push([h.billNumber||'',h.tableNumber||'',h.date||'',h.time||'','"'+s+'"',h.subtotal||0,h.discount||0,h.gst||0,h.totalAmount||0,h.paymentMethod||''])});
+    var csv=rows.map(function(r){return r.join(',')}).join('\n');
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='report-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  }
+  document.addEventListener('DOMContentLoaded',renderReports);
+</script>
+</body>
+</html>
