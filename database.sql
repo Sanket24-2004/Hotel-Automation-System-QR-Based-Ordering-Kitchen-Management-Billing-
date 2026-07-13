@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `menu_items` (
   `is_veg`        TINYINT(1)          NOT NULL DEFAULT 1 COMMENT '1=veg, 0=non-veg',
   `prep_time_min` SMALLINT UNSIGNED   NOT NULL DEFAULT 5 COMMENT 'Estimated preparation time in minutes',
   `sort_order`    SMALLINT UNSIGNED   NOT NULL DEFAULT 0 COMMENT 'Display order within category',
+  `section`       VARCHAR(100)        DEFAULT NULL COMMENT 'Sub-heading within category e.g. Tandoori Specials',
   `created_at`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

@@ -375,7 +375,6 @@
 
   <!-- ITEMS SECTION -->
   <section class="items-section" aria-label="Main Course Items">
-    <div class="section-label" id="labelPaneer">— Paneer Specialties —</div>
     <div class="items-grid" id="itemsGrid"></div>
   </section>
 
@@ -399,6 +398,7 @@
     </div>
   </div>
 
+  <script src="menu-page.js"></script>
   <script>
     'use strict';
 
@@ -421,154 +421,33 @@
     document.getElementById('backBtn').childNodes[1].textContent = ' ' + ui.back.replace('← ','');
     document.querySelector('.back-arrow').textContent = '←';
     document.getElementById('cartBtn').textContent = ui.confirmOrder;
-
-    /* ── Menu data with translations ── */
+    /* ── Menu data (loaded from DB) ── */
     const PAGE_CATEGORY = 'main_course';
-    const MENU = [
-      /* Paneer Specialties (7 items) */
-      { id:401, en:'Paneer Butter Masala',   hi:'पनीर बटर मसाला',          mr:'पनीर बटर मसाला',         price:269, img:'Main Cource/Paneer Butter Masala.png' },
-      { id:402, en:'Paneer Tikka Masala',    hi:'पनीर टिक्का मसाला',         mr:'पनीर टिक्का मसाला',        price:289, img:'Main Cource/Paneer Tikka Masala.png' },
-      { id:403, en:'Kadai Paneer',           hi:'कढ़ाई पनीर',               mr:'कढई पनीर',              price:279, img:'Main Cource/Kadai Paneer.png' },
-      { id:404, en:'Shahi Paneer',           hi:'शाही पनीर',               mr:'शाही पनीर',              price:279, img:'Main Cource/Shahi Paneer.png' },
-      { id:405, en:'Paneer Handi',           hi:'पनीर हांडी',               mr:'पनीर हांडी',              price:289, img:'Main Cource/Paneer Handi.png' },
-      { id:406, en:'Palak Paneer',           hi:'पालक पनीर',               mr:'पालक पनीर',              price:269, img:'Main Cource/Palak Paneer.png' },
-      { id:407, en:'Matar Paneer',           hi:'मटर पनीर',               mr:'मटार पनीर',              price:259, img:'Main Cource/Matar Paneer.png' },
-      
-      /* Veg Specialties (15 items) */
-      { id:408, en:'Kaju Curry',             hi:'काजू करी',                mr:'काजू करी',               price:299, img:'Main Cource/Kaju Curry.png' },
-      { id:409, en:'Veg Kolhapuri',          hi:'वेज कोल्हापुरी',            mr:'व्हेज कोल्हापुरी',          price:249, img:'Main Cource/Veg Kolhapuri.png' },
-      { id:410, en:'Veg Handi',              hi:'वेज हांडी',                mr:'व्हेज हांडी',              price:259, img:'Main Cource/Veg Handi.png' },
-      { id:411, en:'Mix Veg Curry',          hi:'मिक्स वेज करी',            mr:'मिक्स व्हेज करी',          price:229, img:'Main Cource/Mix Veg Curry.png' },
-      { id:412, en:'Veg Jaipuri',            hi:'वेज जयपुरी',              mr:'व्हेज जयपुरी',            price:269, img:'Main Cource/Veg Jaipuri.png' },
-      { id:413, en:'Veg Hyderabadi',         hi:'वेज हैदराबादी',            mr:'व्हेज हैदराबादी',          price:269, img:'Main Cource/Veg Hyderabadi.png' },
-      { id:414, en:'Malai Kofta',            hi:'मलाई कोफ्ता',             mr:'मलाई कोफ्ता',             price:289, img:'Main Cource/Malai Kofta.png' },
-      { id:415, en:'Navratan Korma',         hi:'नवरतन कोरमा',             mr:'नवरत्न कोरमा',            price:279, img:'Main Cource/Navratan Korma.png' },
-      { id:416, en:'Dum Aloo Kashmiri',      hi:'दम आलू कश्मीरी',           mr:'दम आलू काश्मिरी',         price:249, img:'Main Cource/Dum Aloo Kashmiri.png' },
-      { id:417, en:'Aloo Mutter',            hi:'आलू मटर',                mr:'आलू मटार',               price:219, img:'Main Cource/Aloo Mutter.png' },
-      { id:418, en:'Chana Masala',           hi:'चना मसाला',               mr:'चना मसाला',              price:229, img:'Main Cource/Chana Masala.png' },
-      { id:419, en:'Sev Bhaji',              hi:'सेव भाजी',                mr:'शेव भाजी',               price:199, img:'Main Cource/Sev Bhaji.png' },
-      { id:420, en:'Shev Tamatar',           hi:'सेव टमाटर',               mr:'शेव टोमॅटो',             price:209, img:'Main Cource/Shev Tamatar.png' },
-      { id:421, en:'Lasooni Palak',          hi:'लसूनी पालक',              mr:'लसूणी पालक',             price:239, img:'Main Cource/Lasooni Palak.png' },
-      { id:422, en:'Mushroom Masala',        hi:'मशरूम मसाला',             mr:'मशरूम मसाला',            price:279, img:'Main Cource/Mushroom Masala.png' },
-
-      /* Dal Specialties (3 items) */
-      { id:423, en:'Dal Tadka',              hi:'दाल तड़का',               mr:'डाळ तडका',              price:189, img:'Main Cource/Dal Tadka.png' },
-      { id:424, en:'Dal Fry',                hi:'दाल फ्राई',               mr:'डाळ फ्राय',              price:179, img:'Main Cource/Dal Fry.png' },
-      { id:425, en:'Dal Makhani',            hi:'दाल मखनी',               mr:'डाळ मखनी',              price:249, img:'Main Cource/Dal Makhani.png' }
-    ];
 
     /* resolve display name per language */
     function getName(item) { return item[lang] || item.en; }
     const cart = {};
 
-    /* ── Render items ── */
+    /* ── Render via shared helper (fetches DB, builds grid + section labels + search) ── */
     const grid = document.getElementById('itemsGrid');
-
-    MENU.forEach((item, idx) => {
-      const card = document.createElement('div');
-      card.className = 'item-card';
-      card.id = 'card-' + item.id;
-      card.innerHTML = `
-        <div class="item-img-wrap">
-          <img src="${item.img}" alt="${item.en}" loading="${idx < 4 ? 'eager' : 'lazy'}"
-               onerror="this.src='MainCourse_panner_butter_Masala.png'"/>
-        </div>
-        <div class="item-info">
-          <div class="item-name">${getName(item)}</div>
-          <div class="item-price-row">
-            <div class="item-price">&#8377;${item.price}</div>
-            <div class="order-counter" id="counter-${item.id}">
-              <button class="counter-btn minus" onclick="changeQty(${item.id}, -1)" aria-label="Remove one ${item.en}">&#8722;</button>
-              <span class="counter-display" id="qty-${item.id}">0</span>
-              <button class="counter-btn plus" onclick="changeQty(${item.id}, 1)" aria-label="Add ${item.en}">&#43;</button>
-            </div>
-          </div>
-        </div>
-      `;
-      grid.appendChild(card);
-
-      /* add section labels dynamically */
-      if (idx === 7) { // After Matar Paneer, before Kaju Curry
-        const lbl = document.createElement('div');
-        lbl.className = 'section-label';
-        lbl.id = 'labelVeg';
-        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
-        lbl.textContent = ui.veg;
-        grid.appendChild(lbl);
-      } else if (idx === 22) { // After Mushroom Masala, before Dal Tadka
-        const lbl = document.createElement('div');
-        lbl.className = 'section-label';
-        lbl.id = 'labelDals';
-        lbl.style.cssText = 'grid-column:1/-1;margin-top:.5rem;';
-        lbl.textContent = ui.dal;
-        grid.appendChild(lbl);
-      }
-    });
-    document.getElementById('labelPaneer').textContent = ui.paneer;
-
-    /* ── Search ── */
-    const searchInput = document.getElementById('searchInput');
-    const noResultCard = document.createElement('div');
-    noResultCard.className = 'no-results-card';
-    noResultCard.id = 'noResultCard';
-    noResultCard.style.display = 'none';
-    grid.appendChild(noResultCard);
-
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-
-      let visiblePaneer = 0, visibleVeg = 0, visibleDal = 0;
-
-      MENU.forEach((item, idx) => {
-        const card = document.getElementById('card-' + item.id);
-        const nameMatch = getName(item).toLowerCase().includes(q) || item.en.toLowerCase().includes(q);
-        if (!q || nameMatch) {
-          card.classList.remove('hidden');
-          if (idx < 7) visiblePaneer++;
-          else if (idx < 22) visibleVeg++;
-          else visibleDal++;
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-
-      /* show/hide section labels */
-      const lblP = document.getElementById('labelPaneer');
-      const lblV = document.getElementById('labelVeg');
-      const lblD = document.getElementById('labelDals');
-      if (lblP) lblP.classList.toggle('hidden', visiblePaneer === 0);
-      if (lblV) lblV.classList.toggle('hidden', visibleVeg === 0);
-      if (lblD) lblD.classList.toggle('hidden', visibleDal === 0);
-
-      /* no results message */
-      if (q && visiblePaneer === 0 && visibleVeg === 0 && visibleDal === 0) {
-        noResultCard.textContent = ui.noResults;
-        noResultCard.style.display = '';
-      } else {
-        noResultCard.style.display = 'none';
-      }
-    });
+    initMenuPage({ category: PAGE_CATEGORY, fallbackImg: 'MainCourse_panner_butter_Masala.png', ui, getName });
 
     /* ── Quantity change ── */
     function changeQty(id, delta) {
       const current = cart[id] || 0;
       const next = Math.max(0, current + delta);
       cart[id] = next;
-
       const counter = document.getElementById('counter-' + id);
       const qtyEl   = document.getElementById('qty-' + id);
-      qtyEl.textContent = next;
-      
+      if (qtyEl) qtyEl.textContent = next;
       const card = document.getElementById('card-' + id);
-
       if (next > 0) {
-        counter.classList.add('has-items');
+        if (counter) counter.classList.add('has-items');
         if (card) card.classList.add('ordered');
       } else {
-        counter.classList.remove('has-items');
+        if (counter) counter.classList.remove('has-items');
         if (card) card.classList.remove('ordered');
       }
-
       updateCart();
     }
 
@@ -580,101 +459,60 @@
       MENU.forEach(item => {
         const q = cart[item.id] || 0;
         if (q > 0) {
-          activeItems.push({
-            name: getName(item),
-            qty: q,
-            price: q * item.price
-          });
+          activeItems.push({ name: getName(item), qty: q, price: q * item.price });
           totalItems += q;
           totalPrice += q * item.price;
         }
       });
-
       const bar = document.getElementById('cartBar');
       const cartCountEl = document.getElementById('cartCount');
       const cartTotalEl = document.getElementById('cartTotal');
-
       if (activeItems.length === 1) {
-        cartCountEl.textContent = `${activeItems[0].name} (${activeItems[0].qty})`;
+        cartCountEl.textContent = activeItems[0].name + ' (' + activeItems[0].qty + ')';
         cartTotalEl.textContent = '₹' + activeItems[0].price;
       } else if (activeItems.length > 1) {
-        cartCountEl.textContent = activeItems.map(item => `${item.name} (${item.qty})`).join(', ');
+        cartCountEl.textContent = activeItems.map(it => it.name + ' (' + it.qty + ')').join(', ');
         cartTotalEl.textContent = 'Total: ₹' + totalPrice;
       } else {
         cartCountEl.textContent = '0 items';
         cartTotalEl.textContent = '₹0';
       }
-
       if (totalItems > 0) bar.classList.add('visible');
       else bar.classList.remove('visible');
     }
 
     /* ── Place order ── */
     function placeOrder() {
-      console.log("--- placeOrder() EXECUTION START ---");
       const items = MENU.filter(i => (cart[i.id] || 0) > 0);
-      console.log("1. Selected items:", items);
-      if (items.length === 0) {
-        console.warn("2. Items array is empty. Execution STOPS here.");
-        return;
-      }
+      if (items.length === 0) return;
 
       let stored = [];
       const orderKey = 'hotel_confirmed_orders_' + table;
-      try { 
-        stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); 
-        console.log("3. SessionStorage retrieved:", stored);
-      } catch (e) { 
-        stored = []; 
-        console.error("3. SessionStorage parse error:", e);
-      }
+      try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
 
       items.forEach(item => {
         const qty = cart[item.id];
         const existing = stored.find(s => s.id === item.id);
-        if (existing) {
-          existing.qty += qty;
-        } else {
-          stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
-        }
+        if (existing) existing.qty += qty;
+        else stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
       });
       sessionStorage.setItem(orderKey, JSON.stringify(stored));
-      console.log("4. SessionStorage updated with new items.");
 
-      // ─── Send order to kitchen backend (MySQL) ───
       const apiItems = items.map(item => ({
         id: item.id, name: item.en, category: PAGE_CATEGORY,
         price: item.price, qty: cart[item.id]
       }));
-      console.log("5. apiItems payload mapped:", apiItems);
+      const fetchPayload = { table: table, persons: parseInt(persons) || 1, customer_notes: '', items: apiItems };
 
-      const fetchPayload = { table: table, persons: parseInt(persons)||1, customer_notes: '', items: apiItems };
-      console.log("6. Final POST body:", JSON.stringify(fetchPayload));
-
-      try {
-        console.log("7. About to call fetch('api/create-order.php')...");
-        fetch('api/create-order.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fetchPayload)
-        }).then(async r => {
-          console.log("8. Fetch response received. Status:", r.status, r.statusText);
-          if (!r.ok) {
-            const text = await r.text();
-            console.error("9. Fetch HTTP error text:", text);
-            throw new Error(`HTTP Error: ${r.status}`);
-          }
-          return r.json();
-        }).then(d => { 
-          console.log("9. Fetch parsed JSON:", d);
-          if (!d.success) console.error('Order API error:', d.error); 
-        }).catch(e => {
-          console.error("10. Fetch caught error (network or parsing):", e);
-        });
-        console.log("8. fetch() was called asynchronously without throwing sync errors.");
-      } catch (err) {
-        console.error("11. fetch() threw a SYNCHRONOUS ERROR. Execution STOPS here:", err);
-      }
+      fetch('api/create-order.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fetchPayload)
+      }).then(async r => {
+        if (!r.ok) { const t = await r.text(); throw new Error('HTTP ' + r.status + ': ' + t); }
+        return r.json();
+      }).then(d => { if (!d.success) console.error('Order API error:', d.error); })
+        .catch(e => console.error('Order POST failed:', e));
 
       for (let id in cart) {
         if (cart.hasOwnProperty(id)) {
@@ -692,14 +530,13 @@
       const popup = document.getElementById('orderPopupOverlay');
       const popupDesc = document.getElementById('popupDesc');
       const msgs = {
-        en: 'Your order has been sent to the kitchen and is expected to arrive within 10 minutes. Thank you 😊.',
-        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और 10 मिनट के भीतर आने की उम्मीद है। धन्यवाद 😊।',
-        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि 10 मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+        en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
+        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
+        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
       };
       const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
       document.querySelector('.popup-title').textContent = titles[lang] || titles.en;
       popupDesc.textContent = msgs[lang] || msgs.en;
-      
       popup.classList.add('show');
       setTimeout(() => popup.classList.remove('show'), 5000);
     }
@@ -737,21 +574,13 @@
         c.appendChild(p);
       }
     })();
-
-    /* ── Entrance animation ── */
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(en => {
-        if (en.isIntersecting) {
-          en.target.classList.add('visible');
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.05 });
-
-    document.querySelectorAll('.item-card').forEach((card, i) => {
-      card.style.transition = `opacity .45s ${.06 + i * .04}s ease, transform .45s ${.06 + i * .04}s ease`;
-      io.observe(card);
-    });
   </script>
 </body>
 </html>
+
+
+
+
+
+
+

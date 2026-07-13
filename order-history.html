@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment History — Hotel Golden Stone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--gold:#FFD700;--gold-border:rgba(255,215,0,.3);--white:#fff;--green:#22c55e;--glass-bg:rgba(255,255,255,.05);--radius:12px;--navbar-h:60px;--botnav-h:65px}
+    body{font-family:'Poppins',sans-serif;background:#0d0d0d;color:var(--white);min-height:100vh;overflow-x:hidden;padding-top:var(--navbar-h);padding-bottom:90px}
+    .bg-layer{position:fixed;inset:0;background-image:url('Hotel_image_use_as_bg.png');background-size:cover;background-position:center;z-index:-2}
+    .bg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:-1}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    #navbar{position:fixed;top:0;left:0;right:0;height:var(--navbar-h);background:rgba(0,0,0,.95);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;backdrop-filter:blur(10px)}
+    .navbar-brand{display:flex;align-items:center;gap:9px;font-size:1.1rem;font-weight:700;color:var(--gold)}
+    .navbar-brand .brand-short{display:none}
+    .navbar-right{display:flex;align-items:center;gap:14px}
+    .owner-badge{display:flex;align-items:center;gap:6px;font-size:.83rem;color:rgba(255,255,255,.75)}
+    .owner-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#b8860b);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#000}
+    .logout-btn{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.35);color:var(--gold);padding:6px 14px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:background .2s}
+    .logout-btn:hover{background:rgba(255,215,0,.18)}
+    .main-content{max-width:900px;margin:0 auto;padding:28px 16px 32px}
+    .page-title-wrap{text-align:center;margin-bottom:28px;animation:fadeInUp .5s ease .1s both}
+    .page-title{font-size:2rem;font-weight:800;color:var(--white);letter-spacing:1px}
+    .page-subtitle{margin-top:6px;font-size:.85rem;color:var(--gold)}
+    .summary-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;animation:fadeInUp .5s ease .2s both}
+    .sum-card{background:var(--glass-bg);border:1px solid rgba(255,215,0,.25);border-radius:var(--radius);padding:16px 18px;text-align:center}
+    .sum-label{font-size:.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:6px}
+    .sum-value{font-size:1.4rem;font-weight:800;color:var(--gold)}
+    .filter-row{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;animation:fadeInUp .5s ease .25s both}
+    #histSearch{flex:1;min-width:180px;background:rgba(255,255,255,.08);border:1px solid rgba(255,215,0,.4);border-radius:50px;padding:12px 20px;color:var(--white);font-family:'Poppins',sans-serif;font-size:.9rem;outline:none;caret-color:var(--gold)}
+    #histSearch::placeholder{color:rgba(255,255,255,.4)}
+    #histSearch:focus{border-color:rgba(255,215,0,.8);box-shadow:0 0 0 3px rgba(255,215,0,.12)}
+    .clear-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:11px 18px;border-radius:50px;font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
+    .clear-btn:hover{background:rgba(255,255,255,.15)}
+    #histList{display:flex;flex-direction:column;gap:12px;animation:fadeInUp .5s ease .3s both}
+    .hist-card{background:var(--glass-bg);border:1px solid rgba(255,215,0,.2);border-radius:var(--radius);overflow:hidden;transition:border-color .2s,box-shadow .2s;cursor:pointer}
+    .hist-card:hover{border-color:rgba(255,215,0,.5);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+    .hist-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:12px;flex-wrap:wrap}
+    .hist-left{display:flex;align-items:center;gap:12px}
+    .hist-badge{padding:4px 12px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:rgba(34,197,94,.15);border:1px solid var(--green);color:var(--green)}
+    .hist-bill{font-size:.95rem;font-weight:700;color:var(--white)}
+    .hist-table{font-size:.78rem;color:rgba(255,255,255,.5);margin-top:2px}
+    .hist-right{text-align:right}
+    .hist-amount{font-size:1.05rem;font-weight:800;color:var(--gold)}
+    .hist-date{font-size:.72rem;color:rgba(255,255,255,.4);margin-top:2px}
+    .pay-chip{display:inline-block;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:var(--gold);font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:10px;margin-top:4px}
+    .hist-detail{display:none;padding:0 18px 16px;border-top:1px solid rgba(255,255,255,.05)}
+    .hist-detail.open{display:block}
+    .det-table{width:100%;border-collapse:collapse;margin-top:10px}
+    .det-table th{font-size:.68rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:6px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.07)}
+    .det-table th:nth-child(2),.det-table th:nth-child(3){text-align:center}
+    .det-table th:nth-child(4){text-align:right}
+    .det-table td{padding:8px 8px;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04)}
+    .det-table td:nth-child(2),.det-table td:nth-child(3){text-align:center;color:var(--gold);font-weight:600}
+    .det-table td:nth-child(4){text-align:right;font-weight:700}
+    .det-totals{margin-top:12px;background:rgba(255,255,255,.03);border-radius:8px;padding:10px 12px}
+    .det-row{display:flex;justify-content:space-between;font-size:.82rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .det-row:last-child{border:none;padding-top:8px;margin-top:4px}
+    .det-row:last-child span:first-child{font-size:.92rem;font-weight:700}
+    .det-row:last-child span:last-child{font-size:1.1rem;font-weight:800;color:var(--gold)}
+    .det-row span:first-child{color:rgba(255,255,255,.5)}
+    .det-row span:last-child{font-weight:600}
+    #emptyState{text-align:center;padding:60px 20px;display:none}
+    #emptyState .empty-icon{font-size:3rem;margin-bottom:12px}
+    #emptyState h2{font-size:1.2rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:6px}
+    #emptyState p{font-size:.83rem;color:rgba(255,255,255,.35)}
+    #bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--botnav-h);background:rgba(0,0,0,.95);border-top:1px solid rgba(255,215,0,.2);display:flex;align-items:stretch;z-index:1000;backdrop-filter:blur(10px)}
+    .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:rgba(255,255,255,.45);font-size:.6rem;font-weight:500;letter-spacing:.3px;text-transform:uppercase;position:relative;padding-bottom:4px;transition:color .2s}
+    .nav-tab .nav-icon{font-size:1.2rem;line-height:1}
+    .nav-tab:hover{color:rgba(255,255,255,.75)}
+    .nav-tab.active{color:var(--gold)}
+    .nav-tab.active::after{content:'';position:absolute;bottom:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+    @media(max-width:600px){.summary-bar{grid-template-columns:1fr 1fr}.page-title{font-size:1.5rem}.navbar-brand .brand-text{display:none}.navbar-brand .brand-short{display:inline}}
+  </style>
+</head>
+<body>
+<div class="bg-layer" aria-hidden="true"></div>
+<div class="bg-overlay" aria-hidden="true"></div>
+
+<nav id="navbar">
+  <div class="navbar-brand">
+    <span>🏨</span>
+    <span class="brand-text">Hotel Golden Stone</span>
+    <span class="brand-short">Golden Stone</span>
+  </div>
+  <div class="navbar-right">
+    <div class="owner-badge"><div class="owner-avatar">O</div><span>Owner</span></div>
+    <button class="logout-btn" onclick="window.location.href='owner-login.html'">Logout</button>
+  </div>
+</nav>
+
+<main class="main-content">
+  <div class="page-title-wrap">
+    <h1 class="page-title">📋 PAYMENT HISTORY</h1>
+    <p class="page-subtitle">All completed bills and transactions</p>
+  </div>
+
+  <div class="summary-bar">
+    <div class="sum-card"><div class="sum-label">Total Bills</div><div class="sum-value" id="sumCount">0</div></div>
+    <div class="sum-card"><div class="sum-label">Total Revenue</div><div class="sum-value" id="sumRevenue">₹0</div></div>
+    <div class="sum-card"><div class="sum-label">GST Collected</div><div class="sum-value" id="sumGst">₹0</div></div>
+  </div>
+
+  <div class="filter-row">
+    <input type="search" id="histSearch" placeholder="🔍 Search by table, bill no, item…" autocomplete="off" oninput="renderHistory()"/>
+    <button class="clear-btn" onclick="clearHistory()">🗑 Clear All</button>
+  </div>
+
+  <div id="histList" role="list"></div>
+  <div id="emptyState"><div class="empty-icon">📭</div><h2>No payment history yet</h2><p>Completed bills from the Billing page will appear here.</p></div>
+</main>
+
+<nav id="bottom-nav">
+  <a href="dashboard.html" class="nav-tab"><span class="nav-icon">🏠</span>Home</a>
+  <a href="billing.html" class="nav-tab"><span class="nav-icon">🧾</span>Billing</a>
+  <a href="menu-control.html" class="nav-tab"><span class="nav-icon">🍽️</span>Menu</a>
+  <a href="reports.html" class="nav-tab"><span class="nav-icon">📊</span>Reports</a>
+  <a href="order-history.html" class="nav-tab active" aria-current="page"><span class="nav-icon">📋</span>History</a>
+</nav>
+
+<script>
+  function fmt(n){return'₹'+Number(n).toLocaleString('en-IN')}
+  function getHistory(){try{return JSON.parse(localStorage.getItem('orderHistory')||'[]')}catch(e){return[]}}
+  function renderHistory(){
+    var all=getHistory(),q=(document.getElementById('histSearch').value||'').trim().toLowerCase();
+    var filtered=q?all.filter(function(h){return(h.billNumber||'').toLowerCase().includes(q)||(h.tableNumber||'').toLowerCase().includes(q)||(h.paymentMethod||'').toLowerCase().includes(q)||(h.items||[]).some(function(i){return(i.name||'').toLowerCase().includes(q)})}):all;
+    var totalRev=0,totalGst=0;
+    all.forEach(function(h){totalRev+=(h.totalAmount||0);totalGst+=(h.gst||0)});
+    document.getElementById('sumCount').textContent=all.length;
+    document.getElementById('sumRevenue').textContent=fmt(totalRev);
+    document.getElementById('sumGst').textContent=fmt(totalGst);
+    var list=document.getElementById('histList'),empty=document.getElementById('emptyState');
+    list.innerHTML='';
+    if(all.length===0){empty.style.display='block';return}
+    empty.style.display='none';
+    if(filtered.length===0){list.innerHTML='<p style="text-align:center;color:rgba(255,255,255,.4);padding:30px">No results for "'+q+'"</p>';return}
+    filtered.forEach(function(h){
+      var card=document.createElement('div');card.className='hist-card';card.setAttribute('role','listitem');
+      var pmIcon=h.paymentMethod==='UPI'?'📱':h.paymentMethod==='Card'?'💳':'💵';
+      var itemsHtml=(h.items||[]).map(function(it){return'<tr><td>'+it.name+'</td><td>'+it.qty+'</td><td>'+fmt(it.price)+'</td><td>'+fmt(it.qty*it.price)+'</td></tr>'}).join('');
+      card.innerHTML='<div class="hist-card-header" onclick="toggleDetail(this)"><div class="hist-left"><span class="hist-badge">✅ Paid</span><div><div class="hist-bill">'+(h.billNumber||'—')+'</div><div class="hist-table">'+(h.tableNumber||'—')+' · '+(h.date||'')+', '+(h.time||'')+'</div></div></div><div class="hist-right"><div class="hist-amount">'+fmt(h.totalAmount||0)+'</div><span class="pay-chip">'+pmIcon+' '+(h.paymentMethod||'—')+'</span></div></div><div class="hist-detail"><table class="det-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+itemsHtml+'</tbody></table><div class="det-totals"><div class="det-row"><span>Subtotal</span><span>'+fmt(h.subtotal||0)+'</span></div><div class="det-row"><span>Discount</span><span style="color:#f97316">-'+fmt(h.discount||0)+'</span></div><div class="det-row"><span>GST (5%)</span><span>'+fmt(h.gst||0)+'</span></div><div class="det-row"><span>TOTAL</span><span>'+fmt(h.totalAmount||0)+'</span></div></div></div>';
+      list.appendChild(card);
+    });
+  }
+  function toggleDetail(h){h.parentElement.querySelector('.hist-detail').classList.toggle('open')}
+  function clearHistory(){if(!confirm('Clear all payment history? This cannot be undone.'))return;localStorage.removeItem('orderHistory');renderHistory()}
+  document.addEventListener('DOMContentLoaded',renderHistory);
+</script>
+</body>
+</html>
