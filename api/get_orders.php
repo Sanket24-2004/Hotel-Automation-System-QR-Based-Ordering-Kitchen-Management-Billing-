@@ -91,25 +91,50 @@ try {
         : '1970-01-01 00:00:00';
 
     if ($statusFilter === 'all') {
-        $orderSql = "
-            SELECT *
-            FROM orders
-            WHERE DATE(created_at) = :today
-               OR updated_at > :since
-            ORDER BY
-                CASE status
-                    WHEN 'new'       THEN 1
-                    WHEN 'preparing' THEN 2
-                    WHEN 'ready'     THEN 3
-                    WHEN 'served'    THEN 4
-                END,
-                created_at ASC
-        ";
-        $orderStmt = $pdo->prepare($orderSql);
-        $orderStmt->execute([
-            'today' => $today,
-            'since' => $sinceDate,
-        ]);
+        if ($sinceTimestamp > 0) {
+            // ── INCREMENTAL POLL: Only orders updated since last poll ──
+            // This returns the delta — new orders, status changes, item additions
+            $orderSql = "
+                SELECT *
+                FROM orders
+                WHERE DATE(created_at) = :today
+                  AND updated_at > :since
+                ORDER BY
+                    CASE status
+                        WHEN 'new'       THEN 1
+                        WHEN 'preparing' THEN 2
+                        WHEN 'ready'     THEN 3
+                        WHEN 'served'    THEN 4
+                    END,
+                    created_at ASC
+            ";
+            $orderStmt = $pdo->prepare($orderSql);
+            $orderStmt->execute([
+                'today' => $today,
+                'since' => $sinceDate,
+            ]);
+        } else {
+            // ── FIRST LOAD: All of today's non-served orders ──
+            // Full sync on initial page load (since=0)
+            $orderSql = "
+                SELECT *
+                FROM orders
+                WHERE DATE(created_at) = :today
+                  AND status != 'served'
+                ORDER BY
+                    CASE status
+                        WHEN 'new'       THEN 1
+                        WHEN 'preparing' THEN 2
+                        WHEN 'ready'     THEN 3
+                        WHEN 'served'    THEN 4
+                    END,
+                    created_at ASC
+            ";
+            $orderStmt = $pdo->prepare($orderSql);
+            $orderStmt->execute([
+                'today' => $today,
+            ]);
+        }
     } else {
         $orderSql = "
             SELECT *

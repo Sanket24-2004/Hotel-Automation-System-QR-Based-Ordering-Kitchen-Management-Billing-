@@ -90,6 +90,44 @@ body {
 .hdr-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .hdr-btn.active { border-color: var(--green); color: var(--green); }
 
+/* ── CONNECTION STATUS ── */
+.connection-status {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .35rem .75rem; border-radius: 100px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .03em;
+  transition: all .4s ease;
+}
+.connection-status.connected {
+  background: var(--green-bg); color: var(--green);
+  border: 1px solid rgba(34,197,94,.3);
+}
+.connection-status.disconnected {
+  background: var(--red-bg); color: var(--red);
+  border: 1px solid rgba(239,68,68,.3);
+  animation: connPulse 1.5s ease infinite;
+}
+.connection-status.reconnecting {
+  background: var(--yellow-bg); color: var(--yellow);
+  border: 1px solid rgba(234,179,8,.3);
+  animation: connPulse 1s ease infinite;
+}
+.conn-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0;
+}
+.connected .conn-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.disconnected .conn-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.reconnecting .conn-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+@keyframes connPulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+
+/* ── LAST UPDATED ── */
+.last-updated {
+  font-family: var(--ff-mono); font-size: .7rem; font-weight: 600;
+  color: var(--text-muted); background: var(--bg-surface);
+  padding: .3rem .7rem; border-radius: 100px; letter-spacing: .03em;
+  white-space: nowrap;
+}
+
 /* ── STATS BAR ── */
 .stats-bar {
   display: flex; gap: .5rem; padding: .8rem 1.2rem;
