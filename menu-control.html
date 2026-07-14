@@ -91,6 +91,94 @@
     .nav-tab.active{color:var(--gold)}
     .nav-tab.active::after{content:'';position:absolute;bottom:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
     @media(max-width:600px){.form-row{grid-template-columns:1fr}.page-title{font-size:1.4rem}.navbar-brand .brand-text{display:none}.navbar-brand .brand-short{display:inline}}
+    
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 2px dashed rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+    }
+    .upload-zone:hover {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.05);
+    }
+    .upload-icon {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+    .upload-text {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .upload-preview-wrap {
+      position: absolute;
+      inset: 0;
+      background: #111;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .upload-preview-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .remove-img-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .remove-img-btn:hover {
+      background: #dc2626;
+    }
+    .upload-loader {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 17, 17, 0.85);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255, 215, 0, 0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -214,6 +302,25 @@
         <input type="number" id="fSortOrder" value="0" min="0"/>
       </div>
     </div>
+    
+    <div class="form-group" style="margin-top: 14px;">
+      <label>Item Image</label>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fImageFile').click()">
+        <span class="upload-icon">📷</span>
+        <span class="upload-text">Click to upload image</span>
+        <input type="file" id="fImageFile" accept="image/*" style="display:none" onchange="uploadImage(this)"/>
+        <div class="upload-preview-wrap" id="uploadPreviewWrap" style="display:none;">
+          <img id="uploadPreview" src="" alt="Preview" />
+          <button type="button" class="remove-img-btn" onclick="removeUploadedImg(event)">&times;</button>
+        </div>
+        <div class="upload-loader" id="uploadLoader" style="display:none;">
+          <div class="spinner"></div>
+          <span style="font-size: 0.75rem; margin-top: 8px;">Uploading...</span>
+        </div>
+      </div>
+      <input type="hidden" id="fImagePath" value=""/>
+    </div>
+
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
       <button class="btn btn-gold" onclick="saveItem()">Save</button>
@@ -264,6 +371,20 @@
     }
   }
 
+  function getFallbackImg(cat) {
+    return {
+      starter: 'Starter_Paneer_Tikka.png',
+      main_course: 'MainCourse_panner_butter_Masala.png',
+      bread: 'Breads_Roti.png',
+      rice_biryani: 'Rice_and_Biryani.png',
+      beverage: 'Beverages_Mango_lassi.png',
+      dessert: 'Dessert_Rasmalai.png',
+      side_dish: 'Side_dishes_Raita.png',
+      water: 'Water_bottle.png',
+      salad: 'Side_dishes_Raita.png'
+    }[cat] || '';
+  }
+
   function renderTable(items) {
     var tbody = document.getElementById('menuBody');
     if (!items.length) {
@@ -275,8 +396,13 @@
         ? '<span class="badge-veg" title="Veg"></span>'
         : '<span class="badge-nonveg" title="Non-Veg"></span>';
       var toggleCls = item.is_available == 1 ? 'on' : 'off';
+      var imgUrl = item.image_path || getFallbackImg(item.category);
+      var imgTag = imgUrl 
+        ? '<img src="' + imgUrl + '" style="width:36px;height:36px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.15);flex-shrink:0;" />'
+        : '<div style="width:36px;height:36px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🍽️</div>';
+      
       return '<tr id="row-' + item.id + '">' +
-        '<td><div class="item-name">' + item.name_en + '</div></td>' +
+        '<td><div style="display:flex;align-items:center;gap:12px;">' + imgTag + '<div><div class="item-name">' + item.name_en + '</div></div></div></td>' +
         '<td><div class="item-cat">' + catLabel(item.category) + '</div></td>' +
         '<td style="color:rgba(255,255,255,.5);font-size:.8rem">' + (item.section || '—') + '</td>' +
         '<td style="font-weight:700;color:var(--gold)">' + fmt(item.price) + '</td>' +
@@ -324,6 +450,13 @@
     document.getElementById('fSortOrder').value = '0';
     document.getElementById('fCategory').value = 'starter';
     document.getElementById('fIsVeg').value = '1';
+    
+    // Reset image fields
+    document.getElementById('fImagePath').value = '';
+    document.getElementById('fImageFile').value = '';
+    document.getElementById('uploadPreviewWrap').style.display = 'none';
+    document.getElementById('uploadLoader').style.display = 'none';
+    
     document.getElementById('itemModal').classList.add('open');
   }
 
@@ -341,11 +474,69 @@
     document.getElementById('fIsVeg').value     = item.is_veg != null ? String(item.is_veg) : '1';
     document.getElementById('fPrepTime').value  = item.prep_time_min || 10;
     document.getElementById('fSortOrder').value = item.sort_order || 0;
+    
+    // Set image fields
+    document.getElementById('fImageFile').value = '';
+    document.getElementById('uploadLoader').style.display = 'none';
+    if (item.image_path) {
+      document.getElementById('fImagePath').value = item.image_path;
+      document.getElementById('uploadPreview').src = item.image_path;
+      document.getElementById('uploadPreviewWrap').style.display = 'flex';
+    } else {
+      document.getElementById('fImagePath').value = '';
+      document.getElementById('uploadPreviewWrap').style.display = 'none';
+    }
+    
     document.getElementById('itemModal').classList.add('open');
   }
 
   function closeModal() {
     document.getElementById('itemModal').classList.remove('open');
+  }
+
+  async function uploadImage(input) {
+    var file = input.files[0];
+    if (!file) return;
+
+    // Client-side type validation
+    if (!file.type.match('image.*')) {
+      showToast('Please select a valid image file.', 'error');
+      input.value = '';
+      return;
+    }
+
+    var loader = document.getElementById('uploadLoader');
+    loader.style.display = 'flex';
+
+    var formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      var res = await fetch('api/upload_image.php', {
+        method: 'POST',
+        body: formData
+      });
+      var d = await res.json();
+      loader.style.display = 'none';
+      if (!d.success) throw new Error(d.error);
+
+      document.getElementById('fImagePath').value = d.image_path;
+      document.getElementById('uploadPreview').src = d.image_path;
+      document.getElementById('uploadPreviewWrap').style.display = 'flex';
+      showToast('✅ Image uploaded successfully!');
+    } catch(e) {
+      loader.style.display = 'none';
+      input.value = '';
+      showToast('Upload failed: ' + e.message, 'error');
+    }
+  }
+
+  function removeUploadedImg(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('fImagePath').value = '';
+    document.getElementById('fImageFile').value = '';
+    document.getElementById('uploadPreviewWrap').style.display = 'none';
+    showToast('🗑️ Image removed.');
   }
 
   async function saveItem() {
@@ -363,6 +554,7 @@
       is_veg:       parseInt(document.getElementById('fIsVeg').value),
       prep_time_min:parseInt(document.getElementById('fPrepTime').value) || 10,
       sort_order:   parseInt(document.getElementById('fSortOrder').value) || 0,
+      image_path:   document.getElementById('fImagePath').value.trim()
     };
 
     try {

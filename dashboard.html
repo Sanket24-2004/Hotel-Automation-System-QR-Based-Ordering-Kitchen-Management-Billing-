@@ -1175,6 +1175,47 @@
     });
 
     /* ================================================
+       LOAD STATS & TABLE STATUS FROM DB
+    ================================================ */
+    async function loadDashboardData() {
+      try {
+        // 1. Fetch live table status
+        var res = await fetch('api/get_occupied_tables.php');
+        var d   = await res.json();
+        if (d.success && Array.isArray(d.tables)) {
+          // Reset all 12 tables to unoccupied
+          TABLE_DATA.forEach(function(t) { t.occupied = false; });
+          // Mark active tables as occupied
+          d.tables.forEach(function(occTable) {
+            var match = TABLE_DATA.find(function(t) { return t.id === occTable.id; });
+            if (match) {
+              match.occupied = true;
+            } else if (occTable.id >= 1 && occTable.id <= 99) {
+              TABLE_DATA.push({ id: occTable.id, occupied: true });
+            }
+          });
+          TABLE_DATA.sort(function(a, b) { return a.id - b.id; });
+          buildTableGrid();
+        }
+
+        // 2. Fetch stats
+        var statRes = await fetch('api/get_stats.php');
+        var statD   = await statRes.json();
+        if (statD.success) {
+          var occupiedCount = TABLE_DATA.filter(function(t){ return t.occupied; }).length;
+          var availableCount = TABLE_DATA.length - occupiedCount;
+
+          countUp('val-revenue',   statD.revenue, '\u20B9', '', 1000);
+          countUp('val-orders',    statD.total_today,    '',        '', 1000);
+          countUp('val-available', availableCount,     '',        '', 1000);
+          countUp('val-occupied',  occupiedCount,     '',        '', 1000);
+        }
+      } catch (e) {
+        console.error('Failed to load dashboard data:', e);
+      }
+    }
+
+    /* ================================================
        INIT
     ================================================ */
     function init() {
@@ -1186,14 +1227,9 @@
       updateDateTime();
       setInterval(updateDateTime, 1000);
 
-      // Count-up animations for stat cards
-      countUp('val-revenue',   12450, '\u20B9', '', 1500);
-      countUp('val-orders',    45,    '',        '', 1500);
-      countUp('val-available', 9,     '',        '', 1500);
-      countUp('val-occupied',  3,     '',        '', 1500);
-
-      // Build table grid
-      buildTableGrid();
+      // Load DB dashboard data and poll
+      loadDashboardData();
+      setInterval(loadDashboardData, 10000);
     }
 
     // Run on DOM ready

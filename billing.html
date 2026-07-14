@@ -617,6 +617,49 @@
     }
     #toast.show { opacity: 1; }
 
+    /* Collapsible Add Extra Item Accordion */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: rgba(255, 215, 0, 0.04);
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .collapsible-header:hover {
+      background: rgba(255, 215, 0, 0.08);
+      border-color: rgba(255, 215, 0, 0.4);
+    }
+    .collapsible-header .bill-section-title {
+      margin: 0 !important;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .toggle-arrow {
+      color: var(--gold);
+      font-size: 0.75rem;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+    .collapsible-header.open .toggle-arrow {
+      transform: rotate(180deg);
+    }
+    .collapsible-content {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-top: none;
+      background: rgba(255, 255, 255, 0.01);
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 18px;
+      margin-top: -1px; /* seamless attachment to header */
+    }
+
     /* =============================================
        PRINT STYLES
     ============================================= */
@@ -756,14 +799,19 @@
           <tbody id="items-tbody"></tbody>
         </table>
 
-        <!-- Add extra item -->
-        <p class="bill-section-title" style="margin-top:24px">➕ Add Extra Item</p>
-        <p style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:8px">Search and select item from menu</p>
-        <div class="extra-search-wrap">
-          <input type="search" id="extra-search" placeholder="🔍 Search item..."
-            autocomplete="off" oninput="filterMenu(this.value)" aria-label="Search menu items" />
+        <!-- Add extra item (collapsible) -->
+        <div class="collapsible-header" id="extra-item-toggle" onclick="toggleExtraItems()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleExtraItems();}" role="button" tabindex="0" aria-expanded="false" aria-controls="extra-item-content">
+          <span class="bill-section-title">➕ Add Extra Item</span>
+          <span class="toggle-arrow">▼</span>
         </div>
-        <div id="menu-list"></div>
+        <div class="collapsible-content" id="extra-item-content" style="display:none">
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:8px">Search and select item from menu</p>
+          <div class="extra-search-wrap">
+            <input type="search" id="extra-search" placeholder="🔍 Search item..."
+              autocomplete="off" oninput="filterMenu(this.value)" aria-label="Search menu items" />
+          </div>
+          <div id="menu-list"></div>
+        </div>
 
         <!-- Bill summary -->
         <p class="bill-section-title" style="margin-top:24px">💰 Bill Summary</p>
@@ -893,33 +941,8 @@
       ]
     };
 
-    /* Full menu list for "Add Extra Item" */
-    var FULL_MENU = [
-      { name: 'Paneer Tikka',         price: 125 },
-      { name: 'Masala Papad',         price: 60  },
-      { name: 'Veg Spring Roll',      price: 90  },
-      { name: 'Hara Bhara Kebab',     price: 110 },
-      { name: 'Dal Makhani',          price: 180 },
-      { name: 'Butter Chicken',       price: 250 },
-      { name: 'Paneer Butter Masala', price: 220 },
-      { name: 'Mix Veg',              price: 160 },
-      { name: 'Shahi Paneer',         price: 230 },
-      { name: 'Butter Naan',          price: 30  },
-      { name: 'Tandoori Roti',        price: 20  },
-      { name: 'Garlic Naan',          price: 40  },
-      { name: 'Paratha',              price: 35  },
-      { name: 'Steamed Rice',         price: 50  },
-      { name: 'Jeera Rice',           price: 70  },
-      { name: 'Veg Biryani',          price: 150 },
-      { name: 'Lassi',                price: 60  },
-      { name: 'Cold Drink',           price: 40  },
-      { name: 'Masala Chai',          price: 25  },
-      { name: 'Fresh Lime Soda',      price: 50  },
-      { name: 'Water Bottle',         price: 20  },
-      { name: 'Gulab Jamun',          price: 70  },
-      { name: 'Ice Cream',            price: 90  },
-      { name: 'Kheer',                price: 80  }
-    ];
+    /* Full menu list for "Add Extra Item" (loaded dynamically from database) */
+    var FULL_MENU = [];
 
     /* ── State ── */
     var currentTableId   = null;
@@ -963,6 +986,25 @@
     /* ================================================
        VIEW SWITCHING
     ================================================ */
+    async function loadOccupiedTablesFromDB() {
+      try {
+        var res = await fetch('api/get_occupied_tables.php');
+        var d   = await res.json();
+        if (d.success && Array.isArray(d.tables)) {
+          OCCUPIED_TABLES = d.tables;
+          var detail = document.getElementById('bill-detail');
+          if (!detail || detail.style.display !== 'block') {
+            document.getElementById('occupied-section').style.display = 'block';
+            document.getElementById('empty-state').style.display =
+              OCCUPIED_TABLES.length === 0 ? 'block' : 'none';
+            renderCards(OCCUPIED_TABLES);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load occupied tables:', e);
+      }
+    }
+
     function showTablesView() {
       document.getElementById('bill-detail').style.display = 'none';
       document.getElementById('occupied-section').style.display = 'block';
@@ -970,18 +1012,38 @@
         OCCUPIED_TABLES.length === 0 ? 'block' : 'none';
       document.getElementById('page-title-section').style.display = 'block';
       document.getElementById('search-section').style.display = 'flex';
-      renderCards(OCCUPIED_TABLES);
+      loadOccupiedTablesFromDB();
     }
 
-    function showBillView(tableId) {
+    async function showBillView(tableId) {
       currentTableId = tableId;
       var tableData  = OCCUPIED_TABLES.find(function(t){ return t.id === tableId; });
       if (!tableData) return;
 
-      /* deep copy items so edits don't touch source */
-      currentItems = (TABLE_ITEMS[tableId] || []).map(function(i){
-        return { name: i.name, qty: i.qty, price: i.price };
-      });
+      try {
+        var res = await fetch('api/get_active_bill.php?table=' + tableId);
+        var d   = await res.json();
+        if (d.success) {
+          currentItems = (d.items || []).map(function(i){
+            return { name: i.name, qty: parseInt(i.qty), price: parseFloat(i.price) };
+          });
+          if (d.exists && d.order_ref) {
+            document.getElementById('bill-number-display').textContent = 'Bill ' + d.order_ref;
+          } else {
+            var bn = '#' + billCounter;
+            document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+          }
+        } else {
+          currentItems = [];
+          var bn = '#' + billCounter;
+          document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+        }
+      } catch(e) {
+        console.error('Failed to load active bill:', e);
+        currentItems = [];
+        var bn = '#' + billCounter;
+        document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+      }
 
       /* Hide tables, show bill */
       document.getElementById('occupied-section').style.display = 'none';
@@ -993,9 +1055,7 @@
       detail.style.display = 'block';
 
       /* Bill header */
-      var bn = '#' + billCounter;
       document.getElementById('bill-header-title').textContent = '🧾 Table ' + tableId + ' — Bill';
-      document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
 
       /* Info bar */
       var d = now();
@@ -1010,9 +1070,39 @@
       setDiscType('pct', true);
       selectPayment('Cash', true);
 
+      // Close extra items accordion by default
+      var extraContent = document.getElementById('extra-item-content');
+      var extraHeader = document.getElementById('extra-item-toggle');
+      if (extraContent) extraContent.style.display = 'none';
+      if (extraHeader) {
+        extraHeader.classList.remove('open');
+        extraHeader.setAttribute('aria-expanded', 'false');
+      }
+
       renderItemsTable();
       renderMenuList(FULL_MENU);
       recalc();
+    }
+
+    function toggleExtraItems() {
+      var header = document.getElementById('extra-item-toggle');
+      var content = document.getElementById('extra-item-content');
+      if (!content || !header) return;
+      var isOpen = content.style.display !== 'none';
+      if (isOpen) {
+        content.style.display = 'none';
+        header.classList.remove('open');
+        header.setAttribute('aria-expanded', 'false');
+      } else {
+        content.style.display = 'block';
+        header.classList.add('open');
+        header.setAttribute('aria-expanded', 'true');
+        // Focus the search input when opened
+        setTimeout(function() {
+          var input = document.getElementById('extra-search');
+          if (input) input.focus();
+        }, 100);
+      }
     }
 
     /* ================================================
@@ -1026,11 +1116,32 @@
         var total = item.qty * item.price;
         row.innerHTML =
           '<td class="item-name">' + item.name + '</td>' +
-          '<td class="item-qty">' + item.qty + '</td>' +
+          '<td class="item-qty">' +
+            '<div class="qty-ctrl">' +
+              '<button class="qty-btn" onclick="adjustQty(' + idx + ', -1)" aria-label="Decrease quantity">&minus;</button>' +
+              '<span class="qty-num">' + item.qty + '</span>' +
+              '<button class="qty-btn" onclick="adjustQty(' + idx + ', 1)" aria-label="Increase quantity">&plus;</button>' +
+            '</div>' +
+          '</td>' +
           '<td class="item-price">' + fmt(item.price) + '</td>' +
           '<td class="item-total">' + fmt(total) + '</td>';
         tbody.appendChild(row);
       });
+    }
+
+    function adjustQty(idx, delta) {
+      if (idx < 0 || idx >= currentItems.length) return;
+      var item = currentItems[idx];
+      var nextQty = item.qty + delta;
+      if (nextQty <= 0) {
+        var removedName = item.name;
+        currentItems.splice(idx, 1);
+        showToast('🗑️ Removed ' + removedName + ' from bill.');
+      } else {
+        item.qty = nextQty;
+      }
+      renderItemsTable();
+      recalc();
     }
 
 
@@ -1172,7 +1283,7 @@
     /* ================================================
        COMPLETE PAYMENT
     ================================================ */
-    function completePayment() {
+    async function completePayment() {
       var d        = now();
       var discVal  = parseFloat(document.getElementById('discount-input').value) || 0;
       var subtotal = currentItems.reduce(function(s,i){ return s+i.qty*i.price; },0);
@@ -1183,31 +1294,57 @@
       var gst       = Math.round(afterDisc * 0.05);
       var total     = afterDisc + gst;
 
-      /* 1. Save to localStorage for order-history.html */
-      var history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
-      history.unshift({
-        billNumber:     '#' + billCounter,
-        tableNumber:    'Table ' + currentTableId,
-        date:           dateStr(d),
-        time:           timeStr(d),
-        items:          currentItems.slice(),
-        subtotal:       subtotal,
-        discount:       discAmt,
-        discountType:   discountType,
-        gst:            gst,
-        totalAmount:    total,
-        paymentMethod:  selectedPayment,
-        status:         'Completed',
-        timestamp:      Date.now()
-      });
-      localStorage.setItem('orderHistory', JSON.stringify(history));
+      try {
+        var res = await fetch('api/complete_payment.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table: currentTableId,
+            subtotal: subtotal,
+            discount: discAmt,
+            discount_type: discountType,
+            gst: gst,
+            total: total,
+            payment_method: selectedPayment,
+            items: currentItems
+          })
+        });
+        var resData = await res.json();
+        if (resData.success) {
+          showToast('Payment Completed!');
+          
+          /* 1. Save to localStorage for order-history.html and reports.html */
+          var history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+          history.unshift({
+            billNumber:     resData.order_ref,
+            tableNumber:    'Table ' + currentTableId,
+            date:           dateStr(d),
+            time:           timeStr(d),
+            items:          currentItems.slice(),
+            subtotal:       subtotal,
+            discount:       discAmt,
+            discountType:   discountType,
+            gst:            gst,
+            totalAmount:    total,
+            paymentMethod:  selectedPayment,
+            status:         'Completed',
+            timestamp:      Date.now()
+          });
+          localStorage.setItem('orderHistory', JSON.stringify(history));
 
-      /* 2. Remove table from occupied list */
-      OCCUPIED_TABLES = OCCUPIED_TABLES.filter(function(t){ return t.id !== currentTableId; });
-      billCounter++;
+          /* 2. Remove table from occupied list */
+          OCCUPIED_TABLES = OCCUPIED_TABLES.filter(function(t){ return t.id !== currentTableId; });
+          billCounter++;
 
-      /* 3. Return to tables view */
-      showTablesView();
+          /* 3. Return to tables view */
+          showTablesView();
+        } else {
+          showToast('Error: ' + resData.error);
+        }
+      } catch (e) {
+        console.error('Failed to complete payment:', e);
+        showToast('Network error while completing payment.');
+      }
     }
 
     /* ================================================
@@ -1271,8 +1408,34 @@
 
     function generateBill(tableId) { showBillView(tableId); }
 
+    async function loadMenuFromDB() {
+      try {
+        var res = await fetch('api/owner_menu.php');
+        var d   = await res.json();
+        if (d.success && Array.isArray(d.items)) {
+          FULL_MENU = d.items.filter(function(item) {
+            return item.is_available == 1;
+          }).map(function(item) {
+            return {
+              name: item.name_en,
+              price: parseFloat(item.price)
+            };
+          });
+          // Re-render menu list with loaded data if we are in the bill view
+          if (currentTableId !== null) {
+            renderMenuList(FULL_MENU);
+          }
+        }
+      } catch(e) {
+        console.error('Failed to load menu from DB:', e);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      renderCards(OCCUPIED_TABLES);
+      loadOccupiedTablesFromDB();
+      loadMenuFromDB();
+      // Poll occupied tables from DB every 10 seconds
+      setInterval(loadOccupiedTablesFromDB, 10000);
     });
   </script>
 

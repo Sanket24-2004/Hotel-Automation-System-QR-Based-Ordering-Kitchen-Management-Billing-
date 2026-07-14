@@ -29,17 +29,30 @@ $categoryDbToJs = [
 ];
 
 try {
+    $days = isset($_GET['days']) ? (string)$_GET['days'] : 'all';
+    
+    $whereClause = "WHERE status = 'served'";
+    $queryParams = [];
+    
+    if ($days !== 'all' && $days !== '0' && $days !== '') {
+        $daysCount = intval($days);
+        if ($daysCount > 0) {
+            $whereClause .= " AND created_at >= NOW() - INTERVAL ? DAY";
+            $queryParams[] = $daysCount;
+        }
+    }
+
     // ════════════════════════════════════════════
-    // STEP 1: Fetch served orders from last 24 hours
+    // STEP 1: Fetch served orders
     // ════════════════════════════════════════════
     $orderSql = "
         SELECT *
         FROM orders
-        WHERE status = 'served'
-          AND created_at >= NOW() - INTERVAL 1 DAY
+        $whereClause
         ORDER BY created_at DESC
     ";
-    $orderStmt = $pdo->query($orderSql);
+    $orderStmt = $pdo->prepare($orderSql);
+    $orderStmt->execute($queryParams);
     $orders    = $orderStmt->fetchAll();
     $orderIds  = array_column($orders, 'id');
 

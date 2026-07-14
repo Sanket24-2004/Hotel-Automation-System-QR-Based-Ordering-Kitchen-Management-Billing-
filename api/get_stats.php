@@ -48,7 +48,8 @@ try {
             SUM(CASE WHEN status = 'new'        THEN 1 ELSE 0 END) AS `new`,
             SUM(CASE WHEN status = 'preparing'  THEN 1 ELSE 0 END) AS preparing,
             SUM(CASE WHEN status = 'ready'      THEN 1 ELSE 0 END) AS ready,
-            SUM(CASE WHEN status = 'served'     THEN 1 ELSE 0 END) AS served
+            SUM(CASE WHEN status = 'served'     THEN 1 ELSE 0 END) AS served,
+            SUM(CASE WHEN status = 'served'     THEN total_amount ELSE 0.00 END) AS revenue
         FROM orders
         WHERE DATE(created_at) = :today
     ");
@@ -65,6 +66,7 @@ try {
         'preparing'   => (int)($stats['preparing']    ?? 0),
         'ready'       => (int)($stats['ready']        ?? 0),
         'served'      => (int)($stats['served']       ?? 0),
+        'revenue'     => (float)($stats['revenue']     ?? 0.00),
     ]);
 
 } catch (PDOException $e) {
