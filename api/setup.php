@@ -187,6 +187,13 @@ $tables = [
         INDEX `idx_order_id`   (`order_id`),
         INDEX `idx_changed_at` (`changed_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    // ── occupied_tables ──
+    'occupied_tables' => "CREATE TABLE IF NOT EXISTS `occupied_tables` (
+        `table_no`      INT UNSIGNED      PRIMARY KEY,
+        `persons`       INT UNSIGNED      NOT NULL DEFAULT 1,
+        `occupied_at`   DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 ];
 
 foreach ($tables as $name => $sql) {
@@ -203,6 +210,22 @@ foreach ($tables as $name => $sql) {
         logErr("Table <code>$name</code> failed: " . htmlspecialchars($e->getMessage()));
     }
 }
+
+// Check and alter orders table for missing columns
+try {
+    $pdo->exec("ALTER TABLE `orders` ADD COLUMN `discount_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+    logOk("Added column <code>discount_amount</code> to <code>orders</code>");
+} catch (PDOException $e) { /* already exists */ }
+
+try {
+    $pdo->exec("ALTER TABLE `orders` ADD COLUMN `discount_type` VARCHAR(10) DEFAULT NULL");
+    logOk("Added column <code>discount_type</code> to <code>orders</code>");
+} catch (PDOException $e) { /* already exists */ }
+
+try {
+    $pdo->exec("ALTER TABLE `orders` ADD COLUMN `payment_method` VARCHAR(20) DEFAULT NULL");
+    logOk("Added column <code>payment_method</code> to <code>orders</code>");
+} catch (PDOException $e) { /* already exists */ }
 
 // ═══════════════════════════════════════════════════════
 // STEP 4: Insert Sample Menu Items (only if table is empty)
@@ -291,7 +314,7 @@ if ($menuCount > 0) {
 echo '<hr>';
 logInfo('Verifying database structure...');
 
-$expectedTables = ['menu_items', 'orders', 'order_items', 'order_status_history'];
+$expectedTables = ['menu_items', 'orders', 'order_items', 'order_status_history', 'occupied_tables'];
 foreach ($expectedTables as $tbl) {
     $count = $pdo->query("SHOW TABLES LIKE '$tbl'")->rowCount();
     if ($count > 0) {

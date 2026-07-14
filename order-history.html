@@ -124,9 +124,68 @@
 
 <script>
   function fmt(n){return'₹'+Number(n).toLocaleString('en-IN')}
-  function getHistory(){try{return JSON.parse(localStorage.getItem('orderHistory')||'[]')}catch(e){return[]}}
-  function renderHistory(){
-    var all=getHistory(),q=(document.getElementById('histSearch').value||'').trim().toLowerCase();
+  
+  function mapDbOrderToJsHistory(order) {
+    var d = new Date(order.served_at ? order.served_at.replace(/-/g, '/') : order.created_at.replace(/-/g, '/'));
+    var dateStrVal = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    var timeStrVal = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+
+    var items = [];
+    if (Array.isArray(order.batches)) {
+      order.batches.forEach(function(batch) {
+        if (Array.isArray(batch.items)) {
+          batch.items.forEach(function(item) {
+            var existing = items.find(function(it) { return it.name === item.name; });
+            if (existing) {
+              existing.qty += item.qty;
+            } else {
+              items.push({
+                name: item.name,
+                qty: item.qty,
+                price: item.price
+              });
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      billNumber:     order.order_ref,
+      tableNumber:    'Table ' + order.table_no,
+      date:           dateStrVal,
+      time:           timeStrVal,
+      items:          items,
+      subtotal:       parseFloat(order.subtotal || 0),
+      discount:       parseFloat(order.discount_amount || 0),
+      discountType:   order.discount_type || 'pct',
+      gst:            parseFloat(order.gst_amount || 0),
+      totalAmount:    parseFloat(order.total_amount || 0),
+      paymentMethod:  order.payment_method || 'Cash',
+      status:         'Completed',
+      timestamp:      d.getTime()
+    };
+  }
+
+  async function getHistoryFromDB() {
+    try {
+      var res = await fetch('api/get_history.php?days=all');
+      var d   = await res.json();
+      if (d.success && Array.isArray(d.orders)) {
+        return d.orders.map(mapDbOrderToJsHistory);
+      }
+    } catch(e) {
+      console.error('Failed to load history from DB:', e);
+    }
+    try {
+      return JSON.parse(localStorage.getItem('orderHistory')||'[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
+  async function renderHistory(){
+    var all=await getHistoryFromDB(),q=(document.getElementById('histSearch').value||'').trim().toLowerCase();
     var filtered=q?all.filter(function(h){return(h.billNumber||'').toLowerCase().includes(q)||(h.tableNumber||'').toLowerCase().includes(q)||(h.paymentMethod||'').toLowerCase().includes(q)||(h.items||[]).some(function(i){return(i.name||'').toLowerCase().includes(q)})}):all;
     var totalRev=0,totalGst=0;
     all.forEach(function(h){totalRev+=(h.totalAmount||0);totalGst+=(h.gst||0)});
@@ -147,7 +206,23 @@
     });
   }
   function toggleDetail(h){h.parentElement.querySelector('.hist-detail').classList.toggle('open')}
-  function clearHistory(){if(!confirm('Clear all payment history? This cannot be undone.'))return;localStorage.removeItem('orderHistory');renderHistory()}
+  async function clearHistory(){
+    if(!confirm('Clear all payment history? This cannot be undone.'))return;
+    try {
+      var res = await fetch('api/clear_history.php', { method: 'POST' });
+      var d = await res.json();
+      if (d.success) {
+        localStorage.removeItem('orderHistory');
+        renderHistory();
+      } else {
+        alert('Error: ' + d.error);
+      }
+    } catch(e) {
+      console.error(e);
+      localStorage.removeItem('orderHistory');
+      renderHistory();
+    }
+  }
   document.addEventListener('DOMContentLoaded',renderHistory);
 </script>
 </body>
