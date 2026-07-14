@@ -570,7 +570,15 @@
       sessionStorage.setItem('hotel_table',   tableNum);
       sessionStorage.setItem('hotel_persons', personCount);
       sessionStorage.setItem('hotel_lang',    lang);
-      window.location.href = 'menu.html?lang=' + encodeURIComponent(lang) + '&table=' + tableNum + '&persons=' + personCount;
+
+      // Register table occupancy in DB before proceeding
+      fetch('api/occupy_table.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'occupy', table: tableNum, persons: personCount })
+      }).finally(() => {
+        window.location.href = 'menu.html?lang=' + encodeURIComponent(lang) + '&table=' + tableNum + '&persons=' + personCount;
+      });
     }
 
     /* ── ENTER key on input ── */

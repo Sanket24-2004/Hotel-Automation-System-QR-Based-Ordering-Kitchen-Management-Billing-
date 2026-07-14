@@ -150,13 +150,78 @@
 </nav>
 
 <script>
-  var activePeriod=7,revChart=null,payChart=null;
+  var activePeriod=7,revChart=null,payChart=null,allDbHistory=[];
   function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN')}
-  function getHistory(){try{return JSON.parse(localStorage.getItem('orderHistory')||'[]')}catch(e){return[]}}
+
+  function mapDbOrderToJsHistory(order) {
+    var d = new Date(order.served_at ? order.served_at.replace(/-/g, '/') : order.created_at.replace(/-/g, '/'));
+    var dateStrVal = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    var timeStrVal = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+
+    var items = [];
+    if (Array.isArray(order.batches)) {
+      order.batches.forEach(function(batch) {
+        if (Array.isArray(batch.items)) {
+          batch.items.forEach(function(item) {
+            var existing = items.find(function(it) { return it.name === item.name; });
+            if (existing) {
+              existing.qty += item.qty;
+            } else {
+              items.push({
+                name: item.name,
+                qty: item.qty,
+                price: item.price
+              });
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      billNumber:     order.order_ref,
+      tableNumber:    'Table ' + order.table_no,
+      date:           dateStrVal,
+      time:           timeStrVal,
+      items:          items,
+      subtotal:       parseFloat(order.subtotal || 0),
+      discount:       parseFloat(order.discount_amount || 0),
+      discountType:   order.discount_type || 'pct',
+      gst:            parseFloat(order.gst_amount || 0),
+      totalAmount:    parseFloat(order.total_amount || 0),
+      paymentMethod:  order.payment_method || 'Cash',
+      status:         'Completed',
+      timestamp:      d.getTime()
+    };
+  }
+
+  async function getHistoryFromDB() {
+    try {
+      var res = await fetch('api/get_history.php?days=all');
+      var d   = await res.json();
+      if (d.success && Array.isArray(d.orders)) {
+        return d.orders.map(mapDbOrderToJsHistory);
+      }
+    } catch(e) {
+      console.error('Failed to load history from DB:', e);
+    }
+    try {
+      return JSON.parse(localStorage.getItem('orderHistory')||'[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
   function filterByPeriod(all,days){if(!days)return all;var c=Date.now()-days*86400000;return all.filter(function(h){return(h.timestamp||0)>=c})}
   function setPeriod(days,btn){activePeriod=days;document.querySelectorAll('.period-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');renderReports()}
+  
+  async function initReports() {
+    allDbHistory = await getHistoryFromDB();
+    renderReports();
+  }
+
   function renderReports(){
-    var all=getHistory(),data=filterByPeriod(all,activePeriod);
+    var all=allDbHistory,data=filterByPeriod(all,activePeriod);
     var revenue=data.reduce(function(s,h){return s+(h.totalAmount||0)},0);
     var gst=data.reduce(function(s,h){return s+(h.gst||0)},0);
     var avg=data.length?revenue/data.length:0;
@@ -192,14 +257,14 @@
     document.getElementById('topItems').innerHTML=sorted.length?sorted.map(function(it,i){return'<li class="item-row"><div class="item-rank '+(rc[i]||'rn')+'">'+(i+1)+'</div><div class="item-name-col">'+it.name+'</div><div class="item-qty-col">×'+it.qty+'</div><div class="item-rev-col">'+fmt(it.rev)+'</div></li>'}).join(''):'<li style="padding:20px 0;text-align:center;color:rgba(255,255,255,.35);font-size:.85rem">No billing data for this period.</li>';
   }
   function exportCSV(){
-    var all=getHistory(),data=filterByPeriod(all,activePeriod);
+    var all=allDbHistory,data=filterByPeriod(all,activePeriod);
     if(!data.length){alert('No data to export.');return}
     var rows=[['Bill No','Table','Date','Time','Items','Subtotal','Discount','GST','Total','Payment']];
     data.forEach(function(h){var s=(h.items||[]).map(function(i){return i.name+'×'+i.qty}).join('; ');rows.push([h.billNumber||'',h.tableNumber||'',h.date||'',h.time||'','"'+s+'"',h.subtotal||0,h.discount||0,h.gst||0,h.totalAmount||0,h.paymentMethod||''])});
     var csv=rows.map(function(r){return r.join(',')}).join('\n');
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='report-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
   }
-  document.addEventListener('DOMContentLoaded',renderReports);
+  document.addEventListener('DOMContentLoaded',initReports);
 </script>
 </body>
 </html>
