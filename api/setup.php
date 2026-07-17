@@ -240,55 +240,55 @@ if ($menuCount > 0) {
 } else {
     $sampleItems = [
         // ── Starters ──
-        ['STR-001', 'Roasted Papad',       'भुना पापड़',           'भाजलेला पापड',          'starter',      30,  'Starters/Roasted Papad.png',     5, 1],
-        ['STR-002', 'Masala Papad',         'मसाला पापड़',          'मसाला पापड',           'starter',      50,  'Starters/Masala Papad.png',      5, 2],
-        ['STR-003', 'Paneer Tikka',         'पनीर टिक्का',          'पनीर टिक्का',          'starter',      220, 'Starters/Paneer Tikka.png',      8, 3],
-        ['STR-004', 'Veg Manchurian Dry',   'वेज मंचूरियन ड्राई',     'व्हेज मंचुरियन ड्राय',   'starter',      180, 'Starters/Veg Manchurian Dry.png',7, 4],
-        ['STR-005', 'Spring Roll',          'स्प्रिंग रोल',          'स्प्रिंग रोल',          'starter',      160, 'Starters/Spring Roll.png',       6, 5],
+        ['STR-001', 'Roasted Papad',       'भुना पापड़',           'भाजलेला पापड',          'starter',      30,  'ALL Images/Starter_Paneer_Tikka.webp',     5, 1],
+        ['STR-002', 'Masala Papad',         'मसाला पापड़',          'मसाला पापड',           'starter',      50,  'ALL Images/Starter_Paneer_Tikka.webp',      5, 2],
+        ['STR-003', 'Paneer Tikka',         'पनीर टिक्का',          'पनीर टिक्का',          'starter',      220, 'ALL Images/Starter_Paneer_Tikka.webp',      8, 3],
+        ['STR-004', 'Veg Manchurian Dry',   'वेज मंचूरियन ड्राई',     'व्हेज मंचुरियन ड्राय',   'starter',      180, 'ALL Images/Starter_Paneer_Tikka.webp',7, 4],
+        ['STR-005', 'Spring Roll',          'स्प्रिंग रोल',          'स्प्रिंग रोल',          'starter',      160, 'ALL Images/Starter_Paneer_Tikka.webp',       6, 5],
 
         // ── Main Course ──
-        ['MNC-001', 'Paneer Butter Masala', 'पनीर बटर मसाला',       'पनीर बटर मसाला',       'main_course',  260, 'Main Cource/Paneer Butter Masala.png', 12, 1],
-        ['MNC-002', 'Dal Tadka',            'दाल तड़का',            'डाळ तडका',            'main_course',  180, 'Main Cource/Dal Tadka.png',            10, 2],
-        ['MNC-003', 'Malai Kofta',          'मलाई कोफ़्ता',          'मलाई कोफ्ता',          'main_course',  250, 'Main Cource/Malai Kofta.png',          12, 3],
-        ['MNC-004', 'Shahi Paneer',         'शाही पनीर',            'शाही पनीर',            'main_course',  260, 'Main Cource/Shahi Paneer.png',         12, 4],
-        ['MNC-005', 'Veg Kolhapuri',        'वेज कोल्हापुरी',        'व्हेज कोल्हापुरी',       'main_course',  220, 'Main Cource/Veg Kolhapuri.png',        10, 5],
+        ['MNC-001', 'Paneer Butter Masala', 'पनीर बटर मसाला',       'पनीर बटर मसाला',       'main_course',  260, 'ALL Images/Paneer Butter Masala.webp', 12, 1],
+        ['MNC-002', 'Dal Tadka',            'दाल तड़का',            'डाळ तडका',            'main_course',  180, 'ALL Images/Dal Tadka.webp',            10, 2],
+        ['MNC-003', 'Malai Kofta',          'मलाई कोफ़्ता',          'मलाई कोफ्ता',          'main_course',  250, 'ALL Images/Malai Kofta.webp',          12, 3],
+        ['MNC-004', 'Shahi Paneer',         'शाही पनीर',            'शाही पनीर',            'main_course',  260, 'ALL Images/Shahi Paneer.webp',         12, 4],
+        ['MNC-005', 'Veg Kolhapuri',        'वेज कोल्हापुरी',        'व्हेज कोल्हापुरी',       'main_course',  220, 'ALL Images/Veg Kolhapuri.webp',        10, 5],
 
         // ── Breads ──
-        ['BRD-001', 'Plain Roti',           'प्लेन रोटी',            'प्लेन रोटी',           'bread',        30,  'Breads/Plain Roti.png',          3, 1],
-        ['BRD-002', 'Butter Roti',          'बटर रोटी',            'बटर रोटी',            'bread',        40,  'Breads/Butter Roti.png',         3, 2],
-        ['BRD-003', 'Butter Naan',          'बटर नान',             'बटर नान',             'bread',        60,  'Breads/Butter Naan.png',         5, 3],
-        ['BRD-004', 'Garlic Naan',          'गार्लिक नान',           'गार्लिक नान',           'bread',        70,  'Breads/Garlic Naan.png',         5, 4],
-        ['BRD-005', 'Laccha Paratha',       'लच्छा पराठा',          'लच्छा पराठा',          'bread',        60,  'Breads/Laccha Paratha.png',      5, 5],
+        ['BRD-001', 'Plain Roti',           'प्लेन रोटी',            'प्लेन रोटी',           'bread',        30,  'ALL Images/Breads_Roti.webp',          3, 1],
+        ['BRD-002', 'Butter Roti',          'बटर रोटी',            'बटर रोटी',            'bread',        40,  'ALL Images/Butter roti.webp',          3, 2],
+        ['BRD-003', 'Butter Naan',          'बटर नान',             'बटर नान',             'bread',        60,  'ALL Images/Butter Naan.webp',          5, 3],
+        ['BRD-004', 'Garlic Naan',          'गार्लिक नान',           'गार्लिक नान',           'bread',        70,  'ALL Images/Garlic Naan.webp',          5, 4],
+        ['BRD-005', 'Laccha Paratha',       'लच्छा पराठा',          'लच्छा पराठा',          'bread',        60,  'ALL Images/Breads_Roti.webp',       5, 5],
 
         // ── Rice & Biryani ──
-        ['RCE-001', 'Steamed Rice',         'स्टीम्ड राइस',          'वाफवलेला भात',          'rice_biryani', 100, 'Rice & Biryanies/Steamed Rice.png',  6, 1],
-        ['RCE-002', 'Jeera Rice',           'जीरा राइस',            'जिरा राइस',            'rice_biryani', 130, 'Rice & Biryanies/Jeera Rice.png',    6, 2],
-        ['RCE-003', 'Veg Biryani',          'वेज बिरयानी',           'व्हेज बिर्याणी',         'rice_biryani', 200, 'Rice & Biryanies/Veg Biryani.png',   10, 3],
-        ['RCE-004', 'Veg Pulao',            'वेज पुलाव',            'व्हेज पुलाव',           'rice_biryani', 180, 'Rice & Biryanies/Veg Pulao.png',     8, 4],
+        ['RCE-001', 'Steamed Rice',         'स्टीम्ड राइस',          'वाफवलेला भात',          'rice_biryani', 100, 'ALL Images/Steamed Rice.webp',  6, 1],
+        ['RCE-002', 'Jeera Rice',           'जीरा राइस',            'जिरा राइस',            'rice_biryani', 130, 'ALL Images/Jeera Rice.webp',    6, 2],
+        ['RCE-003', 'Veg Biryani',          'वेज बिरयानी',           'व्हेज बिर्याणी',         'rice_biryani', 200, 'ALL Images/Veg Biryani.webp',   10, 3],
+        ['RCE-004', 'Veg Pulao',            'वेज पुलाव',            'व्हेज पुलाव',           'rice_biryani', 180, 'ALL Images/Veg Pulao.webp',     8, 4],
 
         // ── Beverages ──
-        ['BEV-001', 'Fresh Lime Soda',      'फ्रेश लाइम सोडा',       'फ्रेश लाईम सोडा',       'beverage',     70,  'Beverages/Fresh Lime Soda.png',  2, 1],
-        ['BEV-002', 'Mango Lassi',          'मैंगो लस्सी',           'मँगो लस्सी',           'beverage',     99,  'Beverages/Mango Lassi.png',      3, 2],
-        ['BEV-003', 'Sweet Lassi',          'मीठी लस्सी',           'गोड लस्सी',            'beverage',     79,  'Beverages/Sweet Lassi.png',      2, 3],
-        ['BEV-004', 'Masala Chaas',         'मसाला छाछ',            'मसाला ताक',            'beverage',     59,  'Beverages/Masala Chaas.png',     2, 4],
+        ['BEV-001', 'Fresh Lime Soda',      'फ्रेश लाइम सोडा',       'फ्रेश लाईम सोडा',       'beverage',     70,  'ALL Images/Fresh Lime Soda.webp',  2, 1],
+        ['BEV-002', 'Mango Lassi',          'मैंगो लस्सी',           'मँगो लस्सी',           'beverage',     99,  'ALL Images/Mango Lassi.webp',      3, 2],
+        ['BEV-003', 'Sweet Lassi',          'मीठी लस्सी',           'गोड लस्सी',            'beverage',     79,  'ALL Images/Sweet Lassi.webp',      2, 3],
+        ['BEV-004', 'Masala Chaas',         'मसाला छाछ',            'मसाला ताक',            'beverage',     59,  'ALL Images/Masala Chaas (Buttermilk).webp', 2, 4],
 
         // ── Desserts ──
-        ['DST-001', 'Gulab Jamun (2 pcs)',  'गुलाब जामुन (2 नग)',    'गुलाब जामुन (२ नग)',    'dessert',      79,  'Desserts/Gulab Jamun (2 pcs).png', 3, 1],
-        ['DST-002', 'Rasmalai (2 pcs)',     'रसमलाई (2 नग)',        'रसमलाई (२ नग)',         'dessert',      99,  'Desserts/Rasmalai (2 pcs).png',    3, 2],
-        ['DST-003', 'Gajar Halwa',          'गाजर हलवा',            'गाजर हलवा',            'dessert',      129, 'Desserts/Gajar Halwa.png',         4, 3],
-        ['DST-004', 'Vanilla Ice Cream',    'वैनिला आइसक्रीम',       'व्हॅनिला आईस्क्रीम',      'dessert',      79,  'Desserts/Vanilla Ice Cream.png',   2, 4],
+        ['DST-001', 'Gulab Jamun (2 pcs)',  'गुलाब जामुन (2 नग)',    'गुलाब जामुन (२ नग)',    'dessert',      79,  'ALL Images/Gulab Jamun (2 pcs).webp', 3, 1],
+        ['DST-002', 'Rasmalai (2 pcs)',     'रसमलाई (2 नग)',        'रसमलाई (२ नग)',         'dessert',      99,  'ALL Images/Rasmalai (2 pcs).webp',    3, 2],
+        ['DST-003', 'Gajar Halwa',          'गाजर हलवा',            'गाजर हलवा',            'dessert',      129, 'ALL Images/Gajar Halwa.webp',         4, 3],
+        ['DST-004', 'Vanilla Ice Cream',    'वैनिला आइसक्रीम',       'व्हॅनिला आईस्क्रीम',      'dessert',      79,  'ALL Images/Vanilla Ice Cream.webp',   2, 4],
 
         // ── Side Dishes (includes Salad items) ──
-        ['SID-001', 'Green Salad',          'ग्रीन सलाद',            'ग्रीन सॅलड',            'side_dish',    39,  'Side Dishes/Green Salad.png',    2, 1],
-        ['SID-002', 'Onion Salad',          'प्याज सलाद',            'कांदा कोशिंबीर',         'side_dish',    45,  'Side Dishes/Onion Salad.png',    2, 2],
-        ['SID-003', 'Veg Raita',            'वेज रायता',             'व्हेज रायता',           'side_dish',    59,  'Side Dishes/Veg Raita.png',      2, 3],
-        ['SID-004', 'Boondi Raita',         'बूंदी रायता',            'बुंदी रायता',            'side_dish',    65,  'Side Dishes/Boondi Raita.png',   2, 4],
+        ['SID-001', 'Green Salad',          'ग्रीन सलाद',            'ग्रीन सॅलड',            'side_dish',    39,  'ALL Images/Green Salad.webp',    2, 1],
+        ['SID-002', 'Onion Salad',          'प्याज सलाद',            'कांदा कोशिंबीर',         'side_dish',    45,  'ALL Images/Onion Salad.webp',    2, 2],
+        ['SID-003', 'Veg Raita',            'वेज रायता',             'व्हेज रायता',           'side_dish',    59,  'ALL Images/Veg Raita.webp',      2, 3],
+        ['SID-004', 'Boondi Raita',         'बूंदी रायता',            'बुंदी रायता',            'side_dish',    65,  'ALL Images/Boondi Raita.webp',   2, 4],
 
         // ── Water ──
-        ['WTR-001', 'Water Bottle (500ml Cold)',   'पानी की बोतल (500 मिली ठंडी)',   'पाण्याची बाटली (500 मिली थंड)',   'water', 10, 'Water Bottle/Water Bottle (500 ml - Cold).png',   1, 1],
-        ['WTR-002', 'Water Bottle (500ml Normal)', 'पानी की बोतल (500 मिली नॉर्मल)', 'पाण्याची बाटली (500 मिली नॉर्मल)', 'water', 10, 'Water Bottle/Water Bottle (500 ml - Normal).png', 1, 2],
-        ['WTR-003', 'Water Bottle (1L Cold)',      'पानी की बोतल (1 लीटर ठंडी)',    'पाण्याची बाटली (1 लीटर थंड)',    'water', 20, 'Water Bottle/Water Bottle (1 Litre - Cold).png',  1, 3],
-        ['WTR-004', 'Water Bottle (1L Normal)',    'पानी की बोतल (1 लीटर नॉर्मल)',   'पाण्याची बाटली (1 लीटर नॉर्मल)',  'water', 20, 'Water Bottle/Water Bottle (1 Litre - Normal).png',1, 4],
+        ['WTR-001', 'Water Bottle (500ml Cold)',   'पानी की बोतल (500 मिली ठंडी)',   'पाण्याची बाटली (500 मिली थंड)',   'water', 10, 'ALL Images/Water Bottle (500 ml - Cold).webp',   1, 1],
+        ['WTR-002', 'Water Bottle (500ml Normal)', 'पानी की बोतल (500 मिली नॉर्मल)', 'पाण्याची बाटली (500 मिली नॉर्मल)', 'water', 10, 'ALL Images/Water Bottle (500 ml - Normal).webp', 1, 2],
+        ['WTR-003', 'Water Bottle (1L Cold)',      'पानी की बोतल (1 लीटर ठंडी)',    'पाण्याची बाटली (1 लीटर थंड)',    'water', 20, 'ALL Images/Water Bottle (1 Litre - Cold).png',  1, 3],
+        ['WTR-004', 'Water Bottle (1L Normal)',    'पानी की बोतल (1 लीटर नॉर्मल)',   'पाण्याची बाटली (1 लीटर नॉर्मल)',  'water', 20, 'ALL Images/Water Bottle (1 Litre - Normal).webp',1, 4],
     ];
 
     $insertSQL = "INSERT INTO menu_items (item_code, name_en, name_hi, name_mr, category, price, image_path, prep_time_min, sort_order)
@@ -306,6 +306,48 @@ if ($menuCount > 0) {
     }
 
     logOk("Inserted <strong>$inserted</strong> sample menu items across all categories");
+}
+
+// ═══════════════════════════════════════════════════════
+// STEP 4B: Auto-migrate existing DB menu item image paths to WebP
+// ═══════════════════════════════════════════════════════
+$categoryDefaults = [
+    'starter'     => 'ALL Images/Starter_Paneer_Tikka.webp',
+    'main_course' => 'ALL Images/MainCourse_panner_butter_Masala.webp',
+    'bread'       => 'ALL Images/Breads_Roti.webp',
+    'rice_biryani'=> 'ALL Images/Rice_and_Biryani.webp',
+    'beverage'    => 'ALL Images/Beverages_Mango_lassi.webp',
+    'dessert'     => 'ALL Images/Dessert_Rasmalai.webp',
+    'side_dish'   => 'ALL Images/Side_dishes_Raita.webp',
+    'salad'       => 'ALL Images/Side_dishes_Raita.webp',
+    'water'       => 'ALL Images/Water_bottle.webp',
+];
+
+$itemsToUpdate = $pdo->query("SELECT id, name_en, category, image_path FROM menu_items")->fetchAll();
+$updateStmt = $pdo->prepare("UPDATE menu_items SET image_path = ? WHERE id = ?");
+$migratedCount = 0;
+
+foreach ($itemsToUpdate as $row) {
+    $currentPath = $row['image_path'] ?? '';
+    if (strpos($currentPath, 'ALL Images/') === 0 && str_ends_with(strtolower($currentPath), '.webp')) {
+        continue;
+    }
+
+    $nameEn = trim($row['name_en']);
+    $cat = $row['category'];
+    $exactWebp = __DIR__ . '/../ALL Images/' . $nameEn . '.webp';
+
+    if (file_exists($exactWebp)) {
+        $newPath = 'ALL Images/' . $nameEn . '.webp';
+    } else {
+        $newPath = $categoryDefaults[$cat] ?? 'ALL Images/Starter_Paneer_Tikka.webp';
+    }
+
+    $updateStmt->execute([$newPath, $row['id']]);
+    $migratedCount++;
+}
+if ($migratedCount > 0) {
+    logOk("Migrated <strong>$migratedCount</strong> item image paths in DB to WebP in 'ALL Images/'");
 }
 
 // ═══════════════════════════════════════════════════════

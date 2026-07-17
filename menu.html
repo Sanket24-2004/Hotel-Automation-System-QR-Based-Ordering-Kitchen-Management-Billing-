@@ -48,8 +48,10 @@
       position: fixed; inset: 0; z-index: 0; overflow: hidden;
       pointer-events: none;
     }
-    .bg img {
-      width: 100%; height: 100%; object-fit: cover;
+    .bg .bg-img {
+      width: 100%; height: 100%;
+      background-size: cover;
+      background-position: center;
       filter: brightness(.45) saturate(.85);
       animation: bgZoom 35s ease-in-out infinite alternate;
     }
@@ -248,15 +250,15 @@
     }
     .cat-card:active { transform: scale(.97); }
 
-    /* Full-bleed photo */
-    .cat-img {
+    /* Full-bleed photo served as background image */
+    .cat-bg-img {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      object-fit: cover;
-      object-position: center;
+      background-size: cover;
+      background-position: center;
       transition: transform .55s var(--ease-out);
     }
-    .cat-card:hover .cat-img { transform: scale(1.1); }
+    .cat-card:hover .cat-bg-img { transform: scale(1.1); }
 
     /* Dark scrim so text is legible over any photo */
     .cat-scrim {
@@ -401,11 +403,7 @@
 
   <!-- ══ FIXED BACKGROUND ══ -->
   <div class="bg">
-    <img
-      src="Hotel_image_use_as_bg.png"
-      alt="Golden Stone Hotel ambience"
-      onerror="if(!this._t){this._t=0}this._t++;if(this._t===1)this.src='hotel-bg.jpg.jpeg';else if(this._t===2)this.src='hotel-bg.jpg';else this.style.display='none'"
-    />
+    <div class="bg-img" style="background-image: url('ALL Images/Hotel_image_use_as_bg.webp');"></div>
     <div class="bg-grad"></div>
     <div class="bg-noise"></div>
   </div>
@@ -448,7 +446,7 @@
       <div class="cat-card" id="cat-starters"
            onclick="openCategory('starters', 'Appetizers / Starters')"
            tabindex="0" role="button" aria-label="Appetizers and Starters">
-        <img class="cat-img" src="Starter_Paneer_Tikka.png" alt="Appetizers and Starters" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Starter_Paneer_Tikka.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Appetizers / Starters</div>
@@ -463,7 +461,7 @@
       <div class="cat-card" id="cat-main"
            onclick="openCategory('main', 'Main Course')"
            tabindex="0" role="button" aria-label="Main Course">
-        <img class="cat-img" src="MainCourse_panner_butter_Masala.png" alt="Main Course" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/MainCourse_panner_butter_Masala.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Main Course</div>
@@ -478,7 +476,7 @@
       <div class="cat-card" id="cat-breads"
            onclick="openCategory('breads', 'Breads')"
            tabindex="0" role="button" aria-label="Breads">
-        <img class="cat-img" src="Breads_Roti.png" alt="Breads" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Breads_Roti.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Breads</div>
@@ -493,7 +491,7 @@
       <div class="cat-card" id="cat-rice"
            onclick="openCategory('rice', 'Rice & Biryani')"
            tabindex="0" role="button" aria-label="Rice and Biryani">
-        <img class="cat-img" src="Rice_and_Biryani.png" alt="Rice and Biryani" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Rice_and_Biryani.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Rice &amp;<br/>Biryani</div>
@@ -508,7 +506,7 @@
       <div class="cat-card" id="cat-sides"
            onclick="openCategory('sides', 'Side Dishes')"
            tabindex="0" role="button" aria-label="Side Dishes">
-        <img class="cat-img" src="Side_dishes_Raita.png" alt="Side Dishes" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Side_dishes_Raita.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Side Dishes</div>
@@ -523,7 +521,7 @@
       <div class="cat-card" id="cat-desserts"
            onclick="openCategory('desserts', 'Desserts')"
            tabindex="0" role="button" aria-label="Desserts">
-        <img class="cat-img" src="Dessert_Rasmalai.png" alt="Desserts" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Dessert_Rasmalai.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Desserts</div>
@@ -538,7 +536,7 @@
       <div class="cat-card" id="cat-beverages"
            onclick="openCategory('beverages', 'Beverages')"
            tabindex="0" role="button" aria-label="Beverages">
-        <img class="cat-img" src="Beverages_Mango_lassi.png" alt="Beverages" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Beverages_Mango_lassi.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Beverages</div>
@@ -553,7 +551,7 @@
       <div class="cat-card" id="cat-water"
            onclick="openCategory('water', 'Water Bottle')"
            tabindex="0" role="button" aria-label="Water Bottle">
-        <img class="cat-img" src="Water_bottle.png" alt="Water Bottle" loading="eager"/>
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Water_bottle.webp');"></div>
         <div class="cat-scrim"></div>
         <div class="cat-content">
           <div class="cat-name">Water Bottle</div>
