@@ -426,8 +426,9 @@ button { cursor: pointer; border: none; outline: none; background: none; font-fa
    ================================================================ */
 .lang-section {
   width: 100%;
-  padding: var(--sp-md) var(--sp-lg) var(--sp-xl);
-  padding-bottom: max(var(--sp-xl), env(safe-area-inset-bottom, var(--sp-xl)));
+  padding: 0 var(--sp-lg) var(--sp-md);
+  padding-bottom: max(var(--sp-md), env(safe-area-inset-bottom, var(--sp-md)));
+  margin-bottom: var(--sp-sm);
 
   animation: fadeInUp 1s 1.2s var(--ease-out) both;
 }

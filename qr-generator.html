@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Golden Stone Hotel | Table QR Code Generator</title>
+  <meta name="description" content="Generate and print QR codes for restaurant tables with Golden Stone Hotel branding."/>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  
+  <!-- QRCode.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --gold-100: #fff9ed;
+      --gold-300: #f5d48a;
+      --gold-400: #e8c56a;
+      --gold-500: #d4a832;
+      --gold-600: #b8901e;
+      --stone-900: #14100a;
+      --stone-950: #0a0703;
+      --card-bg: #1a150e;
+      --border-gold: rgba(212,168,50,0.3);
+      --ff-cinzel: 'Cinzel', serif;
+      --ff-serif: 'Playfair Display', serif;
+      --ff-body: 'Inter', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--ff-body);
+      background-color: var(--stone-950);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Fixed ambient background */
+    .bg {
+      position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(circle at 50% 10%, rgba(212,168,50,0.12) 0%, transparent 60%),
+                  radial-gradient(circle at 90% 80%, rgba(180,130,20,0.08) 0%, transparent 50%),
+                  #0a0703;
+    }
+
+    /* Header */
+    header {
+      padding: 1.2rem 2rem;
+      background: rgba(16,12,6,0.9);
+      border-bottom: 1px solid var(--border-gold);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .brand-title {
+      font-family: var(--ff-cinzel);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--gold-300);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .nav-btn {
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.04);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      color: #fff;
+      border-color: var(--gold-400);
+      background: rgba(212,168,50,0.1);
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      width: 100%;
+    }
+
+    .page-desc {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .page-desc h1 {
+      font-family: var(--ff-cinzel);
+      font-size: 1.8rem;
+      color: #fff;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.08em;
+    }
+    .page-desc p {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.9rem;
+    }
+
+    /* Generator Control Box */
+    .control-card {
+      background: rgba(26,21,14,0.85);
+      border: 1px solid var(--border-gold);
+      border-radius: 16px;
+      padding: 1.5rem 1.8rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--gold-300);
+      text-transform: uppercase;
+    }
+
+    .form-control {
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      border: 1px solid rgba(212,168,50,0.3);
+      background: rgba(10,7,3,0.7);
+      color: #fff;
+      font-family: var(--ff-body);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--gold-400);
+      box-shadow: 0 0 10px rgba(212,168,50,0.2);
+    }
+
+    .hint-text {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.2rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: flex-end;
+      align-items: center;
+      border-top: 1px solid rgba(212,168,50,0.15);
+      padding-top: 1.2rem;
+    }
+
+    .btn {
+      padding: 0.65rem 1.4rem;
+      border-radius: 100px;
+      font-family: var(--ff-body);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+      color: #000;
+      box-shadow: 0 4px 15px rgba(212,168,50,0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212,168,50,0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 2rem;
+      justify-content: center;
+    }
+
+    /* ====================================================
+       TABLE TENT CARD (Luxury Dark & Printable Theme)
+       ==================================================== */
+    .table-card {
+      background: #14100a;
+      border: 2px solid #d4a832;
+      border-radius: 16px;
+      padding: 1.6rem 1.4rem 1.4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      page-break-inside: avoid;
+    }
+    .table-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(212,168,50,0.25);
+    }
+
+    /* Corner ornamental flourishes */
+    .card-corner-tl, .card-corner-tr, .card-corner-bl, .card-corner-br {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--gold-400);
+      pointer-events: none;
+    }
+    .card-corner-tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+    .card-corner-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+    .card-corner-bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+    .card-corner-br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+    .card-crest {
+      font-size: 1rem;
+      color: var(--gold-400);
+      margin-bottom: 0.15rem;
+    }
+    .card-hotel-name {
+      font-family: var(--ff-cinzel);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--gold-300);
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+    .card-tagline {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+
+    .card-table-pill {
+      background: linear-gradient(135deg, rgba(212,168,50,0.25), rgba(180,130,20,0.15));
+      border: 1px solid rgba(212,168,50,0.6);
+      border-radius: 100px;
+      padding: 0.35rem 1.4rem;
+      font-family: var(--ff-cinzel);
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: #fff;
+      margin-bottom: 1rem;
+      display: inline-block;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .qr-frame {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 12px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border: 3px solid var(--gold-400);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      margin-bottom: 1rem;
+    }
+    .qr-frame img, .qr-frame canvas {
+      display: block;
+      width: 160px;
+      height: 160px;
+    }
+
+    .card-instructions {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gold-300);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+    }
+    .card-sub-instructions {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.4;
+      margin-bottom: 0.8rem;
+    }
+
+    .card-footer-info {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.65rem;
+      color: #74ef80;
+      background: rgba(46,204,64,0.12);
+      border: 1px solid rgba(46,204,64,0.3);
+      padding: 0.2rem 0.65rem;
+      border-radius: 6px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .card-actions .btn-sm {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      transition: all 0.2s;
+    }
+    .card-actions .btn-sm:hover {
+      border-color: var(--gold-400);
+      background: rgba(212,168,50,0.15);
+      color: var(--gold-300);
+    }
+
+    /* ====================================================
+       PRINT THEME & MEDIA STYLES
+       ==================================================== */
+    body.theme-light .table-card {
+      background: #ffffff !important;
+      color: #111111 !important;
+      border: 2px solid #b8901e !important;
+      box-shadow: none !important;
+    }
+    body.theme-light .card-hotel-name { color: #8b6914 !important; }
+    body.theme-light .card-tagline { color: #666666 !important; }
+    body.theme-light .card-table-pill {
+      background: #fdf6e2 !important;
+      border-color: #b8901e !important;
+      color: #8b6914 !important;
+      text-shadow: none !important;
+    }
+    body.theme-light .card-instructions { color: #8b6914 !important; }
+    body.theme-light .card-sub-instructions { color: #444444 !important; }
+    body.theme-light .card-footer-info {
+      color: #15803d !important;
+      background: #f0fdf4 !important;
+      border-color: #86efac !important;
+    }
+
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      header, .control-card, .page-desc, .card-actions, .bg {
+        display: none !important;
+      }
+      .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .cards-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.5cm !important;
+        padding: 1cm !important;
+      }
+      .table-card {
+        background: #fff !important;
+        color: #000 !important;
+        border: 2px solid #b8901e !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        padding: 1.4rem 1rem !important;
+      }
+      .card-hotel-name { color: #8b6914 !important; }
+      .card-tagline { color: #666 !important; }
+      .card-table-pill {
+        background: #fef8eb !important;
+        border-color: #b8901e !important;
+        color: #8b6914 !important;
+        text-shadow: none !important;
+      }
+      .card-instructions { color: #8b6914 !important; }
+      .card-sub-instructions { color: #333 !important; }
+      .card-footer-info {
+        color: #15803d !important;
+        background: #f0fdf4 !important;
+        border-color: #86efac !important;
+      }
+      .qr-frame {
+        border-color: #b8901e !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-title">
+      <span>✦</span> GOLDEN STONE HOTEL — QR STUDIO
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
+      <a href="menu-control.html" class="nav-btn">🍽️ Menu Control</a>
+      <a href="kitchen.html" class="nav-btn">👨‍🍳 Kitchen</a>
+      <a href="index.html" class="nav-btn">🌐 Customer View</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-desc">
+      <h1>Table QR Code Generator</h1>
+      <p>Generate, preview, and print QR tent cards for your restaurant tables.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="control-card">
+      <div class="control-grid">
+        
+        <!-- Base URL -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="baseUrlInput">Restaurant Landing Page URL</label>
+          <input type="text" id="baseUrlInput" class="form-control" placeholder="http://192.168.1.X/hotel_tulsi/index.html"/>
+          <div class="hint-text">
+            💡 For customer mobile phones, use your PC's Local WiFi IP (e.g. <code>http://192.168.1.15/hotel_tulsi/index.html</code>).
+          </div>
+        </div>
+
+        <!-- Table Range Start -->
+        <div class="form-group">
+          <label for="tableStartInput">From Table No.</label>
+          <input type="number" id="tableStartInput" class="form-control" value="1" min="1" max="99"/>
+        </div>
+
+        <!-- Table Range End -->
+        <div class="form-group">
+          <label for="tableEndInput">To Table No.</label>
+          <input type="number" id="tableEndInput" class="form-control" value="10" min="1" max="99"/>
+        </div>
+
+        <!-- Print Theme -->
+        <div class="form-group">
+          <label for="themeSelect">Card Visual Style</label>
+          <select id="themeSelect" class="form-control">
+            <option value="dark">Luxury Dark Gold (Display & Tent Card)</option>
+            <option value="light">Clean Light (Ink-Saving Print)</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="detectLocalIp()">
+          🔍 Auto-Detect URL
+        </button>
+        <button class="btn btn-secondary" onclick="generateQRCodes()">
+          🔄 Refresh QR Cards
+        </button>
+        <button class="btn btn-primary" onclick="window.print()">
+          🖨️ Print All Table Cards
+        </button>
+      </div>
+    </div>
+
+    <!-- Generated Cards Output -->
+    <div class="cards-grid" id="cardsGrid">
+      <!-- Cards rendered here dynamically -->
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+
+    // Auto compute default base URL
+    function getDefaultUrl() {
+      const loc = window.location;
+      const path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+      return `${loc.protocol}//${loc.host}${path}index.html`;
+    }
+
+    // Set initial values
+    const baseUrlInput = document.getElementById('baseUrlInput');
+    const tableStartInput = document.getElementById('tableStartInput');
+    const tableEndInput = document.getElementById('tableEndInput');
+    const themeSelect = document.getElementById('themeSelect');
+    const cardsGrid = document.getElementById('cardsGrid');
+
+    baseUrlInput.value = getDefaultUrl();
+
+    // Theme switcher
+    themeSelect.addEventListener('change', (e) => {
+      if (e.target.value === 'light') {
+        document.body.classList.add('theme-light');
+      } else {
+        document.body.classList.remove('theme-light');
+      }
+    });
+
+    function detectLocalIp() {
+      baseUrlInput.value = getDefaultUrl();
+      generateQRCodes();
+    }
+
+    // Generate Cards
+    function generateQRCodes() {
+      cardsGrid.innerHTML = '';
+
+      let rawBaseUrl = baseUrlInput.value.trim() || getDefaultUrl();
+      // Remove trailing slash if present
+      rawBaseUrl = rawBaseUrl.replace(/\/$/, '');
+
+      const start = parseInt(tableStartInput.value, 10) || 1;
+      const end = parseInt(tableEndInput.value, 10) || 1;
+
+      if (start > end) {
+        alert('Start table number must be less than or equal to end table number.');
+        return;
+      }
+
+      for (let t = start; t <= end; t++) {
+        // Construct target URL with table param
+        const delimiter = rawBaseUrl.includes('?') ? '&' : '?';
+        const targetUrl = `${rawBaseUrl}${delimiter}table=${t}`;
+
+        const card = document.createElement('div');
+        card.className = 'table-card';
+        card.id = `table-card-${t}`;
+
+        card.innerHTML = `
+          <div class="card-corner-tl"></div>
+          <div class="card-corner-tr"></div>
+          <div class="card-corner-bl"></div>
+          <div class="card-corner-br"></div>
+
+          <div class="card-crest">✦</div>
+          <div class="card-hotel-name">Golden Stone Hotel</div>
+          <div class="card-tagline">Luxury Hospitality · Pure Veg</div>
+
+          <div class="card-table-pill">🪑 TABLE ${t}</div>
+
+          <div class="qr-frame" id="qr-container-${t}"></div>
+
+          <div class="card-instructions">📱 SCAN TO ORDER FOOD</div>
+          <div class="card-sub-instructions">
+            स्कॅन करा आणि थेट ऑर्डर करा · स्कैन करें और ऑर्डर करें<br/>
+            Open camera or any QR scanner app
+          </div>
+
+          <div class="card-footer-info">
+            <span>🌱 Pure Veg Cuisine</span>
+            <span>·</span>
+            <span>⚡ Instant Kitchen Sync</span>
+          </div>
+
+          <div class="card-actions">
+            <a href="${targetUrl}" target="_blank" class="btn-sm" title="Test Customer Experience for Table ${t}">
+              👁️ Test Link
+            </a>
+            <button class="btn-sm" onclick="printSingleTable(${t})">
+              🖨️ Print
+            </button>
+          </div>
+        `;
+
+        cardsGrid.appendChild(card);
+
+        // Generate QR code using QRCode.js
+        const qrContainer = document.getElementById(`qr-container-${t}`);
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(qrContainer, {
+            text: targetUrl,
+            width: 160,
+            height: 160,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        } else {
+          // Fallback if CDN is unreachable
+          qrContainer.innerHTML = `
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(targetUrl)}" alt="QR Code Table ${t}"/>
+          `;
+        }
+      }
+    }
+
+    function printSingleTable(tableNum) {
+      const allCards = document.querySelectorAll('.table-card');
+      allCards.forEach(c => {
+        if (c.id === `table-card-${tableNum}`) {
+          c.style.display = 'flex';
+        } else {
+          c.style.display = 'none';
+        }
+      });
+
+      window.print();
+
+      // Restore view
+      allCards.forEach(c => { c.style.display = ''; });
+    }
+
+    // Auto-generate on load
+    window.addEventListener('DOMContentLoaded', () => {
+      generateQRCodes();
+    });
+
+    // Re-generate on input changes
+    [baseUrlInput, tableStartInput, tableEndInput].forEach(inp => {
+      inp.addEventListener('change', generateQRCodes);
+    });
+  </script>
+</body>
+</html>

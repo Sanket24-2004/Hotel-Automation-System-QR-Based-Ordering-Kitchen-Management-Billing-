@@ -305,8 +305,8 @@
 
   <!-- BG -->
   <div class="bg">
-    <img src="HOTEL Main BG.png" alt="Golden Stone Hotel"
-      onerror="if(!this._t){this._t=0}this._t++;if(this._t===1)this.src='hotel-bg.jpg';else if(this._t===2)this.src='hotel-bg.jpeg';else this.style.display='none'"/>
+    <img src="ALL Images/HOTEL Main BG.webp" alt="Golden Stone Hotel"
+      onerror="this.style.display='none'"/>
     <div class="bg-grad"></div>
     <div class="bg-stone"></div>
   </div>
@@ -363,7 +363,10 @@
       <!-- PERSONS SECTION (replaces table card in same spot) -->
       <div class="persons-section" id="personsSection">
         <div class="persons-card">
-          <div class="table-badge">🪑 &nbsp;Table <span id="badgeTableNum">—</span></div>
+          <div class="table-badge" onclick="showTableCard()" title="Click to change table" style="cursor:pointer;" role="button" tabindex="0">
+            <span id="badgeTablePrefix">🪑 &nbsp;Table</span> &nbsp;<span id="badgeTableNum">—</span>
+            <span style="font-size:0.65rem;opacity:0.75;margin-left:0.35rem;border-left:1px solid rgba(212,168,50,0.4);padding-left:0.45rem;">✏️ Edit</span>
+          </div>
           <p class="persons-title">How many guests at your table?</p>
 
           <div class="counter-wrap">
@@ -464,12 +467,47 @@
     let tableNum    = null;
     let personCount = 1;
 
+    /* ── AUTO-DETECT TABLE FROM QR ── */
+    const urlTable = params.get('table') || sessionStorage.getItem('hotel_table');
+    if (urlTable) {
+      const parsed = parseInt(urlTable, 10);
+      if (parsed >= 1 && parsed <= 99) {
+        tableNum = parsed;
+        sessionStorage.setItem('hotel_table', tableNum);
+        document.getElementById('tableInput').value = tableNum;
+        document.getElementById('badgeTableNum').textContent = tableNum;
+        const pfx = document.getElementById('badgeTablePrefix');
+        if (pfx) pfx.textContent = '\ud83e\ude91\u00a0 ' + str.tableWord;
+
+        const card = document.getElementById('tableCard');
+        const sec  = document.getElementById('personsSection');
+        card.style.display = 'none';
+        sec.style.display  = 'block';
+        sec.classList.add('visible');
+      }
+    }
+
     /* ── TOAST ── */
     function showToast(msg){
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    /* ── CHANGE / RE-ENTER TABLE ── */
+    function showTableCard(){
+      const card = document.getElementById('tableCard');
+      const sec  = document.getElementById('personsSection');
+      sec.classList.remove('visible');
+      setTimeout(() => {
+        sec.style.display = 'none';
+        card.style.display = 'block';
+        card.classList.remove('exit');
+        const inp = document.getElementById('tableInput');
+        inp.focus();
+        inp.select();
+      }, 200);
     }
 
     /* ── TABLE SUBMIT ── */
@@ -485,7 +523,8 @@
       sessionStorage.setItem('hotel_table', tableNum);
       document.getElementById('badgeTableNum').textContent = tableNum;
       // badge prefix in correct language
-      document.querySelector('.table-badge').firstChild.textContent = '\ud83e\ude91\u00a0 ' + str.tableWord + '\u00a0';
+      const pfx = document.getElementById('badgeTablePrefix');
+      if (pfx) pfx.textContent = '\ud83e\ude91\u00a0 ' + str.tableWord;
 
       const card = document.getElementById('tableCard');
       const sec  = document.getElementById('personsSection');

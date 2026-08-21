@@ -65,6 +65,13 @@
     try {
       sessionStorage.setItem('hotel_lang',      lang);
       sessionStorage.setItem('hotel_lang_name', langName);
+
+      // Check for table param from QR code
+      const urlParams = new URLSearchParams(window.location.search);
+      const table = urlParams.get('table');
+      if (table) {
+        sessionStorage.setItem('hotel_table', table);
+      }
     } catch (_) {
       // sessionStorage may be blocked in private mode
     }
@@ -90,6 +97,12 @@
   }
 
   function navigateTo(lang) {
-    window.location.href = `table-select.html?lang=${encodeURIComponent(lang)}`;
+    const urlParams = new URLSearchParams(window.location.search);
+    const table = urlParams.get('table') || sessionStorage.getItem('hotel_table');
+    let target = `table-select.html?lang=${encodeURIComponent(lang)}`;
+    if (table) {
+      target += `&table=${encodeURIComponent(table)}`;
+    }
+    window.location.href = target;
   }
 })();
