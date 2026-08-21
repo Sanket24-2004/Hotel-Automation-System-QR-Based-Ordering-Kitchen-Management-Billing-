@@ -11,7 +11,7 @@
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
     :root{--gold:#FFD700;--gold-border:rgba(255,215,0,.3);--white:#fff;--green:#22c55e;--red:#ef4444;--glass-bg:rgba(255,255,255,.05);--radius:12px;--navbar-h:60px;--botnav-h:65px}
     body{font-family:'Poppins',sans-serif;background:#0d0d0d;color:var(--white);min-height:100vh;overflow-x:hidden;padding-top:var(--navbar-h);padding-bottom:90px}
-    .bg-layer{position:fixed;inset:0;background-image:url('Hotel_image_use_as_bg.png');background-size:cover;background-position:center;z-index:-2}
+    .bg-layer{position:fixed;inset:0;background-image:url('ALL Images/Hotel_image_use_as_bg.webp');background-size:cover;background-position:center;z-index:-2}
     .bg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:-1}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     /* NAVBAR */
@@ -218,6 +218,7 @@
     </select>
     <input type="text" id="searchInput" placeholder="🔍 Search items…" oninput="filterTable()"/>
     <button class="btn btn-gold" onclick="openAdd()">+ Add Item</button>
+    <a href="qr-generator.html" class="btn btn-ghost" style="text-decoration:none;">📱 QR Studio</a>
     <button class="btn btn-ghost" onclick="loadMenu()">↻ Refresh</button>
   </div>
 

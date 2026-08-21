@@ -116,10 +116,12 @@ SHARE THIS URL WITH CUSTOMERS:
    http://192.168.1.5/hotel/index.html
    (Replace 192.168.1.5 with your actual IP)
 
-QR CODE FOR CUSTOMERS:
-- Use any free QR code generator (e.g., qr.io or qrcode-monkey.com)
-- Enter: http://192.168.x.x/hotel/index.html
-- Print and place on each table
+QR CODE STUDIO & TABLE TENT CARDS:
+- Open: http://localhost/hotel_tulsi/qr-generator.html
+- Enter your PC WiFi IP (e.g. http://192.168.1.5/hotel_tulsi/index.html)
+- Select table range (e.g. Table 1 to 20)
+- Click "Print All Table Cards" or print individually
+- Each card will have a unique QR code pre-programmed with that table number!
 
 KITCHEN DASHBOARD URL:
    http://192.168.1.5/hotel/kitchen.html
