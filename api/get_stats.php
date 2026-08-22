@@ -40,33 +40,37 @@ $pdo   = getDB();
 $today = date('Y-m-d');
 
 try {
-    // Single optimized query using conditional aggregation
-    $stmt = $pdo->prepare("
-        SELECT
-            COUNT(*)                                              AS total_today,
-            SUM(CASE WHEN status != 'served'    THEN 1 ELSE 0 END) AS active,
-            SUM(CASE WHEN status = 'new'        THEN 1 ELSE 0 END) AS `new`,
-            SUM(CASE WHEN status = 'preparing'  THEN 1 ELSE 0 END) AS preparing,
-            SUM(CASE WHEN status = 'ready'      THEN 1 ELSE 0 END) AS ready,
-            SUM(CASE WHEN status = 'served'     THEN 1 ELSE 0 END) AS served,
-            SUM(CASE WHEN status = 'served'     THEN total_amount ELSE 0.00 END) AS revenue
+    // 1. Revenue today & completed orders count today (payment completed)
+    $revStmt = $pdo->prepare("
+        SELECT 
+            COALESCE(SUM(total_amount), 0.00) AS revenue,
+            COUNT(*)                          AS completed_count
         FROM orders
-        WHERE DATE(created_at) = :today
+        WHERE payment_method IS NOT NULL
+          AND (DATE(served_at) = ? OR DATE(updated_at) = ? OR DATE(created_at) = ?)
     ");
-    $stmt->execute(['today' => $today]);
-    $stats = $stmt->fetch();
+    $revStmt->execute([$today, $today, $today]);
+    $revStats = $revStmt->fetch();
 
-    // ─── Response — field names match kitchen.js exactly ───
+    $revenue = (float)($revStats['revenue'] ?? 0.00);
+    $completedCount = (int)($revStats['completed_count'] ?? 0);
+
+    // 2. Active unbilled orders
+    $activeStmt = $pdo->query("
+        SELECT COUNT(*) FROM orders WHERE payment_method IS NULL
+    ");
+    $activeCount = (int)$activeStmt->fetchColumn();
+
+    // 3. Total orders today = Active + Completed today
+    $totalToday = $activeCount + $completedCount;
+
     jsonResponse([
         'success'     => true,
         'date'        => $today,
-        'total_today' => (int)($stats['total_today'] ?? 0),
-        'active'      => (int)($stats['active']      ?? 0),
-        'new'         => (int)($stats['new']          ?? 0),
-        'preparing'   => (int)($stats['preparing']    ?? 0),
-        'ready'       => (int)($stats['ready']        ?? 0),
-        'served'      => (int)($stats['served']       ?? 0),
-        'revenue'     => (float)($stats['revenue']     ?? 0.00),
+        'total_today' => $totalToday,
+        'active'      => $activeCount,
+        'completed'   => $completedCount,
+        'revenue'     => $revenue,
     ]);
 
 } catch (PDOException $e) {

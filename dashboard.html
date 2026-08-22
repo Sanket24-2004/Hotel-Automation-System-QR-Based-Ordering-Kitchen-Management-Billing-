@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Owner Dashboard — Hotel Golden Stone</title>
-  <meta name="description" content="Live owner dashboard for Hotel Golden Stone. Monitor revenue, orders, and table status in real-time." />
+  <title>Owner Dashboard — Hotel Tulsi</title>
+  <meta name="description" content="Live owner dashboard for Hotel Tulsi. Monitor revenue, orders, and table status in real-time." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -53,7 +53,7 @@
     .bg-layer {
       position: fixed;
       inset: 0;
-      background-image: url('ALL Images/Hotel_image_use_as_bg.webp');
+      background-image: url('ALL Images/Final BG Tulsi.webp');
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
@@ -491,10 +491,36 @@
 
     .tables-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 12px;
       opacity: 0;
       animation: fadeIn 0.6s ease 1.2s forwards;
+    }
+
+    .tbl-filter-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tbl-filter-btn.active {
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+    .tbl-filter-btn:hover:not(.active) {
+      color: var(--white);
+    }
+    #see-all-tables-btn:hover {
+      background: rgba(255, 215, 0, 0.25) !important;
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+      transform: scale(1.03);
     }
 
     .table-cell {
@@ -809,7 +835,7 @@
     <!-- Left: Brand -->
     <div class="navbar-brand">
       <span class="hotel-icon" aria-hidden="true">🏨</span>
-      <span class="brand-text">Hotel Golden Stone</span>
+      <span class="brand-text">Hotel Tulsi</span>
       <span class="brand-short">Golden Stone</span>
     </div>
 
@@ -856,7 +882,7 @@
         </span>
       </div>
 
-      <p class="dashboard-subtitle">Hotel Golden Stone — Live Dashboard</p>
+      <p class="dashboard-subtitle">Hotel Tulsi — Live Dashboard</p>
 
     </header>
 
@@ -879,7 +905,7 @@
           <span class="stat-icon" aria-hidden="true">📦</span>
           <p class="stat-title">Total Orders</p>
           <p class="stat-value" id="val-orders">0</p>
-          <p class="stat-sub">Active: 8 | Completed: 37</p>
+          <p class="stat-sub" id="val-orders-sub">Active: 0 | Completed: 0</p>
         </div>
 
         <!-- Card 3: Available Tables -->
@@ -903,9 +929,26 @@
 
     <!-- ==================== SECTION 4: TABLE STATUS GRID ==================== -->
     <section class="tables-section" aria-label="Live table status">
-      <div class="section-header">
-        <h2 class="section-title">🪑 LIVE TABLE STATUS</h2>
-        <span class="live-tag"><span class="live-dot" aria-hidden="true"></span>LIVE</span>
+      <div class="section-header" style="flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <h2 class="section-title">🪑 LIVE TABLE STATUS</h2>
+          <span class="live-tag"><span class="live-dot" aria-hidden="true"></span>LIVE</span>
+          <span id="total-tables-badge" style="background: rgba(255, 215, 0, 0.12); border: 1px solid rgba(255, 215, 0, 0.3); color: var(--gold); font-size: 0.72rem; font-weight: 700; padding: 3px 12px; border-radius: 20px; letter-spacing: 0.5px;">27 TABLES</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <!-- Filter Tabs -->
+          <div class="table-filter-group" style="display: inline-flex; background: rgba(255,255,255,0.05); padding: 3px; border-radius: 20px; border: 1px solid rgba(255,215,0,0.25);">
+            <button class="tbl-filter-btn active" onclick="filterTables('all', this)">All (27)</button>
+            <button class="tbl-filter-btn" onclick="filterTables('occupied', this)">Occupied <span id="filter-occ-count">(0)</span></button>
+            <button class="tbl-filter-btn" onclick="filterTables('available', this)">Available <span id="filter-avail-count">(27)</span></button>
+          </div>
+
+          <!-- See All Toggle Button -->
+          <button id="see-all-tables-btn" class="section-right-link" onclick="toggleSeeAllTables()" style="background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.4); padding: 6px 16px; border-radius: 10px; cursor: pointer; color: var(--gold); font-weight: 700; font-family: inherit; font-size: 0.8rem; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;">
+            <span>See All (27 Tables)</span> <span>👁️</span>
+          </button>
+        </div>
       </div>
 
       <div class="tables-grid" id="tables-grid">
@@ -1116,28 +1159,74 @@
     }
 
     /* ================================================
-       SECTION 4 — TABLE STATUS GRID
+       SECTION 4 — TABLE STATUS GRID (27 TABLES)
     ================================================ */
-    const TABLE_DATA = [
-      { id: 1,  occupied: false },
-      { id: 2,  occupied: false },
-      { id: 3,  occupied: true  },
-      { id: 4,  occupied: false },
-      { id: 5,  occupied: true  },
-      { id: 6,  occupied: false },
-      { id: 7,  occupied: false },
-      { id: 8,  occupied: true  },
-      { id: 9,  occupied: false },
-      { id: 10, occupied: false },
-      { id: 11, occupied: false },
-      { id: 12, occupied: false }
-    ];
+    const TOTAL_HOTEL_TABLES = 27;
+    let showAllTables = false;
+    let currentTableFilter = 'all';
+
+    const TABLE_DATA = Array.from({ length: TOTAL_HOTEL_TABLES }, function(_, i) {
+      return { id: i + 1, occupied: false };
+    });
+
+    function updateTableControlsUI() {
+      const btn = document.getElementById('see-all-tables-btn');
+      if (btn) {
+        if (showAllTables) {
+          btn.innerHTML = '<span>Show Less (12)</span> <span>⬆️</span>';
+          btn.style.background = 'rgba(255, 215, 0, 0.25)';
+        } else {
+          btn.innerHTML = '<span>See All (27 Tables)</span> <span>👁️</span>';
+          btn.style.background = 'rgba(255, 215, 0, 0.12)';
+        }
+      }
+
+      const occupiedCount = TABLE_DATA.filter(function(t) { return t.occupied; }).length;
+      const availableCount = TABLE_DATA.length - occupiedCount;
+
+      const occFilterEl = document.getElementById('filter-occ-count');
+      if (occFilterEl) occFilterEl.textContent = '(' + occupiedCount + ')';
+
+      const availFilterEl = document.getElementById('filter-avail-count');
+      if (availFilterEl) availFilterEl.textContent = '(' + availableCount + ')';
+    }
+
+    function toggleSeeAllTables() {
+      showAllTables = !showAllTables;
+      buildTableGrid();
+    }
+
+    function filterTables(filter, btnEl) {
+      currentTableFilter = filter;
+      if (btnEl) {
+        const group = btnEl.closest('.table-filter-group');
+        if (group) {
+          group.querySelectorAll('.tbl-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+          btnEl.classList.add('active');
+        }
+      }
+      buildTableGrid();
+    }
 
     function buildTableGrid() {
       const grid = document.getElementById('tables-grid');
       if (!grid) return;
       grid.innerHTML = '';
-      TABLE_DATA.forEach(function(t) {
+
+      let visibleTables = TABLE_DATA.filter(function(t) {
+        if (currentTableFilter === 'occupied') return t.occupied;
+        if (currentTableFilter === 'available') return !t.occupied;
+        return true;
+      });
+
+      if (currentTableFilter === 'all' && !showAllTables) {
+        const occupiedIds = TABLE_DATA.filter(function(t) { return t.occupied; }).map(function(t) { return t.id; });
+        const maxOccId = occupiedIds.length > 0 ? Math.max.apply(null, occupiedIds) : 12;
+        const limit = Math.max(12, maxOccId);
+        visibleTables = visibleTables.slice(0, limit);
+      }
+
+      visibleTables.forEach(function(t) {
         const cell = document.createElement('div');
         cell.className = 'table-cell ' + (t.occupied ? 'occupied' : 'available');
         cell.setAttribute('role', 'button');
@@ -1152,6 +1241,8 @@
         });
         grid.appendChild(cell);
       });
+
+      updateTableControlsUI();
     }
 
     /* ================================================
@@ -1214,9 +1305,88 @@
           countUp('val-orders',    statD.total_today,    '',        '', 1000);
           countUp('val-available', availableCount,     '',        '', 1000);
           countUp('val-occupied',  occupiedCount,     '',        '', 1000);
+
+          var ordersSubEl = document.getElementById('val-orders-sub');
+          if (ordersSubEl) {
+            ordersSubEl.textContent = 'Active: ' + (statD.active || 0) + ' | Completed: ' + (statD.completed || 0);
+          }
         }
+
+        loadRecentOrders();
       } catch (e) {
         console.error('Failed to load dashboard data:', e);
+      }
+    }
+
+    async function loadRecentOrders() {
+      var ordersListEl = document.getElementById('orders-list');
+      if (!ordersListEl) return;
+
+      try {
+        var res = await fetch('api/get_orders.php');
+        var d = await res.json();
+        var recentOrders = [];
+        if (d.success && Array.isArray(d.orders)) {
+          recentOrders = d.orders.slice(0, 5);
+        }
+
+        if (recentOrders.length === 0) {
+          var histRes = await fetch('api/get_history.php?days=1');
+          var histD = await histRes.json();
+          if (histD.success && Array.isArray(histD.orders)) {
+            recentOrders = histD.orders.slice(0, 5);
+          }
+        }
+
+        if (recentOrders.length === 0) {
+          ordersListEl.innerHTML = '<p style="color:rgba(255,255,255,0.4); text-align:center; padding: 20px;">No recent orders today.</p>';
+          return;
+        }
+
+        ordersListEl.innerHTML = recentOrders.map(function(o) {
+          var badgeCls = 'new';
+          var badgeText = (o.status || 'NEW').toUpperCase();
+          if (o.payment_method || o.status === 'served') {
+            badgeCls = 'completed';
+            badgeText = 'COMPLETED';
+          } else if (o.status === 'preparing') {
+            badgeCls = 'preparing';
+            badgeText = 'PREPARING';
+          } else if (o.status === 'ready') {
+            badgeCls = 'ready';
+            badgeText = 'READY';
+          }
+
+          var itemsStr = '';
+          if (Array.isArray(o.batches)) {
+            var names = [];
+            o.batches.forEach(function(b) {
+              if (Array.isArray(b.items)) {
+                b.items.forEach(function(it) { names.push(it.name + ' x' + it.qty); });
+              }
+            });
+            itemsStr = names.join(', ');
+          } else if (Array.isArray(o.items)) {
+            itemsStr = o.items.map(function(it) { return it.name + ' x' + it.qty; }).join(', ');
+          }
+
+          var amt = parseFloat(o.total_amount || 0);
+
+          return '<div class="order-card" role="listitem">' +
+            '<span class="order-badge ' + badgeCls + '">' + badgeText + '</span>' +
+            '<div class="order-info">' +
+              '<p class="order-table-lbl">Table ' + (o.table_no || o.table || '—') + '</p>' +
+              '<p class="order-items">' + (itemsStr || '—') + '</p>' +
+            '</div>' +
+            '<div class="order-meta">' +
+              '<span class="order-amount">₹' + amt.toLocaleString('en-IN') + '</span>' +
+              '<span class="order-time">' + (o.order_ref || '') + '</span>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+      } catch (e) {
+        console.error('Failed to load recent orders:', e);
       }
     }
 

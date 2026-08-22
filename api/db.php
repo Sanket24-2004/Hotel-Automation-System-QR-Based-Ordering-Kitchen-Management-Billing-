@@ -48,19 +48,22 @@ function getDB(): PDO
         DB_CHARSET
     );
 
+    $initCmd = defined('PDO::MYSQL_ATTR_INIT_COMMAND') ? PDO::MYSQL_ATTR_INIT_COMMAND : 1002;
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'",
+        $initCmd                     => "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'",
     ];
 
     try {
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
     } catch (PDOException $e) {
         // Return a clean JSON error — no stack trace exposed in production
-        http_response_code(500);
-        header('Content-Type: application/json; charset=utf-8');
+        if (!headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+        }
         echo json_encode([
             'success' => false,
             'error'   => 'Database connection failed.',
@@ -75,18 +78,24 @@ function getDB(): PDO
 
 // ─── CORS Headers ───
 // Allow cross-origin requests from any device on the LAN.
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+if (!headers_sent()) {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+}
 
 // Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    if (!headers_sent()) {
+        http_response_code(204);
+    }
     exit;
 }
 
 // Default response type for all API endpoints
-header('Content-Type: application/json; charset=utf-8');
+if (!headers_sent()) {
+    header('Content-Type: application/json; charset=utf-8');
+}
 
 /**
  * Helper: Send a JSON response and exit.

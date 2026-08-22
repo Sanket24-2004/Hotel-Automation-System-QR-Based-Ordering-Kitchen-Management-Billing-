@@ -23,11 +23,11 @@ $pdo = getDB();
 try {
     $pdo->beginTransaction();
 
-    // 1. Check for active order on this table
+    // 1. Check for active unbilled order on this table
     $stmt = $pdo->prepare("
         SELECT id, order_ref, persons
         FROM orders
-        WHERE table_no = ? AND status != 'served'
+        WHERE table_no = ? AND payment_method IS NULL
         ORDER BY created_at DESC
         LIMIT 1
     ");
@@ -44,25 +44,26 @@ try {
         $updateStmt = $pdo->prepare("
             UPDATE orders
             SET status = 'served',
-                subtotal = :subtotal,
-                discount_amount = :discount,
-                discount_type = :discount_type,
-                gst_amount = :gst,
-                total_amount = :total,
-                payment_method = :payment_method,
-                served_at = :now,
-                updated_at = :now
-            WHERE id = :id
+                subtotal = ?,
+                discount_amount = ?,
+                discount_type = ?,
+                gst_amount = ?,
+                total_amount = ?,
+                payment_method = ?,
+                served_at = ?,
+                updated_at = ?
+            WHERE id = ?
         ");
         $updateStmt->execute([
-            'subtotal' => $subtotal,
-            'discount' => $discount,
-            'discount_type' => $discountType ?: null,
-            'gst' => $gst,
-            'total' => $total,
-            'payment_method' => $paymentMethod,
-            'now' => $now,
-            'id' => $orderId
+            $subtotal,
+            $discount,
+            $discountType ?: null,
+            $gst,
+            $total,
+            $paymentMethod,
+            $now,
+            $now,
+            $orderId
         ]);
 
         // Clean out existing order items for this order to replace them with the final bill items
@@ -81,18 +82,20 @@ try {
 
         $insStmt = $pdo->prepare("
             INSERT INTO orders (order_ref, table_no, persons, status, subtotal, discount_amount, discount_type, gst_amount, total_amount, payment_method, served_at, created_at, updated_at)
-            VALUES (:ref, :table, 1, 'served', :subtotal, :discount, :discount_type, :gst, :total, :payment_method, :now, :now, :now)
+            VALUES (?, ?, 1, 'served', ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $insStmt->execute([
-            'ref' => $orderRef,
-            'table' => $table,
-            'subtotal' => $subtotal,
-            'discount' => $discount,
-            'discount_type' => $discountType ?: null,
-            'gst' => $gst,
-            'total' => $total,
-            'payment_method' => $paymentMethod,
-            'now' => $now
+            $orderRef,
+            $table,
+            $subtotal,
+            $discount,
+            $discountType ?: null,
+            $gst,
+            $total,
+            $paymentMethod,
+            $now,
+            $now,
+            $now
         ]);
         $orderId = (int)$pdo->lastInsertId();
     }

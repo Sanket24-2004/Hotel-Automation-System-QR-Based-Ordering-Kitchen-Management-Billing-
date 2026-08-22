@@ -31,7 +31,7 @@ $categoryDbToJs = [
 try {
     $days = isset($_GET['days']) ? (string)$_GET['days'] : 'all';
     
-    $whereClause = "WHERE status = 'served'";
+    $whereClause = "WHERE payment_method IS NOT NULL";
     $queryParams = [];
     
     if ($days !== 'all' && $days !== '0' && $days !== '') {
@@ -135,6 +135,9 @@ try {
             'table_no'        => $order['table_no'],
             'persons'         => (int)$order['persons'],
             'status'          => $order['status'],
+            'payment_method'  => $order['payment_method'] ?? null,
+            'discount_amount' => (float)($order['discount_amount'] ?? 0),
+            'discount_type'   => $order['discount_type'] ?? null,
             'customer_note'   => $order['customer_notes'] ?? '',
             'subtotal'        => (float)$order['subtotal'],
             'gst_amount'      => (float)$order['gst_amount'],

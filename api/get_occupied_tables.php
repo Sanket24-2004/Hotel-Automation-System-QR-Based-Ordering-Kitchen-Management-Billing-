@@ -5,27 +5,26 @@ require_once __DIR__ . '/db.php';
 $pdo = getDB();
 
 try {
-    // 1. Get all table numbers that are either in occupied_tables OR have an active order (status != 'served')
+    // 1. Get all table numbers that are either in occupied_tables OR have an unbilled order (payment_method IS NULL)
     $tablesQuery = $pdo->query("
         SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no FROM occupied_tables
         UNION
-        SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no FROM orders WHERE status != 'served'
+        SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no FROM orders WHERE payment_method IS NULL
     ");
     $activeTables = $tablesQuery->fetchAll(PDO::FETCH_COLUMN);
 
     $occupiedList = [];
     if (!empty($activeTables)) {
         foreach ($activeTables as $tNo) {
-            // Find active order for this table
+            // Find active unbilled orders for this table
             $orderStmt = $pdo->prepare("
                 SELECT id, total_amount, created_at
                 FROM orders
-                WHERE table_no = ? AND status != 'served'
+                WHERE table_no = ? AND payment_method IS NULL
                 ORDER BY created_at DESC
-                LIMIT 1
             ");
             $orderStmt->execute([(string)$tNo]);
-            $activeOrder = $orderStmt->fetch();
+            $activeOrders = $orderStmt->fetchAll();
 
             // Find occupation record
             $occStmt = $pdo->prepare("SELECT occupied_at, persons FROM occupied_tables WHERE table_no = ?");
@@ -36,22 +35,28 @@ try {
             $amount = 0.0;
             $minutesAgo = 0;
 
-            if ($activeOrder) {
-                $orderId = $activeOrder['id'];
-                // Count total item quantity in active order
-                $itemsStmt = $pdo->prepare("SELECT SUM(qty) FROM order_items WHERE order_id = ?");
-                $itemsStmt->execute([$orderId]);
-                $itemsCount = (int)$itemsStmt->fetchColumn();
-                $amount = floatval($activeOrder['total_amount']);
+            if (!empty($activeOrders)) {
+                $orderIds = array_column($activeOrders, 'id');
+                $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
                 
-                $createdTime = strtotime($activeOrder['created_at']);
+                // Count total item quantity in active orders
+                $itemsStmt = $pdo->prepare("SELECT SUM(qty) FROM order_items WHERE order_id IN ($placeholders)");
+                $itemsStmt->execute($orderIds);
+                $itemsCount = (int)$itemsStmt->fetchColumn();
+                
+                // Calculate combined total amount
+                $subtotalStmt = $pdo->prepare("SELECT SUM(line_total) FROM order_items WHERE order_id IN ($placeholders)");
+                $subtotalStmt->execute($orderIds);
+                $combinedSubtotal = (float)$subtotalStmt->fetchColumn();
+                $amount = round($combinedSubtotal * 1.05, 2);
+                
+                $createdTime = strtotime($activeOrders[0]['created_at']);
                 $minutesAgo = (int)floor((time() - $createdTime) / 60);
             }
 
             if ($occRecord) {
                 $occTime = strtotime($occRecord['occupied_at']);
                 $occMinutes = (int)floor((time() - $occTime) / 60);
-                // If occupied time is longer ago than the order creation, use it
                 if ($occMinutes > $minutesAgo) {
                     $minutesAgo = $occMinutes;
                 }

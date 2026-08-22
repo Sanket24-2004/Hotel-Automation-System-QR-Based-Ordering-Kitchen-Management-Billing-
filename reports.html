@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reports — Hotel Golden Stone</title>
+  <title>Reports — Hotel Tulsi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -13,7 +13,7 @@
     :root{--gold:#FFD700;--gold-border:rgba(255,215,0,.3);--white:#fff;--green:#22c55e;--blue:#3b82f6;--orange:#f97316;--glass-bg:rgba(255,255,255,.05);--radius:14px;--navbar-h:60px;--botnav-h:65px}
     html{scroll-behavior:smooth}
     body{font-family:'Poppins',sans-serif;background:#0d0d0d;color:var(--white);min-height:100vh;overflow-x:hidden;padding-top:var(--navbar-h);padding-bottom:90px}
-    .bg-layer{position:fixed;inset:0;background-image:url('ALL Images/Hotel_image_use_as_bg.webp');background-size:cover;background-position:center;z-index:-2}
+    .bg-layer{position:fixed;inset:0;background-image:url('ALL Images/Final BG Tulsi.webp');background-size:cover;background-position:center;z-index:-2}
     .bg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:-1}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     #navbar{position:fixed;top:0;left:0;right:0;height:var(--navbar-h);background:rgba(0,0,0,.95);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;backdrop-filter:blur(10px)}
@@ -86,7 +86,7 @@
 <nav id="navbar">
   <div class="navbar-brand">
     <span>🏨</span>
-    <span class="brand-text">Hotel Golden Stone</span>
+    <span class="brand-text">Hotel Tulsi</span>
     <span class="brand-short">Golden Stone</span>
   </div>
   <div class="navbar-right">
@@ -189,7 +189,7 @@
       discountType:   order.discount_type || 'pct',
       gst:            parseFloat(order.gst_amount || 0),
       totalAmount:    parseFloat(order.total_amount || 0),
-      paymentMethod:  order.payment_method || 'Cash',
+      paymentMethod:  order.payment_method || null,
       status:         'Completed',
       timestamp:      d.getTime()
     };
@@ -242,12 +242,16 @@
   }
   function renderPayChart(data){
     var counts={Cash:0,UPI:0,Card:0};
-    data.forEach(function(h){var m=h.paymentMethod||'Cash';if(counts.hasOwnProperty(m))counts[m]++});
-    var total=data.length||1;
+    // Only count orders where payment method is explicitly set
+    data.forEach(function(h){
+      var m = h.paymentMethod;
+      if(m && counts.hasOwnProperty(m)) counts[m]++;
+    });
+    var total = counts.Cash + counts.UPI + counts.Card || 1;
     if(payChart)payChart.destroy();
     payChart=new Chart(document.getElementById('payChart'),{type:'doughnut',data:{labels:['Cash','UPI','Card'],datasets:[{data:[counts.Cash,counts.UPI,counts.Card],backgroundColor:['rgba(255,215,0,.7)','rgba(59,130,246,.7)','rgba(34,197,94,.7)'],borderColor:['#FFD700','#3b82f6','#22c55e'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
-    var icons={Cash:'💵',UPI:'📱',Card:'💳'};
-    document.getElementById('payBreakdown').innerHTML=['Cash','UPI','Card'].map(function(m){var pct=Math.round(counts[m]/total*100);return'<div class="pay-item"><div class="pay-icon">'+icons[m]+'</div><div class="pay-count">'+pct+'%</div><div class="pay-label">'+m+' · '+counts[m]+'</div></div>'}).join('');
+    var icons={Cash:'\u{1F4B5}',UPI:'\u{1F4F1}',Card:'\u{1F4B3}'};
+    document.getElementById('payBreakdown').innerHTML=['Cash','UPI','Card'].map(function(m){var pct=total>0?Math.round(counts[m]/total*100):0;return'<div class="pay-item"><div class="pay-icon">'+icons[m]+'</div><div class="pay-count">'+pct+'%</div><div class="pay-label">'+m+' \u00B7 '+counts[m]+'</div></div>'}).join('');
   }
   function renderTopItems(data){
     var map={};

@@ -82,19 +82,17 @@ try {
     // ─── Generate unique batch ID for this submission ───
     $batchId = 'B' . time() . '_' . bin2hex(random_bytes(4));
 
-    // ─── Check for existing active order on this table ───
+    // ─── Check for existing active unbilled order on this table ───
     $checkStmt = $pdo->prepare("
         SELECT id, order_ref, subtotal, gst_amount, total_amount, customer_notes
         FROM orders
         WHERE table_no = :table_no
-          AND status != 'served'
-          AND DATE(created_at) = :today
+          AND payment_method IS NULL
         ORDER BY created_at DESC
         LIMIT 1
     ");
     $checkStmt->execute([
         'table_no' => $tableNo,
-        'today'    => $today,
     ]);
     $existingOrder = $checkStmt->fetch();
 
