@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-  <title>Golden Stone Hotel | Your Table</title>
+  <title>Hotel Tulsi | Your Table</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -58,16 +58,26 @@
     }
 
     /* ── WRAP ── */
-    .wrap{
+    .wrap, .page-wrap{
       position:relative;z-index:2;min-height:100dvh;
-      display:flex;flex-direction:column;align-items:center;
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
       padding:2.5rem 1.2rem 4rem;
+      width:100%;
+      margin:0 auto;
       opacity:0;animation:pageIn 1s .1s cubic-bezier(.22,1,.36,1) forwards;
     }
     @keyframes pageIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 
     /* ── HEADER ── */
-    header{width:100%;text-align:center;margin-bottom:3rem}
+    header, .header{
+      width:100%;
+      text-align:center;
+      margin-bottom:2rem;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
 
     .back-btn{
       position:absolute;top:1.5rem;left:1.2rem;
@@ -176,11 +186,14 @@
     /* ── STEP CONTAINER ── */
     .step-container{
       width:100%;max-width:420px;
+      margin:0 auto;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
       position:relative;
     }
     /* ── PERSONS SECTION (hidden initially) ── */
     .persons-section{
       width:100%;max-width:420px;
+      margin:0 auto;
       opacity:0;transform:scale(.96);
       transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1);
       pointer-events:none;
@@ -194,10 +207,9 @@
       pointer-events:none;
     }
 
-    /* removed divider — no longer needed */
-
     .persons-card{
       width:100%;
+      margin:0 auto;
       background:linear-gradient(160deg,rgba(212,168,50,.1),rgba(212,168,50,.04));
       border:1px solid rgba(212,168,50,.3);border-radius:24px;
       backdrop-filter:blur(24px);
@@ -305,30 +317,29 @@
 
   <!-- BG -->
   <div class="bg">
-    <img src="ALL Images/HOTEL Main BG.webp" alt="Golden Stone Hotel"
-      onerror="this.style.display='none'"/>
+    <img src="ALL Images/HOTEL Main BG.webp" alt="Hotel Tulsi"
+         onerror="this.src='hotel-bg.jpg';this.onerror=null;"/>
     <div class="bg-grad"></div>
     <div class="bg-stone"></div>
   </div>
 
-  <!-- PARTICLES -->
+  <!-- ── PARTICLES ── -->
   <div class="particles" id="particles"></div>
 
-  <!-- WRAP -->
+  <!-- ── PAGE WRAPPER ── -->
   <div class="wrap">
 
-    <a href="index.html" class="back-btn">← Back</a>
+    <a href="index.html" class="back-btn" id="backBtn">← Back</a>
 
-    <!-- HEADER -->
-    <header>
+    <!-- HEADER / BRAND -->
+    <header class="header">
       <div class="crest">
         <div class="crest-line"></div>
         <span class="crest-star">✦</span>
         <div class="crest-line"></div>
       </div>
-      <div class="brand">GOLDEN STONE</div>
+      <div class="brand">HOTEL TULSI</div>
       <div class="brand-rule"></div>
-
     </header>
 
     <!-- STEP CONTAINER: table card and persons section share same space -->
@@ -405,6 +416,7 @@
     /* ── LANGUAGE STRINGS ── */
     const STRINGS = {
       en: {
+        backBtn:      '← Back',
         cardTitle:    'Select Your Table',
         cardSub:      'Enter your table number to continue',
         inputLabel:   'Table Number',
@@ -419,6 +431,7 @@
         toastNoTable: '\u26a0\ufe0f Please confirm your table first',
       },
       hi: {
+        backBtn:      '← वापस',
         cardTitle:    '\u0905\u092a\u0928\u0940 \u091f\u0947\u092c\u0932 \u091a\u0941\u0928\u0947\u0902',
         cardSub:      '\u091c\u093e\u0930\u0940 \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u091f\u0947\u092c\u0932 \u0928\u0902\u092c\u0930 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902',
         inputLabel:   '\u091f\u0947\u092c\u0932 \u0928\u0902\u092c\u0930',
@@ -433,6 +446,7 @@
         toastNoTable: '\u26a0\ufe0f \u0915\u0943\u092a\u092f\u093e \u092a\u0939\u0932\u0947 \u0905\u092a\u0928\u0940 \u091f\u0947\u092c\u0932 \u0915\u0940 \u092a\u0941\u0937\u094d\u091f\u093f \u0915\u0930\u0947\u0902',
       },
       mr: {
+        backBtn:      '← मागे',
         cardTitle:    '\u0906\u092a\u0932\u0940 \u091f\u0947\u092c\u0932 \u0928\u093f\u0935\u0921\u093e',
         cardSub:      '\u092a\u0941\u0922\u0947 \u091c\u093e\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u091f\u0947\u092c\u0932 \u0928\u0902\u092c\u0930 \u091f\u093e\u0915\u093e',
         inputLabel:   '\u091f\u0947\u092c\u0932 \u0928\u0902\u092c\u0930',
@@ -454,6 +468,11 @@
     const str    = STRINGS[lang] || STRINGS.en;
 
     /* ── APPLY LANGUAGE TO DOM ── */
+    const backBtnEl = document.getElementById('backBtn');
+    if (backBtnEl) {
+      backBtnEl.textContent = str.backBtn;
+      backBtnEl.href = 'index.html?lang=' + encodeURIComponent(lang);
+    }
     document.querySelector('.card-title').textContent   = str.cardTitle;
     document.querySelector('.card-sub').textContent     = str.cardSub;
     document.querySelector('.input-label').textContent  = str.inputLabel;

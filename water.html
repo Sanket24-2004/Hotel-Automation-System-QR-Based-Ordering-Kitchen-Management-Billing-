@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Golden Stone Hotel | Water Bottle Section</title>
-  <meta name="description" content="Stay refreshed with our premium selection of mineral water bottles at Golden Stone Hotel."/>
+  <title>Hotel Tulsi | Water Bottle Section</title>
+  <meta name="description" content="Stay refreshed with our premium selection of mineral water bottles at Hotel Tulsi."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -326,6 +326,33 @@
       line-height: 1.5;
     }
 
+    /* ── TASKBAR ── */
+    .taskbar {
+      position: fixed; bottom: 0; left: 0; right: 0; width: 100%; z-index: 9999;
+      background: rgba(10,7,2,.96);
+      border-top: 1px solid rgba(212,168,50,.35);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex !important; align-items: center; justify-content: space-around;
+      padding: .6rem 0 calc(.6rem + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -8px 32px rgba(0,0,0,.7);
+    }
+    .taskbar-btn {
+      display: flex; flex-direction: column; align-items: center; gap: .2rem;
+      text-decoration: none; color: rgba(255,255,255,.65);
+      font-family: var(--ff-body); font-size: .68rem; letter-spacing: .05em;
+      transition: color .25s ease, transform .2s ease;
+      flex: 1; -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+    }
+    .taskbar-icon { font-size: 1.25rem; margin-bottom: .1rem; }
+    .taskbar-btn.active { color: var(--gold-400); }
+    .taskbar-btn.active .taskbar-icon { filter: drop-shadow(0 0 6px var(--gold-glow)); }
+    .taskbar-btn:hover { color: var(--gold-300); transform: translateY(-2px); }
+
+    /* lift toast and cart-bar above taskbar */
+    .toast { bottom: 5.5rem; }
+    .cart-bar { bottom: 4.5rem; z-index: 9998; }
+
     /* ── RESPONSIVE ── */
     @media (min-width: 560px) {
       .items-grid { grid-template-columns: repeat(2, 1fr); }
@@ -333,10 +360,11 @@
     }
     @media (min-width: 860px) {
       .items-grid { grid-template-columns: repeat(3, 1fr); }
-      .items-section { padding: 0 1.5rem 4rem; }
+      .items-section { padding: 0 1.5rem 5.5rem; }
     }
     @media (min-width: 1100px) {
       .items-grid { grid-template-columns: repeat(4, 1fr); }
+      .items-section { padding: 0 1.5rem 5.5rem; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -347,7 +375,7 @@
 
   <!-- FIXED BACKGROUND -->
   <div class="bg">
-    <img src="ALL Images/Hotel_image_use_as_bg.webp" alt="Golden Stone Hotel ambiance"
+    <img src="ALL Images/Hotel Tulsi Customer BG image_result.webp" alt="Hotel Tulsi ambiance"
          onerror="this.style.display='none'"/>
     <div class="bg-grad"></div>
   </div>
@@ -390,6 +418,18 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <!-- ══ TASKBAR ══ -->
+  <div class="taskbar">
+    <a href="menu.html" class="taskbar-btn" id="taskbarHome" onclick="passParams(event)">
+      <div class="taskbar-icon">🏠</div>
+      <span id="txtHome">Home</span>
+    </a>
+    <a href="my_orders.html" class="taskbar-btn" id="taskbarOrders" onclick="passParamsToOrders(event)">
+      <div class="taskbar-icon">📝</div>
+      <span id="txtMyOrder">My Orders</span>
+    </a>
+  </div>
+
   <!-- ══ ORDER POPUP ══ -->
   <div class="order-popup-overlay" id="orderPopupOverlay">
     <div class="order-popup">
@@ -410,9 +450,9 @@
 
     /* ── Language strings ── */
     const UI = {
-      en: { search: 'Search water bottles...', back: '← Back', noResults: 'No items found', water: '— Premium Hydration —', confirmOrder: 'Confirm Order', items: 'items', item: 'item' },
-      hi: { search: 'पानी की बोतल खोजें...', back: '← वापस', noResults: 'कोई आइटम नहीं मिला', water: '— प्रीमियम पानी की बोतलें —', confirmOrder: 'ऑर्डर कन्फर्म करें', items: 'आइटम', item: 'आइटम' },
-      mr: { search: 'पाण्याची बाटली शोधा...', back: '← मागे', noResults: 'कोणती वस्तू सापडली नाही', water: '— प्रीमियम पाण्याच्या बाटल्या —', confirmOrder: 'ऑर्डर निश्चित करा', items: 'वस्तू', item: 'वस्तू' },
+      en: { search: 'Search water bottles...', back: '← Back', noResults: 'No items found', water: '— Premium Hydration —', confirmOrder: 'Confirm Order', items: 'items', item: 'item', home: 'Home', myOrder: 'My Orders' },
+      hi: { search: 'पानी की बोतल खोजें...', back: '← वापस', noResults: 'कोई आइटम नहीं मिला', water: '— प्रीमियम पानी की बोतलें —', confirmOrder: 'ऑर्डर कन्फर्म करें', items: 'आइटम', item: 'आइटम', home: 'होम', myOrder: 'मेरा ऑर्डर' },
+      mr: { search: 'पाण्याची बाटली शोधा...', back: '← मागे', noResults: 'कोणती वस्तू सापडली नाही', water: '— प्रीमियम पाण्याच्या बाटल्या —', confirmOrder: 'ऑर्डर निश्चित करा', items: 'वस्तू', item: 'वस्तू', home: 'मुख्यपृष्ठ', myOrder: 'माझी ऑर्डर' },
     };
     const ui = UI[lang] || UI.en;
 
@@ -421,6 +461,8 @@
     document.getElementById('backBtn').childNodes[1].textContent = ' ' + ui.back.replace('← ','');
     document.querySelector('.back-arrow').textContent = '←';
     document.getElementById('cartBtn').textContent = ui.confirmOrder;
+    document.getElementById('txtHome').textContent = ui.home;
+    document.getElementById('txtMyOrder').textContent = ui.myOrder;
     /* ── Menu data (loaded from DB) ── */
     const PAGE_CATEGORY = 'water';
 
@@ -430,7 +472,7 @@
 
     /* ── Render via shared helper (fetches DB, builds grid + section labels + search) ── */
     const grid = document.getElementById('itemsGrid');
-    initMenuPage({ category: PAGE_CATEGORY, fallbackImg: 'ALL Images/Water_bottle.webp', ui, getName });
+    initMenuPage({ category: PAGE_CATEGORY, fallbackImg: 'ALL Images/Water Bottle (500 ml - Normal) new.webp', ui, getName });
 
     /* ── Quantity change ── */
     function changeQty(id, delta) {
@@ -544,6 +586,13 @@
     /* ── Back button params ── */
     function passParams(e) {
       const base = 'menu.html';
+      const q = new URLSearchParams({ lang, table, persons }).toString();
+      e.currentTarget.href = base + '?' + q;
+    }
+
+    /* ── My Orders button params ── */
+    function passParamsToOrders(e) {
+      const base = 'my_orders.html';
       const q = new URLSearchParams({ lang, table, persons }).toString();
       e.currentTarget.href = base + '?' + q;
     }

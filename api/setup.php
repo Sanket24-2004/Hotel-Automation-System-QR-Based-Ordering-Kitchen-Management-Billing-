@@ -30,7 +30,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 // ─── HTML Output ───
 echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golden Stone Hotel — Database Setup</title>
+<title>Hotel Tulsi — Database Setup</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Segoe UI",Inter,sans-serif;background:#0a0c10;color:#e8e8e8;padding:2rem;line-height:1.6}
@@ -48,7 +48,7 @@ echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="vie
   .warn{color:#f97316;font-weight:700}
 </style></head><body>';
 
-echo '<h1>🍽 Golden Stone Hotel — Database Setup</h1>';
+echo '<h1>🍽 Hotel Tulsi — Database Setup</h1>';
 echo '<h2>One-time initialization script</h2>';
 
 $steps   = 0;
