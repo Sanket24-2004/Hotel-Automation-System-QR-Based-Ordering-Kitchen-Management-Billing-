@@ -74,7 +74,47 @@
     .nav-tab:hover{color:rgba(255,255,255,.75)}
     .nav-tab.active{color:var(--gold)}
     .nav-tab.active::after{content:'';position:absolute;bottom:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+    .btn-print-bill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 14px;
+      width: 100%;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,215,0,0.08));
+      border: 1px solid rgba(255,215,0,0.4);
+      color: var(--gold);
+      font-family: var(--ff-body);
+      font-size: 0.86rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-print-bill:hover {
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 4px 15px rgba(212,168,50,0.3);
+    }
     @media(max-width:600px){.summary-bar{grid-template-columns:1fr 1fr}.page-title{font-size:1.5rem}.navbar-brand .brand-text{display:none}.navbar-brand .brand-short{display:inline}}
+
+    /* Thermal receipt printing */
+    @media print {
+      body * { visibility: hidden; }
+      #print-receipt, #print-receipt * { visibility: visible; }
+      #print-receipt {
+        position: fixed; inset: 0; background: #fff; color: #000;
+        max-width: 300px; margin: 0 auto; padding: 20px;
+        font-family: 'Courier New', monospace; font-size: 13px;
+        visibility: visible;
+      }
+      .pr-hotel { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+      .pr-line { border-top: 1px dashed #000; margin: 8px 0; }
+      .pr-row { display: flex; justify-content: space-between; margin: 3px 0; }
+      .pr-total { font-size: 15px; font-weight: bold; }
+      .pr-center { text-align: center; margin-top: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -107,12 +147,32 @@
 
   <div class="filter-row">
     <input type="search" id="histSearch" placeholder="🔍 Search by table, bill no, item…" autocomplete="off" oninput="renderHistory()"/>
-    <button class="clear-btn" onclick="clearHistory()">🗑 Clear All</button>
   </div>
 
   <div id="histList" role="list"></div>
   <div id="emptyState"><div class="empty-icon">📭</div><h2>No payment history yet</h2><p>Completed bills from the Billing page will appear here.</p></div>
 </main>
+
+<!-- Print receipt (hidden on screen, visible on print) -->
+<div id="print-receipt" style="display:none">
+  <div class="pr-hotel">🏨 Hotel Tulsi</div>
+  <div class="pr-line"></div>
+  <div class="pr-row"><span>Bill No:</span><span id="pr-bill"></span></div>
+  <div class="pr-row"><span>Table:</span><span id="pr-table"></span></div>
+  <div class="pr-row"><span>Date:</span><span id="pr-date"></span></div>
+  <div class="pr-row"><span>Time:</span><span id="pr-time"></span></div>
+  <div class="pr-line"></div>
+  <div id="pr-items"></div>
+  <div class="pr-line"></div>
+  <div class="pr-row"><span>Subtotal:</span><span id="pr-subtotal"></span></div>
+  <div class="pr-row"><span id="pr-disc-label">Discount:</span><span id="pr-discount"></span></div>
+  <div class="pr-row"><span>GST (5%):</span><span id="pr-gst"></span></div>
+  <div class="pr-line"></div>
+  <div class="pr-row pr-total"><span>TOTAL:</span><span id="pr-total"></span></div>
+  <div class="pr-row"><span>Payment:</span><span id="pr-payment"></span></div>
+  <div class="pr-line"></div>
+  <div class="pr-center">Thank You! 😊<br>Please Visit Again!</div>
+</div>
 
 <nav id="bottom-nav">
   <a href="dashboard.html" class="nav-tab"><span class="nav-icon">🏠</span>Home</a>
@@ -184,8 +244,11 @@
     }
   }
 
+  var cachedHistory = [];
+
   async function renderHistory(){
     var all=await getHistoryFromDB(),q=(document.getElementById('histSearch').value||'').trim().toLowerCase();
+    cachedHistory = all;
     var filtered=q?all.filter(function(h){return(h.billNumber||'').toLowerCase().includes(q)||(h.tableNumber||'').toLowerCase().includes(q)||(h.paymentMethod||'').toLowerCase().includes(q)||(h.items||[]).some(function(i){return(i.name||'').toLowerCase().includes(q)})}):all;
     var totalRev=0,totalGst=0;
     all.forEach(function(h){totalRev+=(h.totalAmount||0);totalGst+=(h.gst||0)});
@@ -201,28 +264,40 @@
       var card=document.createElement('div');card.className='hist-card';card.setAttribute('role','listitem');
       var pmIcon=h.paymentMethod==='UPI'?'📱':h.paymentMethod==='Card'?'💳':'💵';
       var itemsHtml=(h.items||[]).map(function(it){return'<tr><td>'+it.name+'</td><td>'+it.qty+'</td><td>'+fmt(it.price)+'</td><td>'+fmt(it.qty*it.price)+'</td></tr>'}).join('');
-      card.innerHTML='<div class="hist-card-header" onclick="toggleDetail(this)"><div class="hist-left"><span class="hist-badge">✅ Paid</span><div><div class="hist-bill">'+(h.billNumber||'—')+'</div><div class="hist-table">'+(h.tableNumber||'—')+' · '+(h.date||'')+', '+(h.time||'')+'</div></div></div><div class="hist-right"><div class="hist-amount">'+fmt(h.totalAmount||0)+'</div><span class="pay-chip">'+pmIcon+' '+(h.paymentMethod||'—')+'</span></div></div><div class="hist-detail"><table class="det-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+itemsHtml+'</tbody></table><div class="det-totals"><div class="det-row"><span>Subtotal</span><span>'+fmt(h.subtotal||0)+'</span></div><div class="det-row"><span>Discount</span><span style="color:#f97316">-'+fmt(h.discount||0)+'</span></div><div class="det-row"><span>GST (5%)</span><span>'+fmt(h.gst||0)+'</span></div><div class="det-row"><span>TOTAL</span><span>'+fmt(h.totalAmount||0)+'</span></div></div></div>';
+      var safeBillNo = (h.billNumber || '').replace(/'/g, "\\'");
+      card.innerHTML='<div class="hist-card-header" onclick="toggleDetail(this)"><div class="hist-left"><span class="hist-badge">✅ Paid</span><div><div class="hist-bill">'+(h.billNumber||'—')+'</div><div class="hist-table">'+(h.tableNumber||'—')+' · '+(h.date||'')+', '+(h.time||'')+'</div></div></div><div class="hist-right"><div class="hist-amount">'+fmt(h.totalAmount||0)+'</div><span class="pay-chip">'+pmIcon+' '+(h.paymentMethod||'—')+'</span></div></div><div class="hist-detail"><table class="det-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+itemsHtml+'</tbody></table><div class="det-totals"><div class="det-row"><span>Subtotal</span><span>'+fmt(h.subtotal||0)+'</span></div><div class="det-row"><span>Discount</span><span style="color:#f97316">-'+fmt(h.discount||0)+'</span></div><div class="det-row"><span>GST (5%)</span><span>'+fmt(h.gst||0)+'</span></div><div class="det-row"><span>TOTAL</span><span>'+fmt(h.totalAmount||0)+'</span></div></div><button class="btn-print-bill" onclick="printHistoricalBill(\''+safeBillNo+'\')">🖨️ Print Bill Receipt</button></div>';
       list.appendChild(card);
     });
   }
   function toggleDetail(h){h.parentElement.querySelector('.hist-detail').classList.toggle('open')}
-  async function clearHistory(){
-    if(!confirm('Clear all payment history? This cannot be undone.'))return;
-    try {
-      var res = await fetch('api/clear_history.php', { method: 'POST' });
-      var d = await res.json();
-      if (d.success) {
-        localStorage.removeItem('orderHistory');
-        renderHistory();
-      } else {
-        alert('Error: ' + d.error);
-      }
-    } catch(e) {
-      console.error(e);
-      localStorage.removeItem('orderHistory');
-      renderHistory();
-    }
+
+  function printHistoricalBill(billRef) {
+    var h = cachedHistory.find(function(item){ return item.billNumber === billRef; });
+    if (!h) return;
+
+    document.getElementById('pr-bill').textContent     = h.billNumber || '—';
+    document.getElementById('pr-table').textContent    = h.tableNumber || '—';
+    document.getElementById('pr-date').textContent     = h.date || '';
+    document.getElementById('pr-time').textContent     = h.time || '';
+    document.getElementById('pr-subtotal').textContent = fmt(h.subtotal || 0);
+    document.getElementById('pr-disc-label').textContent = 'Discount:';
+    document.getElementById('pr-discount').textContent = '-' + fmt(h.discount || 0);
+    document.getElementById('pr-gst').textContent      = fmt(h.gst || 0);
+    document.getElementById('pr-total').textContent    = fmt(h.totalAmount || 0);
+    document.getElementById('pr-payment').textContent  = h.paymentMethod || 'Cash';
+
+    var itemsHtml = '';
+    (h.items || []).forEach(function(i){
+      itemsHtml += '<div class="pr-row"><span>' + i.name + ' x' + i.qty + '</span><span>' + fmt(i.qty * i.price) + '</span></div>';
+    });
+    document.getElementById('pr-items').innerHTML = itemsHtml;
+
+    var pr = document.getElementById('print-receipt');
+    pr.style.display = 'block';
+    window.print();
+    pr.style.display = 'none';
   }
+
   document.addEventListener('DOMContentLoaded',renderHistory);
 </script>
 </body>

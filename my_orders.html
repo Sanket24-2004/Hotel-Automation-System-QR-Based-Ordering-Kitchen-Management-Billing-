@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Hotel Tulsi | My Orders</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -318,29 +319,55 @@
     /* ── Load Orders ── */
     let stored = [];
     const orderKey = 'hotel_confirmed_orders_' + table;
-    try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { }
 
-    if (stored.length === 0) {
-      document.getElementById('emptyState').style.display = 'block';
-    } else {
+    function renderMyOrders() {
+      try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
       const listEl = document.getElementById('orderList');
-      stored.forEach(item => {
-        const itemName = item[lang] || item.en;
-        const itemTotal = item.price * item.qty;
+      if (listEl) listEl.innerHTML = '';
 
-        const card = document.createElement('div');
-        card.className = 'order-card';
-        card.innerHTML = `
-          <div class="order-info">
-            <div class="order-name">${itemName}</div>
-            <div class="order-qty">${ui.qty}${item.qty}</div>
-          </div>
-          <div class="order-price">₹${itemTotal}</div>
-        `;
-        listEl.appendChild(card);
-      });
-      document.getElementById('totalSection').style.display = 'flex';
+      if (stored.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        var totalSec = document.getElementById('totalSection');
+        if (totalSec) totalSec.style.display = 'none';
+      } else {
+        document.getElementById('emptyState').style.display = 'none';
+        stored.forEach(item => {
+          const itemName = item[lang] || item.en;
+          const itemTotal = item.price * item.qty;
+
+          const card = document.createElement('div');
+          card.className = 'order-card';
+          card.innerHTML = `
+            <div class="order-info">
+              <div class="order-name">${itemName}</div>
+              <div class="order-qty">${ui.qty}${item.qty}</div>
+            </div>
+            <div class="order-price">₹${itemTotal}</div>
+          `;
+          if (listEl) listEl.appendChild(card);
+        });
+        var totalSec = document.getElementById('totalSection');
+        if (totalSec) totalSec.style.display = 'flex';
+      }
     }
+
+    async function checkActiveSession() {
+      try {
+        const res = await fetch('api/get_active_bill.php?table=' + encodeURIComponent(table));
+        const d = await res.json();
+        if (d.success && !d.exists) {
+          sessionStorage.removeItem(orderKey);
+          sessionStorage.removeItem('hotel_security_token');
+          renderMyOrders();
+        }
+      } catch (e) {
+        console.warn('Failed to verify table session status:', e);
+      }
+    }
+
+    // Run render and check session
+    renderMyOrders();
+    checkActiveSession();
 
     /* ── Bill Logic ── */
     function getFormattedDate() {

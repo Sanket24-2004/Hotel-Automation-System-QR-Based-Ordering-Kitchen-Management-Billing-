@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Billing — Hotel Tulsi</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <meta name="description" content="Billing management for Hotel Tulsi. Generate bills for occupied tables." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -95,12 +96,21 @@
     .navbar-brand {
       display: flex;
       align-items: center;
-      gap: 9px;
-      font-size: 1.1rem;
+      gap: 10px;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--gold);
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      text-decoration: none;
     }
+    .brand-logo-badge {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(184,134,11,0.1));
+      border: 1px solid rgba(255,215,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 10px rgba(255,215,0,0.15); flex-shrink: 0;
+    }
+    .brand-crest { color: var(--gold); font-size: 1.1rem; filter: drop-shadow(0 0 6px rgba(255,215,0,0.6)); }
     .navbar-brand .brand-short { display: none; }
 
     .navbar-right {
@@ -693,9 +703,11 @@
   <nav id="navbar" role="navigation" aria-label="Owner navigation">
 
     <div class="navbar-brand">
-      <span aria-hidden="true">🏨</span>
+      <div class="brand-logo-badge">
+        <span class="brand-crest">✦</span>
+      </div>
       <span class="brand-text">Hotel Tulsi</span>
-      <span class="brand-short">Hotel Tulsi</span>
+      <span class="brand-short">HT</span>
     </div>
 
     <div class="navbar-right">
@@ -946,10 +958,11 @@
 
     /* ── State ── */
     var currentTableId   = null;
+    var currentOrderRef  = '';
     var currentItems     = [];   /* working copy of bill items */
     var discountType     = 'pct';
     var selectedPayment  = 'Cash';
-    var billCounter      = 1045; /* auto-increment bill number */
+    var billCounter      = 1045; /* fallback bill number */
 
     /* ================================================
        HELPERS
@@ -964,7 +977,10 @@
       if (mins >= 30) return { cls: 'warn',  prefix: '⚠️ ' };
       return               { cls: 'normal', prefix: '' };
     }
-    function fmt(n) { return '₹' + n.toLocaleString('en-IN'); }
+    function fmt(n) { 
+      var num = typeof n === 'number' ? n : parseFloat(n) || 0;
+      return '₹' + (Number.isInteger(num) ? num.toLocaleString('en-IN') : num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    }
     function now() { return new Date(); }
     function dateStr(d) {
       return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -980,7 +996,7 @@
       var t = document.getElementById('toast');
       t.textContent = msg;
       t.classList.add('show');
-      setTimeout(function() { t.classList.remove('show'); }, 2000);
+      setTimeout(function() { t.classList.remove('show'); }, 2200);
     }
 
     /* ================================================
@@ -1006,6 +1022,12 @@
     }
 
     function showTablesView() {
+      currentTableId = null;
+      currentOrderRef = '';
+      currentItems = [];
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', 'billing.html');
+      }
       document.getElementById('bill-detail').style.display = 'none';
       document.getElementById('occupied-section').style.display = 'block';
       document.getElementById('empty-state').style.display =
@@ -1017,32 +1039,46 @@
 
     async function showBillView(tableId) {
       currentTableId = tableId;
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', 'billing.html?table=' + encodeURIComponent(tableId));
+      }
       var tableData  = OCCUPIED_TABLES.find(function(t){ return t.id === tableId; });
-      if (!tableData) return;
+      var sittingMins = tableData ? tableData.minutesAgo : 0;
 
       try {
         var res = await fetch('api/get_active_bill.php?table=' + tableId);
         var d   = await res.json();
         if (d.success) {
           currentItems = (d.items || []).map(function(i){
-            return { name: i.name, qty: parseInt(i.qty), price: parseFloat(i.price) };
+            return { 
+              name: i.name,
+              menu_item_id: i.menu_item_id || 0,
+              qty: parseInt(i.qty), 
+              price: parseFloat(i.price) 
+            };
           });
           if (d.exists && d.order_ref) {
+            currentOrderRef = d.order_ref;
             document.getElementById('bill-number-display').textContent = 'Bill ' + d.order_ref;
           } else {
-            var bn = '#' + billCounter;
-            document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+            var todayStr = new Date().toISOString().slice(2,10).replace(/-/g, '');
+            currentOrderRef = 'ORD-' + todayStr + '-T' + tableId + '-' + String(billCounter).slice(-3);
+            document.getElementById('bill-number-display').textContent = 'Bill #' + billCounter;
+          }
+          if (d.created_at) {
+            var diff = Math.floor((Date.now() - new Date(d.created_at.replace(/-/g, '/')).getTime()) / 60000);
+            if (diff >= 0) sittingMins = diff;
           }
         } else {
           currentItems = [];
-          var bn = '#' + billCounter;
-          document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+          currentOrderRef = '#' + billCounter;
+          document.getElementById('bill-number-display').textContent = 'Bill ' + currentOrderRef;
         }
       } catch(e) {
         console.error('Failed to load active bill:', e);
         currentItems = [];
-        var bn = '#' + billCounter;
-        document.getElementById('bill-number-display').textContent = 'Bill ' + bn;
+        currentOrderRef = '#' + billCounter;
+        document.getElementById('bill-number-display').textContent = 'Bill ' + currentOrderRef;
       }
 
       /* Hide tables, show bill */
@@ -1062,7 +1098,7 @@
       document.getElementById('bi-date').textContent    = dateStr(d);
       document.getElementById('bi-time').textContent    = timeStr(d);
       document.getElementById('bi-table').textContent   = 'Table ' + tableId;
-      document.getElementById('bi-sitting').textContent = formatTime(tableData.minutesAgo);
+      document.getElementById('bi-sitting').textContent = formatTime(sittingMins);
 
       /* Reset discount + payment */
       document.getElementById('discount-input').value = '0';
@@ -1144,7 +1180,6 @@
       recalc();
     }
 
-
     /* ================================================
        MENU SEARCH — sorts by match, never hides
     ================================================ */
@@ -1156,8 +1191,9 @@
         row.className = 'menu-item-row';
         row.setAttribute('role', 'button');
         row.setAttribute('tabindex', '0');
+        var label = item.name_en + (item.name_hi && item.name_hi !== item.name_en ? ' (' + item.name_hi + ')' : '');
         row.innerHTML =
-          '<span class="menu-item-name">' + item.name + '</span>' +
+          '<span class="menu-item-name">' + label + '</span>' +
           '<span class="menu-item-price">' + fmt(item.price) + '</span>';
         row.addEventListener('click', function() { addMenuItemToBill(item); });
         row.addEventListener('keydown', function(e){
@@ -1172,7 +1208,9 @@
       if (!q) { renderMenuList(FULL_MENU); return; }
       var matches = [], rest = [];
       FULL_MENU.forEach(function(item) {
-        if (item.name.toLowerCase().indexOf(q) !== -1) matches.push(item);
+        var matchEn = (item.name_en || '').toLowerCase().indexOf(q) !== -1;
+        var matchHi = (item.name_hi || '').toLowerCase().indexOf(q) !== -1;
+        if (matchEn || matchHi) matches.push(item);
         else rest.push(item);
       });
       renderMenuList(matches.concat(rest));
@@ -1180,17 +1218,24 @@
 
     function addMenuItemToBill(menuItem) {
       /* If item already in bill, increment qty */
-      var existing = currentItems.find(function(i){ return i.name === menuItem.name; });
+      var existing = currentItems.find(function(i){ 
+        return i.menu_item_id === menuItem.id || i.name === menuItem.name_en || i.name === menuItem.name_hi; 
+      });
       if (existing) {
         existing.qty++;
       } else {
-        currentItems.push({ name: menuItem.name, qty: 1, price: menuItem.price });
+        currentItems.push({ 
+          name: menuItem.name_en || menuItem.name, 
+          menu_item_id: menuItem.id,
+          qty: 1, 
+          price: menuItem.price 
+        });
       }
       document.getElementById('extra-search').value = '';
       renderMenuList(FULL_MENU);
       renderItemsTable();
       recalc();
-      showToast('✅ ' + menuItem.name + ' added!');
+      showToast('✅ ' + (menuItem.name_en || menuItem.name) + ' added!');
     }
 
     /* ================================================
@@ -1202,21 +1247,36 @@
       var discAmt  = 0;
 
       if (discountType === 'pct') {
-        discAmt = Math.round(subtotal * discVal / 100);
+        discAmt = Math.round((subtotal * discVal / 100) * 100) / 100;
         document.getElementById('discount-label').textContent = 'Discount (' + discVal + '%)';
       } else {
         discAmt = Math.min(discVal, subtotal);
         document.getElementById('discount-label').textContent = 'Discount (Flat)';
       }
 
-      var afterDisc = subtotal - discAmt;
-      var gst       = Math.round(afterDisc * 0.05);
-      var total     = afterDisc + gst;
+      var afterDisc = Math.max(0, subtotal - discAmt);
+      var gst       = Math.round((afterDisc * 0.05) * 100) / 100;
+      var total     = Math.round((afterDisc + gst) * 100) / 100;
 
       document.getElementById('sum-subtotal').textContent = fmt(subtotal);
       document.getElementById('sum-discount').textContent = '-' + fmt(discAmt);
       document.getElementById('sum-gst').textContent      = fmt(gst);
       document.getElementById('sum-total').textContent    = fmt(total);
+
+      // Adjust complete button label and print button visibility
+      var completeBtn = document.querySelector('.complete-btn');
+      var printBtn = document.querySelector('.print-btn');
+      if (completeBtn) {
+        if (currentItems.length === 0) {
+          completeBtn.textContent = '🔓 Release Table';
+          completeBtn.style.background = 'linear-gradient(135deg, #ea580c, #dc2626)';
+          if (printBtn) printBtn.style.display = 'none';
+        } else {
+          completeBtn.textContent = '✅ Complete Payment';
+          completeBtn.style.background = '';
+          if (printBtn) printBtn.style.display = 'block';
+        }
+      }
     }
 
     /* ================================================
@@ -1249,13 +1309,13 @@
       var discVal  = parseFloat(document.getElementById('discount-input').value) || 0;
       var subtotal = currentItems.reduce(function(s,i){ return s+i.qty*i.price; },0);
       var discAmt  = discountType === 'pct'
-        ? Math.round(subtotal * discVal / 100)
+        ? Math.round((subtotal * discVal / 100) * 100) / 100
         : Math.min(discVal, subtotal);
-      var afterDisc = subtotal - discAmt;
-      var gst       = Math.round(afterDisc * 0.05);
-      var total     = afterDisc + gst;
+      var afterDisc = Math.max(0, subtotal - discAmt);
+      var gst       = Math.round((afterDisc * 0.05) * 100) / 100;
+      var total     = Math.round((afterDisc + gst) * 100) / 100;
 
-      document.getElementById('pr-bill').textContent    = '#' + billCounter;
+      document.getElementById('pr-bill').textContent    = currentOrderRef || ('#' + billCounter);
       document.getElementById('pr-table').textContent   = 'Table ' + currentTableId;
       document.getElementById('pr-date').textContent    = dateStr(d);
       document.getElementById('pr-time').textContent    = timeStr(d);
@@ -1284,15 +1344,16 @@
        COMPLETE PAYMENT
     ================================================ */
     async function completePayment() {
+      if (!currentTableId) return;
       var d        = now();
       var discVal  = parseFloat(document.getElementById('discount-input').value) || 0;
       var subtotal = currentItems.reduce(function(s,i){ return s+i.qty*i.price; },0);
       var discAmt  = discountType === 'pct'
-        ? Math.round(subtotal * discVal / 100)
+        ? Math.round((subtotal * discVal / 100) * 100) / 100
         : Math.min(discVal, subtotal);
-      var afterDisc = subtotal - discAmt;
-      var gst       = Math.round(afterDisc * 0.05);
-      var total     = afterDisc + gst;
+      var afterDisc = Math.max(0, subtotal - discAmt);
+      var gst       = Math.round((afterDisc * 0.05) * 100) / 100;
+      var total     = Math.round((afterDisc + gst) * 100) / 100;
 
       try {
         var res = await fetch('api/complete_payment.php', {
@@ -1311,9 +1372,9 @@
         });
         var resData = await res.json();
         if (resData.success) {
-          showToast('Payment Completed!');
+          showToast('✅ Payment Completed & Table ' + currentTableId + ' Released!');
           
-          /* 1. Save to localStorage for order-history.html and reports.html */
+          /* 1. Save to localStorage for order-history.html and reports.html fallback */
           var history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
           history.unshift({
             billNumber:     resData.order_ref,
@@ -1339,11 +1400,11 @@
           /* 3. Return to tables view */
           showTablesView();
         } else {
-          showToast('Error: ' + resData.error);
+          showToast('❌ Error: ' + resData.error);
         }
       } catch (e) {
         console.error('Failed to complete payment:', e);
-        showToast('Network error while completing payment.');
+        showToast('❌ Network error while completing payment.');
       }
     }
 
@@ -1417,7 +1478,10 @@
             return item.is_available == 1;
           }).map(function(item) {
             return {
+              id: parseInt(item.id),
               name: item.name_en,
+              name_en: item.name_en,
+              name_hi: item.name_hi || '',
               price: parseFloat(item.price)
             };
           });
@@ -1431,11 +1495,22 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      loadOccupiedTablesFromDB();
+    document.addEventListener('DOMContentLoaded', async function() {
+      await loadOccupiedTablesFromDB();
       loadMenuFromDB();
-      // Poll occupied tables from DB every 10 seconds
-      setInterval(loadOccupiedTablesFromDB, 10000);
+
+      // Check if URL has ?table=X (e.g. redirected from Dashboard Live Table Status modal)
+      var urlParams = new URLSearchParams(window.location.search);
+      var tableParam = urlParams.get('table');
+      if (tableParam) {
+        var tId = parseInt(tableParam, 10);
+        if (tId > 0) {
+          showBillView(tId);
+        }
+      }
+
+      // Poll occupied tables from DB every 8 seconds
+      setInterval(loadOccupiedTablesFromDB, 8000);
     });
   </script>
 

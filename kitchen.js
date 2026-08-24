@@ -1,78 +1,90 @@
 /**
- * kitchen.js — Golden Stone Hotel Kitchen Dashboard
- * Real-time order management via AJAX polling
- * v6 — Complete rewrite for POS-grade reliability
+ * kitchen.js — Hotel Tulsi 24" Hindi Kitchen Display System (KDS)
+ * 100% Hands-Free Operation for Chefs and Kitchen Staff
+ * v7.0 — Dual Partition (नया ऑर्डर / चल रहे ऑर्डर्स) with Live Audio Chimes
  */
 'use strict';
 
-/* ═══════ CONFIG ═══════ */
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG & CONSTANTS
+   ═══════════════════════════════════════════════════════════════ */
 const API_BASE = 'api/';
-const POLL_INTERVAL = 3000;
-const MAX_CONSECUTIVE_FAILURES = 3;
+const POLL_INTERVAL = 2500; // Poll every 2.5 seconds
+const NEW_ORDER_TIMEOUT_SEC = 180; // 3 minutes stay in "New" section before moving to "Ongoing" if no newer order arrives
+
 const CATEGORY_ICONS = {
-  starter: '🍽', main: '🍛', bread: '🫓', rice: '🍚',
-  beverage: '🥤', dessert: '🍰', salad: '🥗', side: '🥣', water: '💧'
+  starter: '🍽️', main: '🍛', bread: '🫓', rice: '🍚',
+  beverage: '🥤', dessert: '🍨', salad: '🥗', side: '🥣', water: '💧'
 };
-const PREP_TIMES = {
-  starter: 5, main: 10, bread: 5, rice: 8,
-  beverage: 2, dessert: 3, salad: 4, side: 4, water: 1
-};
-const STATUS_LABELS = { new: 'New Order', preparing: 'Preparing', ready: 'Ready', served: 'Served' };
 
-/* ═══════ STATE ═══════ */
-let ordersCache = {};
-let lastPollTimestamp = 0;
-let activeFilter = 'all';
-let searchQuery = '';
-let soundEnabled = true;
-let pollTimer = null;
-let timerInterval = null;
-let isHistoryMode = false;
-let isPolling = false;
-let consecutiveFailures = 0;
+const CATEGORY_HINDI = {
+  starter: 'स्टार्टर', main: 'मेन कोर्स', bread: 'रोटी / ब्रेड', rice: 'चावल / बिरयानी',
+  beverage: 'पेय / बेवरेज', dessert: 'मीठा / डेज़र्ट', salad: 'सलाद', side: 'अन्य', water: 'पानी'
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+let ordersCache = {}; // id -> order object
+let previousOrderIds = new Set();
+let soundEnabled = localStorage.getItem('kds_sound') !== 'false';
 let isFirstLoad = true;
+let isPolling = false;
 let audioCtx = null;
+let pollIntervalTimer = null;
+let timerTickInterval = null;
+let isHistoryOpen = false;
 
-/* ═══════ DOM REFS ═══════ */
-const $grid       = document.getElementById('ordersGrid');
-const $readyPanel = document.getElementById('readyPanel');
-const $readyGrid  = document.getElementById('readyGrid');
-const $searchInput= document.getElementById('searchInput');
-const $notifBanner= document.getElementById('notifBanner');
-const $modal      = document.getElementById('timelineModal');
-const $emptyState = document.getElementById('emptyState');
-const $connStatus = document.getElementById('connectionStatus');
-const $lastUpdated= document.getElementById('lastUpdated');
+/* ═══════════════════════════════════════════════════════════════
+   DOM REFERENCES
+   ═══════════════════════════════════════════════════════════════ */
+const $newOrdersContainer     = document.getElementById('newOrdersContainer');
+const $ongoingOrdersContainer = document.getElementById('ongoingOrdersContainer');
+const $newEmptyState          = document.getElementById('newEmptyState');
+const $ongoingEmptyState      = document.getElementById('ongoingEmptyState');
 
-// History & Navigation
-const $homeView         = document.getElementById('homeView');
-const $historyView      = document.getElementById('historyView');
-const $historyGrid      = document.getElementById('historyGrid');
-const $historyEmptyState= document.getElementById('historyEmptyState');
-const $btnHome          = document.getElementById('btnHome');
-const $btnHistory       = document.getElementById('btnHistory');
+const $badgeNewOrders         = document.getElementById('badgeNewOrders');
+const $badgeOngoingOrders     = document.getElementById('badgeOngoingOrders');
 
-/* ═══════ DEBUG LOGGER ═══════ */
-function log(category, msg, data) {
-  const ts = new Date().toLocaleTimeString('en-IN', { hour12: true });
-  const prefix = `[Kitchen][${category}][${ts}]`;
-  if (data !== undefined) {
-    console.log(prefix, msg, data);
-  } else {
-    console.log(prefix, msg);
-  }
-}
+const $statNewCount           = document.getElementById('statNewCount');
+const $statOngoingCount       = document.getElementById('statOngoingCount');
+const $statTotalActive        = document.getElementById('statTotalActive');
 
-/* ═══════ CLOCK ═══════ */
+const $kdsClock               = document.getElementById('kdsClock');
+const $kdsConnStatus          = document.getElementById('kdsConnStatus');
+const $newOrderBanner         = document.getElementById('newOrderBanner');
+const $newAlertText           = document.getElementById('newAlertText');
+const $audioUnlockModal       = document.getElementById('audioUnlockModal');
+
+const $soundToggleBtn         = document.getElementById('soundToggleBtn');
+const $soundIcon              = document.getElementById('soundIcon');
+const $soundText              = document.getElementById('soundText');
+
+const $historyOverlay         = document.getElementById('historyOverlay');
+const $historyContentList     = document.getElementById('historyContentList');
+
+/* ═══════════════════════════════════════════════════════════════
+   LIVE CLOCK (IST TIME)
+   ═══════════════════════════════════════════════════════════════ */
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  const timeStr = now.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+  if ($kdsClock) {
+    $kdsClock.textContent = timeStr;
+  }
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ═══════ AUDIO CONTEXT (lazy, user-gesture safe) ═══════ */
-function ensureAudioContext() {
+/* ═══════════════════════════════════════════════════════════════
+   WEB AUDIO API BELL CHIME (Hands-Free Melodic Bell)
+   ═══════════════════════════════════════════════════════════════ */
+function initAudioContext() {
   if (audioCtx && audioCtx.state !== 'closed') {
     if (audioCtx.state === 'suspended') {
       audioCtx.resume().catch(() => {});
@@ -80,549 +92,517 @@ function ensureAudioContext() {
     return audioCtx;
   }
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    log('Sound', 'AudioContext created, state=' + audioCtx.state);
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
     return audioCtx;
   } catch (e) {
-    log('Sound', 'Failed to create AudioContext', e.message);
+    console.warn('[KDS Audio] Failed to create AudioContext', e);
     return null;
   }
 }
 
-// Resume AudioContext on first user gesture (required by Chrome/Safari)
-function onFirstUserGesture() {
-  ensureAudioContext();
-  document.removeEventListener('click', onFirstUserGesture);
-  document.removeEventListener('touchstart', onFirstUserGesture);
-  log('Sound', 'AudioContext unlocked via user gesture');
+function checkAudioAutoplay() {
+  const ac = initAudioContext();
+  if (ac && ac.state === 'suspended') {
+    if ($audioUnlockModal) {
+      $audioUnlockModal.style.display = 'flex';
+    }
+  } else {
+    if ($audioUnlockModal) {
+      $audioUnlockModal.style.display = 'none';
+    }
+  }
 }
-document.addEventListener('click', onFirstUserGesture);
-document.addEventListener('touchstart', onFirstUserGesture);
 
-/* ═══════ SOUND ═══════ */
-function playNotificationSound() {
-  if (!soundEnabled) {
-    log('Sound', 'Sound disabled, skipping');
-    return;
+function unlockAudio() {
+  const ac = initAudioContext();
+  if (ac) {
+    ac.resume().then(() => {
+      if ($audioUnlockModal) $audioUnlockModal.style.display = 'none';
+      playKitchenChime(); // Test ring
+    }).catch(() => {});
   }
-  const ac = ensureAudioContext();
-  if (!ac || ac.state === 'suspended') {
-    log('Sound', 'AudioContext not ready (state=' + (ac ? ac.state : 'null') + '), skipping');
-    return;
+}
+document.addEventListener('click', () => {
+  const ac = initAudioContext();
+  if (ac && ac.state === 'suspended') {
+    ac.resume().then(() => {
+      if ($audioUnlockModal) $audioUnlockModal.style.display = 'none';
+    }).catch(() => {});
   }
+}, { once: true });
+
+function playKitchenChime() {
+  if (!soundEnabled) return;
+  const ac = initAudioContext();
+  if (!ac || ac.state === 'suspended') return;
+
   try {
-    [660, 880, 1100].forEach((freq, i) => {
+    // Elegant 4-tone ascending kitchen chime: C6 -> E6 -> G6 -> C7
+    const notes = [1046.50, 1318.51, 1567.98, 2093.00];
+    const now = ac.currentTime;
+
+    notes.forEach((freq, idx) => {
       const osc = ac.createOscillator();
       const gain = ac.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.18, ac.currentTime + i * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.15 + 0.3);
-      osc.connect(gain).connect(ac.destination);
-      osc.start(ac.currentTime + i * 0.15);
-      osc.stop(ac.currentTime + i * 0.15 + 0.3);
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+
+      gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.45);
+
+      osc.connect(gain);
+      gain.connect(ac.destination);
+
+      osc.start(now + idx * 0.12);
+      osc.stop(now + idx * 0.12 + 0.45);
     });
-    log('Sound', '🔔 Notification sound played');
   } catch (e) {
-    log('Sound', 'Playback error', e.message);
+    console.error('[KDS Audio] Error playing chime:', e);
   }
 }
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
-  const btn = document.getElementById('soundBtn');
-  btn.textContent = soundEnabled ? '🔔 Sound ON' : '🔕 Sound OFF';
-  btn.classList.toggle('active', soundEnabled);
-  // Resume audio context when enabling sound
-  if (soundEnabled) ensureAudioContext();
-  log('Sound', 'Sound toggled: ' + (soundEnabled ? 'ON' : 'OFF'));
+  localStorage.setItem('kds_sound', soundEnabled ? 'true' : 'false');
+  updateSoundButtonUI();
+  if (soundEnabled) {
+    initAudioContext();
+    playKitchenChime();
+  }
 }
 
-/* ═══════ CONNECTION STATUS ═══════ */
-function setConnectionStatus(connected) {
-  if (!$connStatus) return;
-  if (connected) {
-    $connStatus.className = 'connection-status connected';
-    $connStatus.innerHTML = '<span class="conn-dot"></span> Connected';
-    consecutiveFailures = 0;
+function updateSoundButtonUI() {
+  if (!$soundIcon || !$soundText) return;
+  if (soundEnabled) {
+    $soundIcon.textContent = '🔔';
+    $soundText.textContent = 'घंटी चालू';
+    $soundToggleBtn.classList.add('btn-active');
   } else {
-    consecutiveFailures++;
-    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-      $connStatus.className = 'connection-status disconnected';
-      $connStatus.innerHTML = '<span class="conn-dot"></span> Connection Lost';
-    } else {
-      $connStatus.className = 'connection-status reconnecting';
-      $connStatus.innerHTML = '<span class="conn-dot"></span> Reconnecting...';
+    $soundIcon.textContent = '🔕';
+    $soundText.textContent = 'घंटी बंद';
+    $soundToggleBtn.classList.remove('btn-active');
+  }
+}
+updateSoundButtonUI();
+
+/* ═══════════════════════════════════════════════════════════════
+   FULLSCREEN TOGGLE
+   ═══════════════════════════════════════════════════════════════ */
+function toggleFullScreen() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
     }
   }
 }
 
-function updateLastUpdatedTime() {
-  if (!$lastUpdated) return;
-  const now = new Date();
-  $lastUpdated.textContent = 'Last Updated: ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-}
-
-/* ═══════ MONITOR MODE ═══════ */
-function checkMonitorMode() {
-  if (new URLSearchParams(location.search).get('mode') === 'monitor') {
-    document.body.classList.add('monitor-mode');
-  }
-}
-checkMonitorMode();
-
-/* ═══════ POLLING ═══════ */
-async function fetchOrders() {
-  if (isHistoryMode) return;
-
-  const url = `${API_BASE}get_orders.php?since=${lastPollTimestamp}&status=all`;
-  log('Poll', `Fetching: since=${lastPollTimestamp}`, url);
-
+/* ═══════════════════════════════════════════════════════════════
+   POLLING & SYNC
+   ═══════════════════════════════════════════════════════════════ */
+async function fetchKitchenOrders() {
+  const url = `${API_BASE}get_orders.php?status=all&since=0&t=${Date.now()}`;
   try {
     const resp = await fetch(url);
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-    }
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    log('Poll', `Response: success=${data.success}, count=${data.count}`, data.timestamp);
 
-    if (!data.success) {
-      throw new Error(data.error || 'API returned success=false');
-    }
+    if (!data.success) throw new Error(data.error || 'Server error');
 
     setConnectionStatus(true);
-    updateLastUpdatedTime();
-
-    lastPollTimestamp = data.timestamp || Math.floor(Date.now() / 1000);
-    processOrders(data.orders || []);
+    processIncomingOrders(data.orders || []);
     isFirstLoad = false;
-
   } catch (err) {
-    log('Poll', '❌ Poll error', err.message);
+    console.warn('[KDS Sync Error]', err);
     setConnectionStatus(false);
   }
 }
 
-async function fetchStats() {
-  try {
-    const resp = await fetch(`${API_BASE}get_stats.php`);
-    const data = await resp.json();
-    if (data.success) {
-      document.getElementById('statTotal').textContent = data.total_today;
-      document.getElementById('statActive').textContent = data.active;
-      document.getElementById('statNew').textContent = data.new;
-      document.getElementById('statPreparing').textContent = data.preparing;
-      document.getElementById('statReady').textContent = data.ready;
-      document.getElementById('statServed').textContent = data.served;
-    }
-  } catch (e) {
-    log('Stats', 'Stats fetch error', e.message);
+function setConnectionStatus(connected) {
+  if (!$kdsConnStatus) return;
+  if (connected) {
+    $kdsConnStatus.className = 'conn-badge connected';
+    $kdsConnStatus.innerHTML = '<span class="conn-dot"></span><span class="conn-text">कनेक्टेड</span>';
+  } else {
+    $kdsConnStatus.className = 'conn-badge disconnected';
+    $kdsConnStatus.innerHTML = '<span class="conn-dot"></span><span class="conn-text">पुनः प्रयास...</span>';
   }
 }
 
-function processOrders(orders) {
-  let hasNewOrder = false;
-  const previousIds = new Set(Object.keys(ordersCache).map(Number));
+function processIncomingOrders(orders) {
+  let hasBrandNewOrder = false;
+  let newOrderTable = '';
+
+  const incomingActiveMap = {};
 
   orders.forEach(order => {
-    const prevOrder = ordersCache[order.id];
-
-    // Detect genuinely new order (not in cache + status is new)
-    if (!prevOrder && order.status === 'new' && !isFirstLoad) {
-      hasNewOrder = true;
-      log('Order', `🆕 New order detected: #${order.id} Table ${order.table_no}`);
+    // Only process unbilled orders
+    if (order.status === 'served' || order.payment_method) {
+      return;
     }
 
-    // Detect new batch added to existing order
+    const oid = order.id;
+    incomingActiveMap[oid] = order;
+
+    // Detect new order arrival
+    if (!previousOrderIds.has(oid) && !isFirstLoad) {
+      hasBrandNewOrder = true;
+      newOrderTable = order.table_no;
+    }
+
+    // Detect additional batch items added to existing order
+    const prevOrder = ordersCache[oid];
     if (prevOrder && !isFirstLoad) {
-      const prevBatchIds = new Set();
-      (prevOrder.batches || []).forEach(b => prevBatchIds.add(b.batch_id));
+      const prevBatches = new Set((prevOrder.batches || []).map(b => b.batch_id));
       (order.batches || []).forEach(b => {
-        if (!prevBatchIds.has(b.batch_id)) {
-          hasNewOrder = true;
-          log('Order', `🆕 New batch on order #${order.id} Table ${order.table_no}`);
+        if (!prevBatches.has(b.batch_id)) {
+          hasBrandNewOrder = true;
+          newOrderTable = order.table_no;
         }
       });
     }
-
-    // Update cache
-    ordersCache[order.id] = order;
   });
 
-  if (hasNewOrder) {
-    log('Notify', '🔔 Triggering notification for new order(s)');
-    playNotificationSound();
-    showNotification();
+  // Update active cache
+  ordersCache = incomingActiveMap;
+  previousOrderIds = new Set(Object.keys(incomingActiveMap).map(Number));
+
+  if (hasBrandNewOrder) {
+    playKitchenChime();
+    triggerNewOrderBanner(newOrderTable);
   }
 
-  renderAll();
+  renderKdsPartitions();
 }
 
-/* ═══════ NOTIFICATION ═══════ */
-function showNotification() {
-  $notifBanner.classList.add('show');
-  setTimeout(() => $notifBanner.classList.remove('show'), 4000);
+function triggerNewOrderBanner(tableNo) {
+  if (!$newOrderBanner) return;
+  $newAlertText.textContent = tableNo ? `🔔 नया ऑर्डर! टेबल ${tableNo}` : `🔔 नया ऑर्डर प्राप्त हुआ!`;
+  $newOrderBanner.classList.add('show');
+  setTimeout(() => {
+    $newOrderBanner.classList.remove('show');
+  }, 4500);
 }
 
-/* ═══════ RENDER (Differential DOM updates) ═══════ */
-function renderAll() {
-  const allOrders = Object.values(ordersCache);
-  const activeOrders = [];
-  const readyOrders = [];
+/* ═══════════════════════════════════════════════════════════════
+   DUAL-PARTITION RENDER LOGIC
+   ═══════════════════════════════════════════════════════════════ */
+function renderKdsPartitions() {
+  const activeOrders = Object.values(ordersCache);
 
-  allOrders.forEach(o => {
-    if (o.status === 'served') return;
-    if (o.status === 'ready') { readyOrders.push(o); activeOrders.push(o); }
-    else activeOrders.push(o);
-  });
+  // Sort by created_at DESC (newest first, then ID)
+  activeOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at) || b.id - a.id);
 
-  renderReadyPanel(readyOrders);
-  renderOrderCards(activeOrders);
-  fetchStats();
-}
+  const newOrders = [];
+  const ongoingOrders = [];
 
-function matchesFilter(order) {
-  if (activeFilter !== 'all' && order.status !== activeFilter) return false;
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    const matchTable = ('table ' + order.table_no).toLowerCase().includes(q) || order.table_no.toString().toLowerCase().includes(q);
-    const matchRef = (order.order_ref || '').toLowerCase().includes(q);
-    if (!matchTable && !matchRef) return false;
+  if (activeOrders.length > 0) {
+    // Partition 1 (Left): ONLY the single latest / newest order!
+    newOrders.push(activeOrders[0]);
+
+    // Partition 2 (Right): All other previously received active orders
+    for (let i = 1; i < activeOrders.length; i++) {
+      ongoingOrders.push(activeOrders[i]);
+    }
   }
-  return true;
+
+  // Update header badges
+  const totalCount = activeOrders.length;
+  const newCount = newOrders.length;
+  const ongoingCount = ongoingOrders.length;
+
+  if ($statNewCount) $statNewCount.textContent = newCount;
+  if ($statOngoingCount) $statOngoingCount.textContent = ongoingCount;
+  if ($statTotalActive) $statTotalActive.textContent = totalCount;
+
+  if ($badgeNewOrders) $badgeNewOrders.textContent = newCount;
+  if ($badgeOngoingOrders) $badgeOngoingOrders.textContent = ongoingCount;
+
+  // Render Partition 1: New Orders
+  renderNewPartition(newOrders);
+
+  // Render Partition 2: Ongoing Orders
+  renderOngoingPartition(ongoingOrders);
 }
 
-function renderReadyPanel(readyOrders) {
-  $readyPanel.classList.toggle('has-items', readyOrders.length > 0);
-  $readyGrid.innerHTML = '';
-  readyOrders.forEach(order => {
-    const totalItems = countItems(order);
-    const readyTime = order.ready_at ? formatTime(order.ready_at) : '--';
-    const card = document.createElement('div');
-    card.className = 'ready-card';
-    card.innerHTML = `
-      <div class="ready-table">T${order.table_no}</div>
-      <div class="ready-time">Ready at ${readyTime}</div>
-      <div class="ready-items">${totalItems} item${totalItems !== 1 ? 's' : ''}</div>
-      <button class="btn-served" onclick="updateStatus(${order.id},'served')">✓ MARK SERVED</button>
-    `;
-    $readyGrid.appendChild(card);
+function renderNewPartition(orders) {
+  if (!$newOrdersContainer || !$newEmptyState) return;
+
+  if (orders.length === 0) {
+    $newOrdersContainer.innerHTML = '';
+    $newEmptyState.style.display = 'flex';
+    return;
+  }
+
+  $newEmptyState.style.display = 'none';
+  $newOrdersContainer.innerHTML = '';
+
+  orders.forEach(order => {
+    const card = createKdsCard(order, true);
+    $newOrdersContainer.appendChild(card);
   });
 }
 
-function renderOrderCards(orders) {
-  const filtered = orders.filter(o => o.status !== 'served' && matchesFilter(o));
+function renderOngoingPartition(orders) {
+  if (!$ongoingOrdersContainer || !$ongoingEmptyState) return;
 
-  // Sort: new first, then preparing, then ready
-  filtered.sort((a, b) => {
-    const order = { new: 0, preparing: 1, ready: 2 };
-    const diff = (order[a.status] ?? 3) - (order[b.status] ?? 3);
-    if (diff !== 0) return diff;
-    return new Date(b.created_at) - new Date(a.created_at);
+  if (orders.length === 0) {
+    $ongoingOrdersContainer.innerHTML = '';
+    $ongoingEmptyState.style.display = 'flex';
+    return;
+  }
+
+  $ongoingEmptyState.style.display = 'none';
+  $ongoingOrdersContainer.innerHTML = '';
+
+  orders.forEach(order => {
+    const card = createKdsCard(order, false);
+    $ongoingOrdersContainer.appendChild(card);
   });
-
-  $emptyState.style.display = filtered.length === 0 ? 'block' : 'none';
-
-  // Build a set of order IDs that should be visible
-  const desiredIds = new Set(filtered.map(o => String(o.id)));
-
-  // Remove cards that are no longer in the filtered set
-  const existingCards = $grid.querySelectorAll('.order-card[data-id]');
-  existingCards.forEach(card => {
-    if (!desiredIds.has(card.dataset.id)) {
-      card.remove();
-      log('DOM', `Removed card #${card.dataset.id}`);
-    }
-  });
-
-  // Save scroll position
-  const scrollY = window.scrollY;
-
-  // Update or insert cards
-  filtered.forEach((order, index) => {
-    const oid = String(order.id);
-    let existingCard = $grid.querySelector(`.order-card[data-id="${oid}"]`);
-
-    if (existingCard) {
-      // Check if order data changed since last render
-      const cachedUpdatedAt = existingCard.dataset.updated;
-      const cachedStatus = existingCard.dataset.status;
-      if (cachedUpdatedAt === order.updated_at && cachedStatus === order.status) {
-        // No change — skip DOM update
-        return;
-      }
-      // Data changed — replace card content in-place
-      const newCard = createOrderCard(order);
-      existingCard.replaceWith(newCard);
-      log('DOM', `Updated card #${oid} (status: ${cachedStatus} → ${order.status})`);
-    } else {
-      // New card — insert at correct position
-      const newCard = createOrderCard(order);
-      const refNode = $grid.children[index] || null;
-      $grid.insertBefore(newCard, refNode);
-      log('DOM', `Inserted new card #${oid} Table ${order.table_no}`);
-    }
-  });
-
-  // Restore scroll position
-  window.scrollTo(0, scrollY);
 }
 
-function createOrderCard(order) {
+/* ═══════════════════════════════════════════════════════════════
+   CARD CREATION (HINDI KDS COMPONENT)
+   ═══════════════════════════════════════════════════════════════ */
+function createKdsCard(order, isNewPartition) {
   const card = document.createElement('div');
-  const isDelayed = checkDelayed(order);
-  const statusClass = isDelayed ? 'status-delayed' : `status-${order.status}`;
-  const isNew = order.status === 'new';
-  card.className = `order-card ${statusClass}${isNew && !isFirstLoad ? ' new-arrival' : ''}`;
+  const isDelayed = checkIsDelayed(order);
+
+  const cardClass = isNewPartition 
+    ? 'kds-card kds-card-new' 
+    : `kds-card kds-card-ongoing${isDelayed ? ' delayed' : ''}`;
+  
+  card.className = cardClass;
   card.dataset.id = order.id;
-  card.dataset.updated = order.updated_at;
-  card.dataset.status = order.status;
 
-  const badgeClass = isDelayed ? 'badge-delayed' : `badge-${order.status}`;
-  const badgeText = isDelayed ? '⚠ DELAYED' : STATUS_LABELS[order.status];
-  const elapsed = getElapsed(order);
-  const timerClass = isDelayed ? 'timer overdue' : 'timer';
-  const estPrep = getEstPrepTime(order);
+  const elapsedText = getElapsedFormatted(order.created_at);
+  const prepTime = getEstimatedPrepTime(order);
 
+  // Status badge text
+  let statusBadgeHtml = '';
+  if (isNewPartition) {
+    statusBadgeHtml = `<span class="status-tag tag-new">🔴 नया ऑर्डर</span>`;
+  } else if (isDelayed) {
+    statusBadgeHtml = `<span class="status-tag tag-delayed">⚠️ विलंब (${prepTime}+ मि.)</span>`;
+  } else {
+    statusBadgeHtml = `<span class="status-tag tag-ongoing">🟠 तैयारी चालू</span>`;
+  }
+
+  // Customer Special Note
+  let noteHtml = '';
+  if (order.customer_note && order.customer_note.trim() !== '') {
+    noteHtml = `
+      <div class="card-customer-note">
+        <span class="note-icon">📝</span>
+        <div class="note-body">
+          <span class="note-label">ग्राहक निर्देश (Special Note)</span>
+          ${escapeHtml(order.customer_note)}
+        </div>
+      </div>
+    `;
+  }
+
+  // Items rows in Hindi
   let itemsHtml = '';
   (order.batches || []).forEach(batch => {
     (batch.items || []).forEach(item => {
-      const icon = CATEGORY_ICONS[item.category] || '🍽';
-      const newBadge = item.is_new ? '<span class="new-item-badge">NEW</span>' : '';
-      itemsHtml += `<div class="item-row">
-        <span class="item-name"><span class="item-cat-icon">${icon}</span> ${item.name}${newBadge}</span>
-        <span class="item-qty">× ${item.qty}</span>
-      </div>`;
+      const icon = CATEGORY_ICONS[item.category] || '🍽️';
+      const dishHindi = item.name_hi || item.name || 'व्यंजन';
+      const dishEnglish = item.name_en && item.name_en !== dishHindi ? item.name_en : '';
+
+      itemsHtml += `
+        <div class="dish-row">
+          <div class="dish-info">
+            <span class="dish-icon">${icon}</span>
+            <div class="dish-text">
+              <span class="dish-name-hi">${dishHindi}</span>
+              ${dishEnglish ? `<span class="dish-name-en">${escapeHtml(dishEnglish)}</span>` : ''}
+            </div>
+          </div>
+          <span class="dish-qty-badge">× ${item.qty}</span>
+        </div>
+      `;
     });
   });
 
-  const noteHtml = order.customer_note ? `<div class="customer-note">${escHtml(order.customer_note)}</div>` : '';
-
-  let actionsHtml = '';
-  if (order.status === 'new') {
-    actionsHtml = `<button class="action-btn btn-prepare" onclick="updateStatus(${order.id},'preparing')">▶ Start Preparing</button>`;
-  } else if (order.status === 'preparing') {
-    actionsHtml = `<button class="action-btn btn-ready" onclick="updateStatus(${order.id},'ready')">✓ Mark Ready</button>`;
-  } else if (order.status === 'ready') {
-    actionsHtml = `<button class="action-btn btn-serve" onclick="updateStatus(${order.id},'served')">✓ Mark Served</button>`;
-  }
-
   card.innerHTML = `
-    <div class="card-header">
-      <div>
-        <div class="table-label">TABLE</div>
-        <div class="table-number">${order.table_no}</div>
+    <div class="card-top">
+      <div class="table-badge-wrap">
+        <span class="table-hindi-label">टेबल</span>
+        <span class="table-big-num">${order.table_no}</span>
       </div>
-      <span class="status-badge ${badgeClass}">${badgeText}</span>
+      <div class="card-status-pill">
+        ${statusBadgeHtml}
+      </div>
     </div>
-    <div class="card-meta">
-      <span class="meta-item"><span class="meta-icon">👥</span> ${order.persons}</span>
-      <span class="meta-item"><span class="meta-icon">⏱</span> <span class="${timerClass}" data-created="${order.created_at}">${elapsed}</span></span>
-      <span class="meta-item" style="font-family:var(--ff-mono);font-size:.7rem;color:var(--text-muted)">${order.order_ref || ''}</span>
+
+    <div class="card-meta-bar">
+      <div class="meta-time-wrap">
+        <span>⏱️ समय:</span>
+        <span class="meta-live-timer" data-created="${order.created_at}">${elapsedText}</span>
+      </div>
+      <div class="meta-persons">
+        👥 ${order.persons} व्यक्ति
+      </div>
     </div>
+
     ${noteHtml}
-    <div class="card-items">${itemsHtml}</div>
-    <div class="card-footer">
-      <div class="prep-time">Est. prep: ${estPrep} min</div>
-      ${actionsHtml}
+
+    <div class="card-items-body">
+      ${itemsHtml}
     </div>
-    <div class="card-ref" onclick="showTimeline(${order.id})">📋 View Order Timeline</div>
+
+    <div class="card-bottom-info">
+      <span class="prep-est">⏳ अनुमानित समय: ${prepTime} मिनट</span>
+      <span class="order-ref-num">${order.order_ref || ''}</span>
+    </div>
   `;
 
   return card;
 }
 
-/* ═══════ HISTORY VIEW LOGIC ═══════ */
-function showHome() {
-  isHistoryMode = false;
-  $homeView.style.display = 'block';
-  $historyView.style.display = 'none';
-  $btnHome.classList.add('active');
-  $btnHistory.classList.remove('active');
-  fetchOrders();
-}
+/* ═══════════════════════════════════════════════════════════════
+   LIVE TIMERS (Tick every 1 second)
+   ═══════════════════════════════════════════════════════════════ */
+function updateLiveTimers() {
+  document.querySelectorAll('.meta-live-timer[data-created]').forEach(el => {
+    const createdStr = el.dataset.created;
+    el.textContent = getElapsedFormatted(createdStr);
 
-function showHistory() {
-  isHistoryMode = true;
-  $homeView.style.display = 'none';
-  $historyView.style.display = 'block';
-  $btnHistory.classList.add('active');
-  $btnHome.classList.remove('active');
-  loadHistory();
-}
-
-async function loadHistory() {
-  $historyGrid.innerHTML = '<p style="color:var(--text-muted); grid-column:1/-1; text-align:center;">Loading history...</p>';
-  $historyEmptyState.style.display = 'none';
-
-  try {
-    const resp = await fetch(`${API_BASE}get_history.php`);
-    if (!resp.ok) throw new Error('Network error');
-    const data = await resp.json();
-    if (!data.success) throw new Error(data.error || 'API error');
-
-    renderHistoryCards(data.orders || []);
-  } catch (err) {
-    log('History', 'History fetch error', err.message);
-    $historyGrid.innerHTML = `<p style="color:var(--red); grid-column:1/-1; text-align:center;">Failed to load history: ${err.message}</p>`;
-  }
-}
-
-function renderHistoryCards(orders) {
-  $historyGrid.innerHTML = '';
-  if (orders.length === 0) {
-    $historyEmptyState.style.display = 'block';
-    return;
-  }
-  $historyEmptyState.style.display = 'none';
-  orders.forEach(order => {
-    const card = createOrderCard(order);
-    $historyGrid.appendChild(card);
-  });
-}
-
-/* ═══════ ACTIONS ═══════ */
-async function updateStatus(orderId, newStatus) {
-  log('Action', `Updating order #${orderId} → ${newStatus}`);
-  try {
-    const resp = await fetch(`${API_BASE}update_status.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order_id: orderId, status: newStatus })
-    });
-    const data = await resp.json();
-    log('Action', `Status update response`, data);
-    if (data.success && ordersCache[orderId]) {
-      ordersCache[orderId].status = newStatus;
-      ordersCache[orderId].updated_at = data.updated_at;
-      if (newStatus === 'preparing') ordersCache[orderId].prep_started_at = data.updated_at;
-      if (newStatus === 'ready') ordersCache[orderId].ready_at = data.updated_at;
-      if (newStatus === 'served') ordersCache[orderId].served_at = data.updated_at;
-      renderAll();
+    const card = el.closest('.kds-card');
+    if (card && !card.classList.contains('kds-card-new')) {
+      const createdMs = new Date(createdStr).getTime();
+      const elapsedMin = (Date.now() - createdMs) / 60000;
+      if (elapsedMin > 15 && !card.classList.contains('delayed')) {
+        card.classList.add('delayed');
+      }
     }
-  } catch (e) {
-    log('Action', '❌ Status update failed', e.message);
-  }
-}
-
-async function acknowledgeItems(orderId, batchId) {
-  try {
-    await fetch(`${API_BASE}acknowledge_items.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order_id: orderId, batch_id: batchId })
-    });
-  } catch (e) { /* ignore */ }
-}
-
-/* ═══════ TIMELINE MODAL ═══════ */
-function showTimeline(orderId) {
-  const order = ordersCache[orderId];
-  if (!order) return;
-
-  const $box = $modal.querySelector('.modal-box');
-  document.getElementById('modalTitle').textContent = `Order Timeline — Table ${order.table_no}`;
-
-  let html = '';
-  (order.status_log || []).forEach(entry => {
-    const time = formatTime(entry.changed_at);
-    const label = STATUS_LABELS[entry.status] || entry.status;
-    html += `<div class="timeline-entry t-${entry.status}">
-      <div>
-        <div class="timeline-status">${label}</div>
-        <div class="timeline-time">${time}${entry.note ? ' — ' + escHtml(entry.note) : ''}</div>
-      </div>
-    </div>`;
   });
-  document.getElementById('timelineContent').innerHTML = html || '<p style="color:var(--text-muted)">No timeline data</p>';
-  $modal.classList.add('show');
-}
-function closeModal() { $modal.classList.remove('show'); }
-
-/* ═══════ FILTERS ═══════ */
-document.querySelectorAll('.filter-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelector('.filter-tab.active').classList.remove('active');
-    tab.classList.add('active');
-    activeFilter = tab.dataset.filter;
-    renderAll();
-  });
-});
-
-$searchInput.addEventListener('input', () => {
-  searchQuery = $searchInput.value.trim();
-  renderAll();
-});
-
-/* ═══════ HELPERS ═══════ */
-function countItems(order) {
-  let total = 0;
-  (order.batches || []).forEach(b => (b.items || []).forEach(i => total += i.qty));
-  return total;
 }
 
-function getEstPrepTime(order) {
-  let maxPrep = 0;
-  (order.batches || []).forEach(b => (b.items || []).forEach(i => {
-    maxPrep = Math.max(maxPrep, PREP_TIMES[i.category] || 5);
-  }));
-  return maxPrep;
-}
-
-function checkDelayed(order) {
-  if (order.status === 'served' || order.status === 'ready') return false;
-  const created = new Date(order.created_at).getTime();
-  const elapsedMin = (Date.now() - created) / 60000;
-  return elapsedMin > getEstPrepTime(order);
-}
-
-function getElapsed(order) {
-  const created = new Date(order.created_at).getTime();
-  const diff = Math.max(0, Math.floor((Date.now() - created) / 1000));
-  const m = Math.floor(diff / 60);
-  const s = diff % 60;
+function getElapsedFormatted(dateStr) {
+  if (!dateStr) return '00:00';
+  const created = new Date(dateStr).getTime();
+  const diffSec = Math.max(0, Math.floor((Date.now() - created) / 1000));
+  const m = Math.floor(diffSec / 60);
+  const s = diffSec % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function formatTime(dateStr) {
-  if (!dateStr) return '--';
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+function getEstimatedPrepTime(order) {
+  let maxPrep = 10;
+  (order.batches || []).forEach(b => {
+    (b.items || []).forEach(i => {
+      const p = i.prep_time_min || 10;
+      if (p > maxPrep) maxPrep = p;
+    });
+  });
+  return maxPrep;
 }
 
-function escHtml(str) {
+function checkIsDelayed(order) {
+  const created = new Date(order.created_at).getTime();
+  const elapsedMin = (Date.now() - created) / 60000;
+  const estPrep = getEstimatedPrepTime(order);
+  return elapsedMin > estPrep || elapsedMin > 15;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
 }
 
-/* ═══════ LIVE TIMER UPDATES ═══════ */
-function updateTimers() {
-  document.querySelectorAll('.timer[data-created]').forEach(el => {
-    const created = new Date(el.dataset.created).getTime();
-    const diff = Math.max(0, Math.floor((Date.now() - created) / 1000));
-    const m = Math.floor(diff / 60);
-    const s = diff % 60;
-    el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  });
-}
-
-/* ═══════ START ═══════ */
-function startPolling() {
-  if (isPolling) {
-    log('Poll', '⚠ startPolling() called while already polling — ignoring');
-    return;
+/* ═══════════════════════════════════════════════════════════════
+   HISTORY DRAWER VIEW (Billed Orders)
+   ═══════════════════════════════════════════════════════════════ */
+async function toggleHistoryView() {
+  if (isHistoryOpen) {
+    closeHistoryView();
+  } else {
+    openHistoryView();
   }
-  // Clear any stale timers
-  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-
-  isPolling = true;
-  log('Poll', '🚀 Polling started (interval=' + POLL_INTERVAL + 'ms)');
-  fetchOrders();
-  pollTimer = setInterval(fetchOrders, POLL_INTERVAL);
-  timerInterval = setInterval(updateTimers, 1000);
 }
 
-// Initial load
-startPolling();
+async function openHistoryView() {
+  isHistoryOpen = true;
+  if ($historyOverlay) $historyOverlay.classList.add('show');
+  loadBilledHistory();
+}
+
+function closeHistoryView() {
+  isHistoryOpen = false;
+  if ($historyOverlay) $historyOverlay.classList.remove('show');
+}
+
+async function loadBilledHistory() {
+  if (!$historyContentList) return;
+  $historyContentList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">इतिहास लोड हो रहा है...</p>';
+
+  try {
+    const resp = await fetch(`${API_BASE}get_history.php?days=1&t=${Date.now()}`);
+    if (!resp.ok) throw new Error('HTTP error');
+    const data = await resp.json();
+
+    if (!data.success || !data.orders || data.orders.length === 0) {
+      $historyContentList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:3rem;">आज कोई बिल नहीं बना है।</p>';
+      return;
+    }
+
+    $historyContentList.innerHTML = '';
+    data.orders.slice(0, 20).forEach(order => {
+      const card = document.createElement('div');
+      card.className = 'history-card-item';
+
+      let itemsSummary = [];
+      (order.batches || []).forEach(b => {
+        (b.items || []).forEach(i => {
+          const name = i.name_hi || i.name || 'व्यंजन';
+          itemsSummary.push(`${name} (${i.qty})`);
+        });
+      });
+
+      const billedTime = order.served_at ? new Date(order.served_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '--';
+
+      card.innerHTML = `
+        <div class="ht-header">
+          <span class="ht-table">टेबल ${order.table_no}</span>
+          <span class="ht-time">बिल समय: ${billedTime}</span>
+        </div>
+        <div class="ht-items">${itemsSummary.join(', ') || 'कोई आइटम नहीं'}</div>
+        <div class="ht-billed">✓ भुगतान सम्पन्न (${order.payment_method || 'Cash'}) • ₹${order.total_amount}</div>
+      `;
+      $historyContentList.appendChild(card);
+    });
+  } catch (err) {
+    $historyContentList.innerHTML = `<p style="color:var(--red-alert);text-align:center;">इतिहास लोड नहीं हो सका: ${err.message}</p>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════════════════════════════ */
+function startKdsEngine() {
+  if (isPolling) return;
+  isPolling = true;
+
+  checkAudioAutoplay();
+  fetchKitchenOrders();
+
+  pollIntervalTimer = setInterval(fetchKitchenOrders, POLL_INTERVAL);
+  timerTickInterval = setInterval(updateLiveTimers, 1000);
+}
+
+startKdsEngine();

@@ -23,24 +23,25 @@ $pdo = getDB();
 try {
     $pdo->beginTransaction();
 
-    // 1. Check for active unbilled order on this table
+    // 1. Check for all active unbilled orders on this table
     $stmt = $pdo->prepare("
-        SELECT id, order_ref, persons
+        SELECT id, order_ref, persons, customer_notes, created_at
         FROM orders
-        WHERE table_no = ? AND payment_method IS NULL
-        ORDER BY created_at DESC
-        LIMIT 1
+        WHERE table_no = ? AND payment_method IS NULL AND status != 'served'
+        ORDER BY created_at ASC
     ");
     $stmt->execute([$table]);
-    $order = $stmt->fetch();
+    $activeOrders = $stmt->fetchAll();
 
     $now = date('Y-m-d H:i:s');
 
-    if ($order) {
-        $orderId = (int)$order['id'];
-        $orderRef = $order['order_ref'];
+    if (!empty($activeOrders)) {
+        $primaryOrder = $activeOrders[0];
+        $orderId = (int)$primaryOrder['id'];
+        $orderRef = $primaryOrder['order_ref'];
+        $allOrderIds = array_column($activeOrders, 'id');
 
-        // Update the order in the database
+        // Update the primary order in the database
         $updateStmt = $pdo->prepare("
             UPDATE orders
             SET status = 'served',
@@ -66,11 +67,45 @@ try {
             $orderId
         ]);
 
-        // Clean out existing order items for this order to replace them with the final bill items
-        $delStmt = $pdo->prepare("DELETE FROM order_items WHERE order_id = ?");
-        $delStmt->execute([$orderId]);
+        // If there were multiple order records for this table session, mark additional orders as served
+        if (count($allOrderIds) > 1) {
+            $otherIds = array_slice($allOrderIds, 1);
+            $placeholders = implode(',', array_fill(0, count($otherIds), '?'));
+            $otherUpdate = $pdo->prepare("
+                UPDATE orders
+                SET status = 'served',
+                    subtotal = 0,
+                    discount_amount = 0,
+                    gst_amount = 0,
+                    total_amount = 0,
+                    payment_method = ?,
+                    served_at = ?,
+                    updated_at = ?
+                WHERE id IN ($placeholders)
+            ");
+            $otherUpdate->execute(array_merge([$paymentMethod, $now, $now], $otherIds));
+        }
+
+        // Clean out existing order items for all active orders of this table session to replace with final bill items
+        $allPlaceholders = implode(',', array_fill(0, count($allOrderIds), '?'));
+        $delStmt = $pdo->prepare("DELETE FROM order_items WHERE order_id IN ($allPlaceholders)");
+        $delStmt->execute($allOrderIds);
 
     } else {
+        if ($total <= 0 || empty($items)) {
+            // Just release table from occupied_tables
+            $delOcc = $pdo->prepare("DELETE FROM occupied_tables WHERE table_no = ?");
+            $delOcc->execute([(int)$table]);
+            $pdo->commit();
+            jsonResponse([
+                'success' => true,
+                'order_id' => 0,
+                'order_ref' => 'NONE',
+                'message' => 'Table released successfully.'
+            ]);
+            exit;
+        }
+
         // Create a new order directly as 'served' (billing only order)
         $todayStr = date('ymd');
         $prefix = 'ORD-' . $todayStr . '-T' . $table;
@@ -104,21 +139,30 @@ try {
     $batchId = 'B' . time() . '_bill';
     foreach ($items as $item) {
         $itemName = trim($item['name']);
-        $itemQty = (int)$item['qty'];
+        $itemQty = max(1, (int)$item['qty']);
         $itemPrice = floatval($item['price']);
+        $menuItemId = isset($item['menu_item_id']) ? (int)$item['menu_item_id'] : 0;
+        $category = 'main_course';
 
-        // Try to find the menu item id
-        $menuStmt = $pdo->prepare("SELECT id, category FROM menu_items WHERE name_en = ? LIMIT 1");
-        $menuStmt->execute([$itemName]);
-        $menuItem = $menuStmt->fetch();
-
-        $menuItemId = $menuItem ? (int)$menuItem['id'] : 0;
-        $category = $menuItem ? $menuItem['category'] : 'main_course';
+        if ($menuItemId > 0) {
+            $menuStmt = $pdo->prepare("SELECT id, category FROM menu_items WHERE id = ? LIMIT 1");
+            $menuStmt->execute([$menuItemId]);
+            $menuItem = $menuStmt->fetch();
+            if ($menuItem) {
+                $category = $menuItem['category'];
+            }
+        }
 
         if ($menuItemId === 0) {
-            // Fallback: search by name case-insensitive
-            $menuStmt = $pdo->prepare("SELECT id, category FROM menu_items WHERE LOWER(name_en) = LOWER(?) LIMIT 1");
-            $menuStmt->execute([$itemName]);
+            // Multilingual matching: check name_en, name_hi, name_mr
+            $menuStmt = $pdo->prepare("
+                SELECT id, category 
+                FROM menu_items 
+                WHERE name_en = ? OR name_hi = ? OR name_mr = ?
+                   OR LOWER(name_en) = LOWER(?)
+                LIMIT 1
+            ");
+            $menuStmt->execute([$itemName, $itemName, $itemName, $itemName]);
             $menuItem = $menuStmt->fetch();
             if ($menuItem) {
                 $menuItemId = (int)$menuItem['id'];
@@ -126,10 +170,10 @@ try {
             }
         }
 
-        // If still not found, we insert a placeholder/guest item or map to id 1 if table is empty
+        // If still not found, fallback to first available menu item ID to satisfy constraints
         if ($menuItemId === 0) {
-            // Find any item to avoid FK constraint error
-            $menuItemId = (int)$pdo->query("SELECT id FROM menu_items LIMIT 1")->fetchColumn();
+            $fallbackId = $pdo->query("SELECT id FROM menu_items LIMIT 1")->fetchColumn();
+            $menuItemId = $fallbackId ? (int)$fallbackId : 1;
         }
 
         $insItemStmt = $pdo->prepare("
@@ -170,3 +214,4 @@ try {
     }
     jsonResponse(['success' => false, 'error' => 'Failed to complete payment in database.', 'detail' => $e->getMessage()], 500);
 }
+

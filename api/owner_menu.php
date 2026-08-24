@@ -5,12 +5,10 @@ require_once __DIR__ . '/db.php';
 $pdo    = getDB();
 $method = $_SERVER['REQUEST_METHOD'];
 
-$validCategories = ['starter','main_course','bread','rice_biryani','beverage','dessert','salad','side_dish','water'];
-
 // GET — list items (all or by category)
 if ($method === 'GET') {
-    $cat = $_GET['category'] ?? null;
-    if ($cat && in_array($cat, $validCategories, true)) {
+    $cat = trim($_GET['category'] ?? '');
+    if ($cat !== '') {
         $stmt = $pdo->prepare("SELECT * FROM menu_items WHERE category = ? ORDER BY sort_order, name_en");
         $stmt->execute([$cat]);
     } else {
@@ -23,10 +21,14 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $body = getJsonBody();
     requireFields($body, ['name_en', 'category', 'price'], 'Add item');
-    if (!in_array($body['category'], $validCategories, true)) {
-        jsonResponse(['success' => false, 'error' => 'Invalid category.'], 400);
+    $category = trim((string)$body['category']);
+    if ($category === '') {
+        jsonResponse(['success' => false, 'error' => 'Category cannot be empty.'], 400);
     }
-    $prefix = strtoupper(substr($body['category'], 0, 3));
+    $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $category), 0, 3));
+    if (strlen($prefix) < 3) {
+        $prefix = str_pad($prefix, 3, 'CAT');
+    }
     $max    = $pdo->query("SELECT MAX(CAST(SUBSTRING(item_code,5) AS UNSIGNED)) FROM menu_items WHERE item_code LIKE '{$prefix}-%'")->fetchColumn();
     $code   = $prefix . '-' . str_pad((string)((int)$max + 1), 3, '0', STR_PAD_LEFT);
     $stmt = $pdo->prepare("INSERT INTO menu_items (item_code,name_en,name_hi,name_mr,category,price,image_path,is_available,is_veg,prep_time_min,sort_order,section) VALUES (:code,:name_en,:name_hi,:name_mr,:category,:price,:image_path,:is_available,:is_veg,:prep_time,:sort_order,:section)");
@@ -35,7 +37,7 @@ if ($method === 'POST') {
         'name_en'      => trim($body['name_en']),
         'name_hi'      => trim($body['name_hi'] ?? ''),
         'name_mr'      => trim($body['name_mr'] ?? ''),
-        'category'     => $body['category'],
+        'category'     => $category,
         'price'        => round((float)$body['price'], 2),
         'image_path'   => trim($body['image_path'] ?? ''),
         'is_available' => isset($body['is_available']) ? (int)(bool)$body['is_available'] : 1,
@@ -60,7 +62,7 @@ if ($method === 'PUT') {
     $fields = []; $params = [];
     foreach ($allowed as $f) {
         if (!array_key_exists($f, $body)) continue;
-        if ($f === 'category' && !in_array($body[$f], $validCategories, true)) continue;
+        if ($f === 'category' && trim((string)$body[$f]) === '') continue;
         $fields[] = "`$f` = :$f";
         $params[$f] = ($f === 'price') ? round((float)$body[$f], 2) : $body[$f];
     }

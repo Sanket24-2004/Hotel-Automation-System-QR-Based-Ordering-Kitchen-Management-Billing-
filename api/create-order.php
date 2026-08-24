@@ -70,7 +70,81 @@ foreach ($items as $index => $item) {
     }
 }
 
+// ─── Distance Calculation Helper ───
+function calculateDistanceMeters(float $lat1, float $lon1, float $lat2, float $lon2): float {
+    $earthRadius = 6371000;
+    $latDelta = deg2rad($lat2 - $lat1);
+    $lonDelta = deg2rad($lon2 - $lon1);
+    $a = sin($latDelta / 2) * sin($latDelta / 2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($lonDelta / 2) * sin($lonDelta / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    return $earthRadius * $c;
+}
+
 $pdo = getDB();
+
+// ─── Security Check: Geofencing & Anti-Leak Protection ───
+try {
+    $secStmt = $pdo->query("SELECT * FROM hotel_settings WHERE id = 1 LIMIT 1");
+    $secConfig = $secStmt ? $secStmt->fetch() : null;
+
+    if ($secConfig && (int)$secConfig['geofence_enabled'] === 1) {
+        $isAllowed = false;
+        $clientIp = $_SERVER['REMOTE_ADDR'] ?? '';
+
+        // 1. Check Wi-Fi / Local Network Bypass
+        if ((int)$secConfig['wifi_bypass_enabled'] === 1) {
+            if (
+                $clientIp === '127.0.0.1' || 
+                $clientIp === '::1' || 
+                str_starts_with($clientIp, '192.168.') || 
+                str_starts_with($clientIp, '10.') || 
+                preg_match('/^172\.(1[6-9]|2[0-9]|3[0-1])\./', $clientIp)
+            ) {
+                $isAllowed = true;
+            }
+        }
+
+        // 2. Check Security Token or Passcode
+        if (!$isAllowed) {
+            $expectedToken = hash('sha256', (string)$secConfig['daily_passcode'] . date('Y-m-d') . 'hotel_tulsi_secret');
+            $suppliedToken = trim((string)($body['security_token'] ?? ''));
+            $suppliedPass  = trim((string)($body['passcode'] ?? ''));
+
+            if (($suppliedToken !== '' && $suppliedToken === $expectedToken) || 
+                ($suppliedPass !== '' && strcasecmp($suppliedPass, (string)$secConfig['daily_passcode']) === 0)) {
+                $isAllowed = true;
+            }
+        }
+
+        // 3. Check GPS Coordinates
+        if (!$isAllowed && isset($body['client_lat'], $body['client_lng'])) {
+            $cLat = (float)$body['client_lat'];
+            $cLng = (float)$body['client_lng'];
+            $hLat = (float)$secConfig['hotel_lat'];
+            $hLng = (float)$secConfig['hotel_lng'];
+            $maxDist = (float)$secConfig['radius_meters'] + 50.0; // 50m tolerance for GPS drift
+
+            if ($cLat != 0.0 && $cLng != 0.0) {
+                $dist = calculateDistanceMeters($cLat, $cLng, $hLat, $hLng);
+                if ($dist <= $maxDist) {
+                    $isAllowed = true;
+                }
+            }
+        }
+
+        if (!$isAllowed) {
+            jsonResponse([
+                'success' => false,
+                'security_challenge' => true,
+                'error'   => 'Security check failed: You must be present at Hotel Tulsi premises or enter the table code to place an order.'
+            ], 403);
+        }
+    }
+} catch (\Exception $e) {
+    // If settings table missing, continue gracefully
+}
 
 try {
     $pdo->beginTransaction();
@@ -88,6 +162,7 @@ try {
         FROM orders
         WHERE table_no = :table_no
           AND payment_method IS NULL
+          AND status != 'served'
         ORDER BY created_at DESC
         LIMIT 1
     ");
@@ -95,6 +170,14 @@ try {
         'table_no' => $tableNo,
     ]);
     $existingOrder = $checkStmt->fetch();
+
+    // Ensure occupied_tables entry exists
+    $occStmt = $pdo->prepare("
+        INSERT INTO occupied_tables (table_no, persons, occupied_at)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE persons = ?, occupied_at = COALESCE(occupied_at, ?)
+    ");
+    $occStmt->execute([(int)$tableNo, $persons, $now, $persons, $now]);
 
     // ─── Calculate batch totals ───
     $batchSubtotal = 0.00;
@@ -226,10 +309,7 @@ try {
             $category = $categoryMap[$category];
         }
 
-        // Validate category against ENUM
-        if (!in_array($category, $validCategories, true)) {
-            $category = 'starter'; // Safe fallback
-        }
+        // Category mapping completed
 
         $itemStmt->execute([
             'order_id' => $orderId,

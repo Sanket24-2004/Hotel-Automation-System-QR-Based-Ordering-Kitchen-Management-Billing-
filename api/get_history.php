@@ -57,16 +57,22 @@ try {
     $orderIds  = array_column($orders, 'id');
 
     // ════════════════════════════════════════════
-    // STEP 2: Fetch items for all orders (batched)
+    // STEP 2: Fetch items for all orders (batched with Hindi names)
     // ════════════════════════════════════════════
     $batchedItems = [];
     if (!empty($orderIds)) {
         $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
         $itemStmt = $pdo->prepare("
-            SELECT *
-            FROM order_items
-            WHERE order_id IN ($placeholders)
-            ORDER BY added_at ASC, id ASC
+            SELECT 
+                oi.*,
+                COALESCE(mi.name_hi, oi.item_name) AS name_hi,
+                COALESCE(mi.name_en, oi.item_name) AS name_en,
+                COALESCE(mi.prep_time_min, 5) AS prep_time_min,
+                COALESCE(mi.is_veg, 1) AS is_veg
+            FROM order_items oi
+            LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+            WHERE oi.order_id IN ($placeholders)
+            ORDER BY oi.added_at ASC, oi.id ASC
         ");
         $itemStmt->execute($orderIds);
 
@@ -86,12 +92,16 @@ try {
             $jsCategory = $categoryDbToJs[$dbCategory] ?? $dbCategory;
 
             $batchedItems[$oid][$bid]['items'][] = [
-                'id'       => (int)$item['menu_item_id'],
-                'name'     => $item['item_name'],
-                'category' => $jsCategory,
-                'price'    => (float)$item['unit_price'],
-                'qty'      => (int)$item['qty'],
-                'is_new'   => (int)$item['is_new'],
+                'id'            => (int)$item['menu_item_id'],
+                'name'          => !empty($item['name_hi']) ? $item['name_hi'] : $item['item_name'],
+                'name_hi'       => !empty($item['name_hi']) ? $item['name_hi'] : $item['item_name'],
+                'name_en'       => !empty($item['name_en']) ? $item['name_en'] : $item['item_name'],
+                'category'      => $jsCategory,
+                'price'         => (float)$item['unit_price'],
+                'qty'           => (int)$item['qty'],
+                'is_new'        => (int)$item['is_new'],
+                'prep_time_min' => (int)($item['prep_time_min'] ?? 5),
+                'is_veg'        => (int)($item['is_veg'] ?? 1),
             ];
         }
     }

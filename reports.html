@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reports — Hotel Tulsi</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -17,7 +18,9 @@
     .bg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:-1}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     #navbar{position:fixed;top:0;left:0;right:0;height:var(--navbar-h);background:rgba(0,0,0,.95);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;backdrop-filter:blur(10px)}
-    .navbar-brand{display:flex;align-items:center;gap:9px;font-size:1.1rem;font-weight:700;color:var(--gold)}
+    .navbar-brand{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:700;color:var(--gold);text-decoration:none;letter-spacing:0.5px}
+    .brand-logo-badge{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(184,134,11,0.1));border:1px solid rgba(255,215,0,0.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(255,215,0,0.15);flex-shrink:0}
+    .brand-crest{color:var(--gold);font-size:1.1rem;filter:drop-shadow(0 0 6px rgba(255,215,0,0.6))}
     .navbar-brand .brand-short{display:none}
     .navbar-right{display:flex;align-items:center;gap:14px}
     .owner-badge{display:flex;align-items:center;gap:6px;font-size:.83rem;color:rgba(255,255,255,.75)}
@@ -85,9 +88,11 @@
 
 <nav id="navbar">
   <div class="navbar-brand">
-    <span>🏨</span>
+    <div class="brand-logo-badge">
+      <span class="brand-crest">✦</span>
+    </div>
     <span class="brand-text">Hotel Tulsi</span>
-    <span class="brand-short">Hotel Tulsi</span>
+    <span class="brand-short">HT</span>
   </div>
   <div class="navbar-right">
     <div class="owner-badge">

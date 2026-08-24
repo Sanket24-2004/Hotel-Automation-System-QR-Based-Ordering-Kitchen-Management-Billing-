@@ -92,55 +92,35 @@ try {
 
     if ($statusFilter === 'all') {
         if ($sinceTimestamp > 0) {
-            // ── INCREMENTAL POLL: Only orders updated since last poll ──
-            // This returns the delta — new orders, status changes, item additions
+            // ── INCREMENTAL POLL: Return active unbilled orders or anything updated since last poll ──
             $orderSql = "
                 SELECT *
                 FROM orders
-                WHERE DATE(created_at) = :today
-                  AND updated_at > :since
-                ORDER BY
-                    CASE status
-                        WHEN 'new'       THEN 1
-                        WHEN 'preparing' THEN 2
-                        WHEN 'ready'     THEN 3
-                        WHEN 'served'    THEN 4
-                    END,
-                    created_at ASC
+                WHERE updated_at > :since
+                   OR (payment_method IS NULL AND status != 'served')
+                ORDER BY created_at ASC
             ";
             $orderStmt = $pdo->prepare($orderSql);
             $orderStmt->execute([
-                'today' => $today,
                 'since' => $sinceDate,
             ]);
         } else {
-            // ── FIRST LOAD: All of today's non-served orders ──
-            // Full sync on initial page load (since=0)
+            // ── FIRST LOAD: All active unbilled orders ──
             $orderSql = "
                 SELECT *
                 FROM orders
-                WHERE DATE(created_at) = :today
-                  AND status != 'served'
-                ORDER BY
-                    CASE status
-                        WHEN 'new'       THEN 1
-                        WHEN 'preparing' THEN 2
-                        WHEN 'ready'     THEN 3
-                        WHEN 'served'    THEN 4
-                    END,
-                    created_at ASC
+                WHERE payment_method IS NULL AND status != 'served'
+                ORDER BY created_at ASC
             ";
             $orderStmt = $pdo->prepare($orderSql);
-            $orderStmt->execute([
-                'today' => $today,
-            ]);
+            $orderStmt->execute();
         }
     } else {
         $orderSql = "
             SELECT *
             FROM orders
-            WHERE DATE(created_at) = :today
-              AND status = :status
+            WHERE status = :status
+              AND (DATE(created_at) = :today OR payment_method IS NULL)
             ORDER BY created_at ASC
         ";
         $orderStmt = $pdo->prepare($orderSql);
@@ -154,7 +134,7 @@ try {
     $orderIds = array_column($orders, 'id');
 
     // ════════════════════════════════════════════
-    // STEP 2: Fetch items for all orders (batched)
+    // STEP 2: Fetch items for all orders (batched with Hindi names)
     // ════════════════════════════════════════════
 
     $batchedItems = [];
@@ -163,10 +143,16 @@ try {
         $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
 
         $itemStmt = $pdo->prepare("
-            SELECT *
-            FROM order_items
-            WHERE order_id IN ($placeholders)
-            ORDER BY added_at ASC, id ASC
+            SELECT 
+                oi.*,
+                COALESCE(mi.name_hi, oi.item_name) AS name_hi,
+                COALESCE(mi.name_en, oi.item_name) AS name_en,
+                COALESCE(mi.prep_time_min, 5) AS prep_time_min,
+                COALESCE(mi.is_veg, 1) AS is_veg
+            FROM order_items oi
+            LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+            WHERE oi.order_id IN ($placeholders)
+            ORDER BY oi.added_at ASC, oi.id ASC
         ");
         $itemStmt->execute($orderIds);
 
@@ -187,12 +173,16 @@ try {
             $jsCategory = $categoryDbToJs[$dbCategory] ?? $dbCategory;
 
             $batchedItems[$oid][$bid]['items'][] = [
-                'id'       => (int)$item['menu_item_id'],
-                'name'     => $item['item_name'],
-                'category' => $jsCategory,
-                'price'    => (float)$item['unit_price'],
-                'qty'      => (int)$item['qty'],
-                'is_new'   => (int)$item['is_new'],
+                'id'            => (int)$item['menu_item_id'],
+                'name'          => !empty($item['name_hi']) ? $item['name_hi'] : $item['item_name'],
+                'name_hi'       => !empty($item['name_hi']) ? $item['name_hi'] : $item['item_name'],
+                'name_en'       => !empty($item['name_en']) ? $item['name_en'] : $item['item_name'],
+                'category'      => $jsCategory,
+                'price'         => (float)$item['unit_price'],
+                'qty'           => (int)$item['qty'],
+                'is_new'        => (int)$item['is_new'],
+                'prep_time_min' => (int)($item['prep_time_min'] ?? 5),
+                'is_veg'        => (int)($item['is_veg'] ?? 1),
             ];
         }
     }
@@ -242,15 +232,14 @@ try {
         $logs = $statusLogs[$oid] ?? [];
 
         $result[] = [
-            // Core fields — kitchen.js field names
             'id'              => $oid,
             'order_ref'       => $order['order_ref'],
             'table_no'        => $order['table_no'],
             'persons'         => (int)$order['persons'],
             'status'          => $order['status'],
+            'payment_method'  => $order['payment_method'] ?? null,
 
-            // Note: kitchen.js reads "customer_note" (singular)
-            // Database stores "customer_notes" (plural)
+            // Note: customer notes (e.g. Less Spicy, No Onion)
             'customer_note'   => $order['customer_notes'] ?? '',
 
             // Financials

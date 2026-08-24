@@ -47,9 +47,9 @@ try {
             COUNT(*)                          AS completed_count
         FROM orders
         WHERE payment_method IS NOT NULL
-          AND (DATE(served_at) = ? OR DATE(updated_at) = ? OR DATE(created_at) = ?)
+          AND DATE(served_at) = ?
     ");
-    $revStmt->execute([$today, $today, $today]);
+    $revStmt->execute([$today]);
     $revStats = $revStmt->fetch();
 
     $revenue = (float)($revStats['revenue'] ?? 0.00);

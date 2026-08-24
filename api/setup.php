@@ -240,11 +240,11 @@ if ($menuCount > 0) {
 } else {
     $sampleItems = [
         // ── Starters ──
-        ['STR-001', 'Roasted Papad',       'भुना पापड़',           'भाजलेला पापड',          'starter',      30,  'ALL Images/Starter_Paneer_Tikka.webp',     5, 1],
-        ['STR-002', 'Masala Papad',         'मसाला पापड़',          'मसाला पापड',           'starter',      50,  'ALL Images/Starter_Paneer_Tikka.webp',      5, 2],
-        ['STR-003', 'Paneer Tikka',         'पनीर टिक्का',          'पनीर टिक्का',          'starter',      220, 'ALL Images/Starter_Paneer_Tikka.webp',      8, 3],
-        ['STR-004', 'Veg Manchurian Dry',   'वेज मंचूरियन ड्राई',     'व्हेज मंचुरियन ड्राय',   'starter',      180, 'ALL Images/Starter_Paneer_Tikka.webp',7, 4],
-        ['STR-005', 'Spring Roll',          'स्प्रिंग रोल',          'स्प्रिंग रोल',          'starter',      160, 'ALL Images/Starter_Paneer_Tikka.webp',       6, 5],
+        ['STR-001', 'Roasted Papad',       'भुना पापड़',           'भाजलेला पापड',          'starter',      30,  'ALL Images/Roasted Papad.webp',     5, 1],
+        ['STR-002', 'Masala Papad',         'मसाला पापड़',          'मसाला पापड',           'starter',      50,  'ALL Images/Masala Papad.webp',      5, 2],
+        ['STR-003', 'Paneer Tikka',         'पनीर टिक्का',          'पनीर टिक्का',          'starter',      220, 'ALL Images/Paneer Tikka.webp',      8, 3],
+        ['STR-004', 'Veg Manchurian Dry',   'वेज मंचूरियन ड्राई',     'व्हेज मंचुरियन ड्राय',   'starter',      180, 'ALL Images/Veg Manchurian Dry.webp',7, 4],
+        ['STR-005', 'Spring Roll',          'स्प्रिंग रोल',          'स्प्रिंग रोल',          'starter',      160, 'ALL Images/Spring Rolls.webp',       6, 5],
 
         // ── Main Course ──
         ['MNC-001', 'Paneer Butter Masala', 'पनीर बटर मसाला',       'पनीर बटर मसाला',       'main_course',  260, 'ALL Images/Paneer Butter Masala.webp', 12, 1],
@@ -285,10 +285,10 @@ if ($menuCount > 0) {
         ['SID-004', 'Boondi Raita',         'बूंदी रायता',            'बुंदी रायता',            'side_dish',    65,  'ALL Images/Boondi Raita.webp',   2, 4],
 
         // ── Water ──
-        ['WTR-001', 'Water Bottle (500ml Cold)',   'पानी की बोतल (500 मिली ठंडी)',   'पाण्याची बाटली (500 मिली थंड)',   'water', 10, 'ALL Images/Water Bottle (500 ml - Cold).webp',   1, 1],
-        ['WTR-002', 'Water Bottle (500ml Normal)', 'पानी की बोतल (500 मिली नॉर्मल)', 'पाण्याची बाटली (500 मिली नॉर्मल)', 'water', 10, 'ALL Images/Water Bottle (500 ml - Normal).webp', 1, 2],
-        ['WTR-003', 'Water Bottle (1L Cold)',      'पानी की बोतल (1 लीटर ठंडी)',    'पाण्याची बाटली (1 लीटर थंड)',    'water', 20, 'ALL Images/Water Bottle (1 Litre - Cold).png',  1, 3],
-        ['WTR-004', 'Water Bottle (1L Normal)',    'पानी की बोतल (1 लीटर नॉर्मल)',   'पाण्याची बाटली (1 लीटर नॉर्मल)',  'water', 20, 'ALL Images/Water Bottle (1 Litre - Normal).webp',1, 4],
+        ['WTR-001', 'Water Bottle (500ml Cold)',   'पानी की बोतल (500 मिली ठंडी)',   'पाण्याची बाटली (500 मिली थंड)',   'water', 10, 'ALL Images/Water Bottle (500 ml - Cold) new.webp',   1, 1],
+        ['WTR-002', 'Water Bottle (500ml Normal)', 'पानी की बोतल (500 मिली नॉर्मल)', 'पाण्याची बाटली (500 मिली नॉर्मल)', 'water', 10, 'ALL Images/Water Bottle (500 ml - Normal) new.webp', 1, 2],
+        ['WTR-003', 'Water Bottle (1L Cold)',      'पानी की बोतल (1 लीटर ठंडी)',    'पाण्याची बाटली (1 लीटर थंड)',    'water', 20, 'ALL Images/Water Bottle (1 Litre - Cold) new.webp',  1, 3],
+        ['WTR-004', 'Water Bottle (1L Normal)',    'पानी की बोतल (1 लीटर नॉर्मल)',   'पाण्याची बाटली (1 लीटर नॉर्मल)',  'water', 20, 'ALL Images/Water Bottle (1 Litre - Normal) new.webp', 1, 4],
     ];
 
     $insertSQL = "INSERT INTO menu_items (item_code, name_en, name_hi, name_mr, category, price, image_path, prep_time_min, sort_order)
@@ -320,7 +320,7 @@ $categoryDefaults = [
     'dessert'     => 'ALL Images/Dessert_Rasmalai.webp',
     'side_dish'   => 'ALL Images/Side_dishes_Raita.webp',
     'salad'       => 'ALL Images/Side_dishes_Raita.webp',
-    'water'       => 'ALL Images/Water_bottle.webp',
+    'water'       => 'ALL Images/Water Bottle (500 ml - Normal) new.webp',
 ];
 
 $itemsToUpdate = $pdo->query("SELECT id, name_en, category, image_path FROM menu_items")->fetchAll();

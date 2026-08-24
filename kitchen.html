@@ -1,119 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Hotel Tulsi | Kitchen Dashboard</title>
-  <meta name="description" content="Real-time Kitchen Order Management Dashboard for Hotel Tulsi"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>होटल तुलसी | रसोईघर डिस्प्ले (Kitchen Display)</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <meta name="description" content="Hotel Tulsi - Real-time Kitchen Order Management Display in Hindi"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="kitchen.css?v=6"/>
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="kitchen.css?v=7"/>
 </head>
-<body>
+<body class="kds-body">
 
   <!-- ══ FIXED BACKGROUND ══ -->
-  <div class="bg">
-    <img src="ALL Images/Kichen BG image.webp" alt="Kitchen background"/>
-    <div class="bg-overlay"></div>
+  <div class="bg-wrap" aria-hidden="true">
+    <div class="bg-glow bg-glow-left"></div>
+    <div class="bg-glow bg-glow-right"></div>
   </div>
-  <!-- ══ HEADER ══ -->
-  <header class="header" id="header">
-    <div class="header-brand">
-      <span>🍽</span> HOTEL TULSI KITCHEN
+
+  <!-- ══ AUDIO UNLOCK OVERLAY (If browser blocks autoplay on boot) ══ -->
+  <div id="audioUnlockModal" class="audio-unlock-overlay" onclick="unlockAudio()">
+    <div class="audio-unlock-banner">
+      <span class="audio-icon">🔔</span>
+      <div class="audio-text">
+        <h3>ऑडियो घंटी चालू करने के लिए स्क्रीन पर कहीं भी क्लिक करें</h3>
+        <p>नए ऑर्डर आने पर आपको घंटी की आवाज़ सुनाई देगी</p>
+      </div>
+      <button class="unlock-btn">ऑडियो सक्रिय करें ✓</button>
     </div>
-    <div class="header-right">
-      <div class="connection-status connected" id="connectionStatus"><span class="conn-dot"></span> Connected</div>
-      <div class="last-updated" id="lastUpdated">Last Updated: --:--:--</div>
-      <div class="header-clock" id="clock">--:--:--</div>
-      <button class="hdr-btn active" id="soundBtn" onclick="toggleSound()">🔔 Sound ON</button>
+  </div>
+
+  <!-- ══ TOP HEADER ══ -->
+  <header class="kds-header" id="kdsHeader">
+    <div class="brand-section">
+      <div class="brand-logo">🍽️</div>
+      <div class="brand-titles">
+        <h1 class="brand-name">होटल तुलसी</h1>
+        <span class="brand-tag">रसोईघर डिस्प्ले (KITCHEN KDS)</span>
+      </div>
+    </div>
+
+    <!-- Live Stats Pill -->
+    <div class="header-stats">
+      <div class="hstat hstat-new">
+        <span class="hstat-dot"></span>
+        <span class="hstat-label">नया:</span>
+        <strong id="statNewCount">0</strong>
+      </div>
+      <div class="hstat hstat-active">
+        <span class="hstat-dot"></span>
+        <span class="hstat-label">चल रहे:</span>
+        <strong id="statOngoingCount">0</strong>
+      </div>
+      <div class="hstat hstat-total">
+        <span class="hstat-label">कुल चालू:</span>
+        <strong id="statTotalActive">0</strong>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="header-tools">
+      <div class="kds-clock" id="kdsClock">--:--:--</div>
+      <div class="conn-badge connected" id="kdsConnStatus">
+        <span class="conn-dot"></span>
+        <span class="conn-text">कनेक्टेड</span>
+      </div>
+      <button class="tool-btn" id="soundToggleBtn" onclick="toggleSound()" title="घंटी चालू / बंद">
+        <span id="soundIcon">🔔</span> <span id="soundText">घंटी चालू</span>
+      </button>
+      <button class="tool-btn" id="historyToggleBtn" onclick="toggleHistoryView()" title="बिल इतिहास देखें">
+        📜 <span>बिल इतिहास</span>
+      </button>
+      <button class="tool-btn btn-fullscreen" onclick="toggleFullScreen()" title="फुलस्क्रीन मोड">
+        ⛶ <span>फुलस्क्रीन</span>
+      </button>
     </div>
   </header>
 
-  <!-- ══ HOME VIEW ══ -->
-  <div id="homeView">
-    <!-- ══ STATS BAR ══ -->
-    <div class="stats-bar">
-    <div class="stat-card s-total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Today</div></div>
-    <div class="stat-card s-active"><div class="stat-value" id="statActive">0</div><div class="stat-label">Active</div></div>
-    <div class="stat-card s-new"><div class="stat-value" id="statNew">0</div><div class="stat-label">🔵 New</div></div>
-    <div class="stat-card s-preparing"><div class="stat-value" id="statPreparing">0</div><div class="stat-label">🟠 Preparing</div></div>
-    <div class="stat-card s-ready"><div class="stat-value" id="statReady">0</div><div class="stat-label">🟢 Ready</div></div>
-    <div class="stat-card s-served"><div class="stat-value" id="statServed">0</div><div class="stat-label">⬜ Served</div></div>
+  <!-- ══ NOTIFICATION BANNER (When new order arrives) ══ -->
+  <div class="kds-new-alert" id="newOrderBanner">
+    <span class="alert-bell">🔔</span>
+    <span class="alert-msg" id="newAlertText">नया ऑर्डर प्राप्त हुआ! (टेबल ...)</span>
   </div>
 
-  <!-- ══ FILTER & SEARCH ══ -->
-  <div class="controls">
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="all">ALL</button>
-      <button class="filter-tab" data-filter="new"><span class="dot" style="background:var(--blue)"></span>NEW</button>
-      <button class="filter-tab" data-filter="preparing"><span class="dot" style="background:var(--orange)"></span>PREPARING</button>
-      <button class="filter-tab" data-filter="ready"><span class="dot" style="background:var(--green)"></span>READY</button>
-      <button class="filter-tab" data-filter="served"><span class="dot" style="background:var(--gray)"></span>SERVED</button>
-    </div>
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Search by Table No. or Order ID..." autocomplete="off"/>
-    </div>
-  </div>
+  <!-- ══ MAIN DUAL-PARTITION SCREEN VIEW ══ -->
+  <main class="kds-main" id="kdsMainView">
 
-  <!-- ══ READY TO SERVE PANEL ══ -->
-  <div class="ready-panel" id="readyPanel">
-    <div class="ready-panel-title">
-      <span class="pulse-dot"></span> READY TO SERVE
-    </div>
-    <div class="ready-grid" id="readyGrid"></div>
-  </div>
+    <!-- ── LEFT PARTITION: NEW ORDERS (नया ऑर्डर) ── -->
+    <section class="partition partition-new" id="partitionNew">
+      <div class="partition-header">
+        <div class="partition-title">
+          <span class="p-icon p-icon-new">🔴</span>
+          <h2>नया ऑर्डर <span class="p-sub">(ताज़ा ऑर्डर)</span></h2>
+        </div>
+        <span class="partition-badge badge-new-count" id="badgeNewOrders">0</span>
+      </div>
 
-  <!-- ══ NOTIFICATION BANNER ══ -->
-  <div class="notif-banner" id="notifBanner">🔔 New Order Received!</div>
+      <div class="partition-content" id="newOrdersContainer">
+        <!-- New order cards rendered here -->
+      </div>
+      
+      <div class="partition-empty" id="newEmptyState">
+        <div class="p-empty-icon">🍳</div>
+        <h3>कोई नया ऑर्डर प्रतीक्षारत नहीं</h3>
+        <p>नया ऑर्डर आने पर यह तुरंत यहाँ सबसे बड़े अक्षरों में घंटी के साथ दिखेगा</p>
+      </div>
+    </section>
 
-  <!-- ══ MAIN ORDER GRID ══ -->
-  <div class="orders-container">
-    <div class="orders-grid" id="ordersGrid"></div>
-    <div class="empty-state" id="emptyState" style="display:none">
-      <div class="empty-icon">🍳</div>
-      <p>No active orders right now. Orders will appear here in real-time when customers place them.</p>
-    </div>
-  </div>
-  </div> <!-- ══ END HOME VIEW ══ -->
+    <!-- ── RIGHT PARTITION: IN-PROGRESS ORDERS (चल रहे ऑर्डर्स) ── -->
+    <section class="partition partition-ongoing" id="partitionOngoing">
+      <div class="partition-header">
+        <div class="partition-title">
+          <span class="p-icon p-icon-ongoing">🟠</span>
+          <h2>चल रहे ऑर्डर्स <span class="p-sub">(प्रगति पर / पहले के ऑर्डर्स)</span></h2>
+        </div>
+        <span class="partition-badge badge-ongoing-count" id="badgeOngoingOrders">0</span>
+      </div>
 
-  <!-- ══ HISTORY VIEW ══ -->
-  <div id="historyView" style="display: none;">
-    <div class="history-header">
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <button class="hdr-btn" onclick="showHome()">← Back</button>
-        <h2>📜 Order History (Last 24 Hours)</h2>
+      <div class="partition-content grid-ongoing" id="ongoingOrdersContainer">
+        <!-- Ongoing order cards rendered here -->
+      </div>
+
+      <div class="partition-empty" id="ongoingEmptyState">
+        <div class="p-empty-icon">🍲</div>
+        <h3>कोई पुराना ऑर्डर चालू नहीं है</h3>
+        <p>जैसे ही नए ऑर्डर पुराने होंगे, वे यहाँ लाइव टाइमर के साथ दिखेंगे</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ HISTORY DRAWER / MODAL (बिल हो चुके ऑर्डर्स) ══ -->
+  <div class="history-drawer-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistoryView()">
+    <div class="history-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <span>📜</span>
+          <h2>हाल ही में बिल हुए ऑर्डर्स (Billed History)</h2>
+        </div>
+        <button class="drawer-close" onclick="closeHistoryView()">✕ बंद करें</button>
+      </div>
+      <div class="drawer-body" id="historyContentList">
+        <!-- History cards rendered here -->
       </div>
     </div>
-    <div class="orders-container">
-      <div class="orders-grid" id="historyGrid"></div>
-      <div class="empty-state" id="historyEmptyState" style="display:none">
-        <div class="empty-icon">📜</div>
-        <p>No completed orders in the last 24 hours.</p>
-      </div>
-    </div>
-  </div>
-  <!-- ══ END HISTORY VIEW ══ -->
-
-  <!-- ══ BOTTOM TASKBAR ══ -->
-  <div class="bottom-taskbar">
-    <button class="tb-btn active" id="btnHome" onclick="showHome()">
-      <span class="tb-icon">🍽️</span> Home
-    </button>
-    <button class="tb-btn" id="btnHistory" onclick="showHistory()">
-      <span class="tb-icon">📜</span> History
-    </button>
   </div>
 
-  <!-- ══ TIMELINE MODAL ══ -->
-  <div class="modal-overlay" id="timelineModal" onclick="if(event.target===this)closeModal()">
-    <div class="modal-box">
-      <div class="modal-title" id="modalTitle">Order Timeline</div>
-      <div id="timelineContent"></div>
-      <button class="modal-close" onclick="closeModal()">Close</button>
-    </div>
-  </div>
-
-  <script src="kitchen.js?v=6"></script>
+  <script src="kitchen.js?v=7"></script>
 </body>
 </html>

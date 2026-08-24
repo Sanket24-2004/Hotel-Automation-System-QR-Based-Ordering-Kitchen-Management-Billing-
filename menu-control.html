@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Menu Control — Hotel Tulsi</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -16,7 +17,9 @@
     @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     /* NAVBAR */
     #navbar{position:fixed;top:0;left:0;right:0;height:var(--navbar-h);background:rgba(0,0,0,.95);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;backdrop-filter:blur(10px)}
-    .navbar-brand{display:flex;align-items:center;gap:9px;font-size:1.1rem;font-weight:700;color:var(--gold)}
+    .navbar-brand{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:700;color:var(--gold);text-decoration:none;letter-spacing:0.5px}
+    .brand-logo-badge{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(184,134,11,0.1));border:1px solid rgba(255,215,0,0.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(255,215,0,0.15);flex-shrink:0}
+    .brand-crest{color:var(--gold);font-size:1.1rem;filter:drop-shadow(0 0 6px rgba(255,215,0,0.6))}
     .navbar-brand .brand-short{display:none}
     .navbar-right{display:flex;align-items:center;gap:14px}
     .owner-badge{display:flex;align-items:center;gap:6px;font-size:.83rem;color:rgba(255,255,255,.75)}
@@ -187,9 +190,11 @@
 
 <nav id="navbar">
   <div class="navbar-brand">
-    <span>🏨</span>
+    <div class="brand-logo-badge">
+      <span class="brand-crest">✦</span>
+    </div>
     <span class="brand-text">Hotel Tulsi</span>
-    <span class="brand-short">Hotel Tulsi</span>
+    <span class="brand-short">HT</span>
   </div>
   <div class="navbar-right">
     <div class="owner-badge"><div class="owner-avatar">O</div><span>Owner</span></div>
@@ -263,17 +268,20 @@
     <div class="form-row">
       <div class="form-group">
         <label>Category *</label>
-        <select id="fCategory">
-          <option value="starter">Starter</option>
-          <option value="main_course">Main Course</option>
-          <option value="bread">Bread</option>
-          <option value="rice_biryani">Rice &amp; Biryani</option>
-          <option value="beverage">Beverage</option>
-          <option value="dessert">Dessert</option>
-          <option value="salad">Salad</option>
-          <option value="side_dish">Side Dish</option>
-          <option value="water">Water</option>
-        </select>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <select id="fCategory" style="flex: 1;">
+            <option value="starter">Starter</option>
+            <option value="main_course">Main Course</option>
+            <option value="bread">Bread</option>
+            <option value="rice_biryani">Rice &amp; Biryani</option>
+            <option value="beverage">Beverage</option>
+            <option value="dessert">Dessert</option>
+            <option value="salad">Salad</option>
+            <option value="side_dish">Side Dish</option>
+            <option value="water">Water</option>
+          </select>
+          <button type="button" onclick="addNewCategoryPrompt()" style="padding: 0 10px; height: 38px; line-height: 38px; border: 1px solid rgba(255,215,0,0.3); color: var(--gold); border-radius: 8px; font-weight: bold; background: rgba(255,215,0,0.05); font-size: 1.1rem; cursor: pointer;" title="Add Custom Category">➕</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Price (₹) *</label>
@@ -352,9 +360,22 @@
     setTimeout(function(){ t.className = ''; }, 2500);
   }
 
+  var knownCategories = {
+    starter: 'Starter',
+    main_course: 'Main Course',
+    bread: 'Bread',
+    rice_biryani: 'Rice & Biryani',
+    beverage: 'Beverage',
+    dessert: 'Dessert',
+    salad: 'Salad',
+    side_dish: 'Side Dish',
+    water: 'Water'
+  };
+
   function catLabel(c) {
-    return { starter:'Starter', main_course:'Main Course', bread:'Bread', rice_biryani:'Rice & Biryani',
-             beverage:'Beverage', dessert:'Dessert', salad:'Salad', side_dish:'Side Dish', water:'Water' }[c] || c;
+    return knownCategories[c] || c.split(/[_-]/).map(function(w) {
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
   }
 
   async function loadMenu() {
@@ -366,9 +387,82 @@
       var d   = await res.json();
       if (!d.success) throw new Error(d.error);
       allItems = d.items;
+      
+      // Update dynamic category dropdown options
+      rebuildCategorySelectors();
+      
       renderTable(allItems);
     } catch(e) {
       document.getElementById('menuBody').innerHTML = '<tr><td colspan="7" class="loading-row">Failed to load: ' + e.message + '</td></tr>';
+    }
+  }
+
+  function addNewCategoryPrompt() {
+    var newCat = prompt("Enter new category name (e.g. Specials, Ice Cream):");
+    if (!newCat) return;
+    newCat = newCat.trim();
+    if (newCat === '') return;
+
+    // Convert category name to lowercase clean value (replace non-alphanumeric with underscores)
+    var catValue = newCat.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    
+    // Check if it already exists
+    if (!knownCategories[catValue]) {
+      knownCategories[catValue] = newCat;
+    }
+    
+    // Rebuild lists and select the new category option in form select dropdown
+    rebuildCategorySelectors();
+    document.getElementById('fCategory').value = catValue;
+    showToast("Added category: " + newCat);
+  }
+
+  function rebuildCategorySelectors() {
+    var activeFilter = document.getElementById('catFilter').value;
+    var activeFormVal = document.getElementById('fCategory').value;
+    
+    // Scan allItems for custom categories
+    allItems.forEach(function(item) {
+      if (item.category && !knownCategories[item.category]) {
+        var label = item.category.split(/[_-]/).map(function(w) {
+          return w.charAt(0).toUpperCase() + w.slice(1);
+        }).join(' ');
+        knownCategories[item.category] = label;
+      }
+    });
+
+    // Rebuild catFilter dropdown
+    var filterSel = document.getElementById('catFilter');
+    if (filterSel) {
+      filterSel.innerHTML = '<option value="">All Categories</option>';
+      Object.keys(knownCategories).forEach(function(key) {
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = knownCategories[key];
+        filterSel.appendChild(opt);
+      });
+      filterSel.value = activeFilter;
+    }
+
+    // Rebuild fCategory form select dropdown
+    var formSel = document.getElementById('fCategory');
+    if (formSel) {
+      formSel.innerHTML = '';
+      Object.keys(knownCategories).forEach(function(key) {
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = knownCategories[key];
+        formSel.appendChild(opt);
+      });
+      
+      // Rebuild custom input if needed
+      if (activeFormVal && !knownCategories[activeFormVal]) {
+        var opt = document.createElement('option');
+        opt.value = activeFormVal;
+        opt.textContent = activeFormVal;
+        formSel.appendChild(opt);
+      }
+      formSel.value = activeFormVal || 'starter';
     }
   }
 
@@ -381,7 +475,7 @@
       beverage: 'ALL Images/Beverages_Mango_lassi.webp',
       dessert: 'ALL Images/Dessert_Rasmalai.webp',
       side_dish: 'ALL Images/Side_dishes_Raita.webp',
-      water: 'ALL Images/Water_bottle.webp',
+      water: 'ALL Images/Water Bottle (500 ml - Normal) new.webp',
       salad: 'ALL Images/Side_dishes_Raita.webp'
     }[cat] || '';
   }
@@ -397,9 +491,10 @@
         ? '<span class="badge-veg" title="Veg"></span>'
         : '<span class="badge-nonveg" title="Non-Veg"></span>';
       var toggleCls = item.is_available == 1 ? 'on' : 'off';
-      var imgUrl = item.image_path || getFallbackImg(item.category);
+      var fb = getFallbackImg(item.category);
+      var imgUrl = item.image_path || fb;
       var imgTag = imgUrl 
-        ? '<img src="' + imgUrl + '" style="width:36px;height:36px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.15);flex-shrink:0;" />'
+        ? '<img src="' + imgUrl + '" alt="' + (item.name_en || '').replace(/"/g, '&quot;') + '" onerror="this.onerror=null;this.src=\'' + fb + '\';" style="width:36px;height:36px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.15);flex-shrink:0;" />'
         : '<div style="width:36px;height:36px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🍽️</div>';
       
       return '<tr id="row-' + item.id + '">' +

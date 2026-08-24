@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Hotel Tulsi | Beverages Section</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <meta name="description" content="Quench your thirst with our premium beverages and mocktails at Hotel Tulsi."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -439,6 +440,7 @@
   </div>
 
   <script src="menu-page.js"></script>
+  <script src="geofence.js"></script>
   <script>
     'use strict';
 
@@ -523,64 +525,120 @@
       else bar.classList.remove('visible');
     }
 
-    /* ── Place order ── */
-    function placeOrder() {
+        /* ── Place order ── */
+    async function placeOrder() {
       const items = MENU.filter(i => (cart[i.id] || 0) > 0);
       if (items.length === 0) return;
 
-      let stored = [];
-      const orderKey = 'hotel_confirmed_orders_' + table;
-      try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
-
-      items.forEach(item => {
-        const qty = cart[item.id];
-        const existing = stored.find(s => s.id === item.id);
-        if (existing) existing.qty += qty;
-        else stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
-      });
-      sessionStorage.setItem(orderKey, JSON.stringify(stored));
+      // Security Check (Geofence / Wi-Fi / Table PIN)
+      let secAuth = { security_token: '', client_lat: 0, client_lng: 0 };
+      if (window.HotelSecurity) {
+        try {
+          secAuth = await HotelSecurity.verifyOrderLocation();
+        } catch (secErr) {
+          console.warn('Security verification cancelled:', secErr);
+          return;
+        }
+      }
 
       const apiItems = items.map(item => ({
         id: item.id, name: item.en, category: PAGE_CATEGORY,
         price: item.price, qty: cart[item.id]
       }));
-      const fetchPayload = { table: table, persons: parseInt(persons) || 1, customer_notes: '', items: apiItems };
 
-      fetch('api/create-order.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(fetchPayload)
-      }).then(async r => {
-        if (!r.ok) { const t = await r.text(); throw new Error('HTTP ' + r.status + ': ' + t); }
-        return r.json();
-      }).then(d => { if (!d.success) console.error('Order API error:', d.error); })
-        .catch(e => console.error('Order POST failed:', e));
-
-      for (let id in cart) {
-        if (cart.hasOwnProperty(id)) {
-          cart[id] = 0;
-          const counter = document.getElementById('counter-' + id);
-          const qtyEl   = document.getElementById('qty-' + id);
-          const card = document.getElementById('card-' + id);
-          if (qtyEl) qtyEl.textContent = '0';
-          if (counter) counter.classList.remove('has-items');
-          if (card) card.classList.remove('ordered');
-        }
-      }
-      updateCart();
-
-      const popup = document.getElementById('orderPopupOverlay');
-      const popupDesc = document.getElementById('popupDesc');
-      const msgs = {
-        en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
-        hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
-        mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+      const fetchPayload = { 
+        table: table, 
+        persons: parseInt(persons) || 1, 
+        customer_notes: '', 
+        items: apiItems,
+        security_token: secAuth.security_token || '',
+        client_lat: secAuth.client_lat || 0,
+        client_lng: secAuth.client_lng || 0
       };
-      const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
-      document.querySelector('.popup-title').textContent = titles[lang] || titles.en;
-      popupDesc.textContent = msgs[lang] || msgs.en;
-      popup.classList.add('show');
-      setTimeout(() => popup.classList.remove('show'), 5000);
+
+      try {
+        const response = await fetch('api/create-order.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fetchPayload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          if (result.security_challenge && window.HotelSecurity) {
+            sessionStorage.removeItem('hotel_security_token');
+            const retryAuth = await HotelSecurity.verifyOrderLocation();
+            if (retryAuth) {
+              fetchPayload.security_token = retryAuth.security_token || '';
+              fetchPayload.client_lat = retryAuth.client_lat || 0;
+              fetchPayload.client_lng = retryAuth.client_lng || 0;
+              
+              const retryRes = await fetch('api/create-order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fetchPayload)
+              });
+              const retryData = await retryRes.json();
+              if (!retryRes.ok || !retryData.success) {
+                alert('Order failed: ' + (retryData.error || 'Security check rejected.'));
+                return;
+              }
+            } else {
+              return;
+            }
+          } else {
+            alert('Order failed: ' + (result.error || 'Server error'));
+            return;
+          }
+        }
+
+        // Order successfully placed on server
+        let stored = [];
+        const orderKey = 'hotel_confirmed_orders_' + table;
+        try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
+
+        items.forEach(item => {
+          const qty = cart[item.id];
+          const existing = stored.find(s => s.id === item.id);
+          if (existing) existing.qty += qty;
+          else stored.push({ id: item.id, en: item.en, hi: item.hi, mr: item.mr, price: item.price, qty: qty });
+        });
+        sessionStorage.setItem(orderKey, JSON.stringify(stored));
+
+        for (let id in cart) {
+          if (cart.hasOwnProperty(id)) {
+            cart[id] = 0;
+            const counter = document.getElementById('counter-' + id);
+            const qtyEl   = document.getElementById('qty-' + id);
+            const card = document.getElementById('card-' + id);
+            if (qtyEl) qtyEl.textContent = '0';
+            if (counter) counter.classList.remove('has-items');
+            if (card) card.classList.remove('ordered');
+          }
+        }
+        updateCart();
+
+        const popup = document.getElementById('orderPopupOverlay');
+        const popupDesc = document.getElementById('popupDesc');
+        const msgs = {
+          en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
+          hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
+          mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+        };
+        const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
+        const titleEl = document.querySelector('.popup-title');
+        if (titleEl) titleEl.textContent = titles[lang] || titles.en;
+        if (popupDesc) popupDesc.textContent = msgs[lang] || msgs.en;
+        if (popup) {
+          popup.classList.add('show');
+          setTimeout(() => popup.classList.remove('show'), 5000);
+        }
+
+      } catch (err) {
+        console.error('Order placement error:', err);
+        alert('Could not submit order. Please check your connection.');
+      }
     }
 
     /* ── Back button params ── */

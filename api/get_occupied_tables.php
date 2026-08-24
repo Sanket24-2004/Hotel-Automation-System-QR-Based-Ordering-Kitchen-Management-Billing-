@@ -5,11 +5,15 @@ require_once __DIR__ . '/db.php';
 $pdo = getDB();
 
 try {
-    // 1. Get all table numbers that are either in occupied_tables OR have an unbilled order (payment_method IS NULL)
+    // 1. Get all table numbers that are in occupied_tables OR have an active unbilled order
     $tablesQuery = $pdo->query("
-        SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no FROM occupied_tables
+        SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no 
+        FROM occupied_tables 
+        WHERE occupied_at >= NOW() - INTERVAL 12 HOUR
         UNION
-        SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no FROM orders WHERE payment_method IS NULL
+        SELECT DISTINCT CAST(table_no AS UNSIGNED) AS t_no 
+        FROM orders 
+        WHERE payment_method IS NULL AND status != 'served'
     ");
     $activeTables = $tablesQuery->fetchAll(PDO::FETCH_COLUMN);
 
@@ -20,8 +24,8 @@ try {
             $orderStmt = $pdo->prepare("
                 SELECT id, total_amount, created_at
                 FROM orders
-                WHERE table_no = ? AND payment_method IS NULL
-                ORDER BY created_at DESC
+                WHERE table_no = ? AND payment_method IS NULL AND status != 'served'
+                ORDER BY created_at ASC
             ");
             $orderStmt->execute([(string)$tNo]);
             $activeOrders = $orderStmt->fetchAll();
@@ -52,14 +56,18 @@ try {
                 
                 $createdTime = strtotime($activeOrders[0]['created_at']);
                 $minutesAgo = (int)floor((time() - $createdTime) / 60);
-            }
 
-            if ($occRecord) {
-                $occTime = strtotime($occRecord['occupied_at']);
-                $occMinutes = (int)floor((time() - $occTime) / 60);
-                if ($occMinutes > $minutesAgo) {
-                    $minutesAgo = $occMinutes;
+                if ($occRecord) {
+                    $occTime = strtotime($occRecord['occupied_at']);
+                    $occMinutes = (int)floor((time() - $occTime) / 60);
+                    // Only use occupation time if it is reasonably close to order creation (within 3 hours)
+                    if ($occMinutes > $minutesAgo && ($occMinutes - $minutesAgo) <= 180) {
+                        $minutesAgo = $occMinutes;
+                    }
                 }
+            } else if ($occRecord) {
+                $occTime = strtotime($occRecord['occupied_at']);
+                $minutesAgo = (int)floor((time() - $occTime) / 60);
             }
 
             $occupiedList[] = [
@@ -80,3 +88,4 @@ try {
 } catch (PDOException $e) {
     jsonResponse(['success' => false, 'error' => 'Failed to fetch occupied tables.', 'detail' => $e->getMessage()], 500);
 }
+

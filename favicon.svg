@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark Luxury Background -->
+  <rect x="0" y="0" width="64" height="64" rx="16" fill="#0b0904"/>
+  
+  <!-- Gold Rounded Border Frame -->
+  <rect x="4.5" y="4.5" width="55" height="55" rx="14" fill="none" stroke="#d4a316" stroke-width="3"/>
+  
+  <!-- Centered 4-Point Gold Star Crest -->
+  <path d="M 32 17 C 32 26.5 26.5 32 18 32 C 26.5 32 32 37.5 32 47 C 32 37.5 37.5 32 46 32 C 37.5 32 32 26.5 32 17 Z" fill="#ffcc00"/>
+</svg>
