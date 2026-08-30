@@ -249,26 +249,33 @@ body.kds-body {
 /* ─── NEW ORDER NOTIFICATION BANNER ─── */
 .kds-new-alert {
   position: fixed;
-  top: 80px;
+  top: 20px;
   left: 50%;
-  transform: translateX(-50%) translateY(-100px);
+  transform: translateX(-50%) translateY(-140%);
+  opacity: 0;
+  visibility: hidden;
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: #fff;
-  padding: 0.8rem 2.2rem;
+  padding: 12px 28px;
   border-radius: 50px;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  z-index: 500;
-  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.6);
-  border: 2px solid #fff;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  justify-content: center;
+  gap: 10px;
+  z-index: 99999;
+  box-shadow: 0 12px 35px rgba(239, 68, 68, 0.6), 0 4px 15px rgba(0, 0, 0, 0.5);
+  border: 2px solid #ffffff;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease, visibility 0.3s;
   pointer-events: none;
+  max-width: 90vw;
+  white-space: nowrap;
 }
 .kds-new-alert.show {
   transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  visibility: visible;
 }
 .alert-bell {
   font-size: 1.6rem;
@@ -1136,11 +1143,14 @@ body.kds-body {
 
   /* ── New Alert Banner on Mobile ── */
   .kds-new-alert {
-    width: 90%;
-    max-width: 360px;
-    font-size: 1rem;
-    padding: 0.5rem 1rem;
-    top: 70px;
+    width: auto;
+    max-width: 92vw;
+    font-size: 1.05rem;
+    padding: 10px 20px;
+    top: 16px;
+    white-space: normal;
+    text-align: center;
+    border-radius: 40px;
   }
 
   /* ── Audio Unlock Overlay on Mobile ── */
