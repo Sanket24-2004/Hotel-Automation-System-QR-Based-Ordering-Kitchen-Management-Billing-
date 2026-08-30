@@ -434,14 +434,16 @@ function createKdsCard(order, isNewPartition) {
     statusBadgeHtml = `<span class="status-tag tag-ongoing">🟠 तैयारी चालू</span>`;
   }
 
+  const personsCount = parseInt(order.persons, 10) || 1;
+
   // Customer Special Note
   let noteHtml = '';
   if (order.customer_note && order.customer_note.trim() !== '') {
     noteHtml = `
       <div class="card-customer-note">
-        <span class="note-icon">📝</span>
+        <span class="note-icon">📢</span>
         <div class="note-body">
-          <span class="note-label">ग्राहक निर्देश (Special Note)</span>
+          <span class="note-label">विशेष निर्देश / नोट:</span>
           ${escapeHtml(order.customer_note)}
         </div>
       </div>
@@ -479,16 +481,21 @@ function createKdsCard(order, isNewPartition) {
       </div>
       <div class="card-status-pill">
         ${statusBadgeHtml}
+        <div class="big-persons-badge" title="कुल ग्राहक">
+          <span class="persons-icon">👥</span>
+          <span class="persons-num">${personsCount}</span>
+          <span class="persons-label">लोग</span>
+        </div>
       </div>
     </div>
 
     <div class="card-meta-bar">
       <div class="meta-time-wrap">
-        <span>⏱️ समय:</span>
+        <span>⏱️ इंतज़ार:</span>
         <span class="meta-live-timer" data-created="${order.created_at}">${elapsedText}</span>
       </div>
-      <div class="meta-persons">
-        👥 ${order.persons} व्यक्ति
+      <div class="meta-prep-time">
+        <span>⏳ ${prepTime} मि.</span>
       </div>
     </div>
 
@@ -499,7 +506,6 @@ function createKdsCard(order, isNewPartition) {
     </div>
 
     <div class="card-bottom-info">
-      <span class="prep-est">⏳ अनुमानित समय: ${prepTime} मिनट</span>
       <span class="order-ref-num">${order.order_ref || ''}</span>
     </div>
   `;
