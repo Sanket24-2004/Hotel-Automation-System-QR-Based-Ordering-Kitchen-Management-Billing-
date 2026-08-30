@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="kitchen.css?v=7"/>
+  <link rel="stylesheet" href="kitchen.css?v=8"/>
 </head>
 <body class="kds-body">
 
@@ -84,6 +84,22 @@
     <span class="alert-msg" id="newAlertText">नया ऑर्डर प्राप्त हुआ! (टेबल ...)</span>
   </div>
 
+  <!-- ══ MOBILE TAB NAVIGATION (Visible on <= 768px) ══ -->
+  <div class="kds-mobile-tabs" id="kdsMobileTabs">
+    <button type="button" class="m-tab active" id="mTabAll" onclick="switchMobileKdsTab('all')">
+      <span>📋 सभी</span>
+      <span class="m-badge" id="mBadgeAll">0</span>
+    </button>
+    <button type="button" class="m-tab" id="mTabNew" onclick="switchMobileKdsTab('new')">
+      <span>🔴 नया</span>
+      <span class="m-badge m-badge-new" id="mBadgeNew">0</span>
+    </button>
+    <button type="button" class="m-tab" id="mTabOngoing" onclick="switchMobileKdsTab('ongoing')">
+      <span>🟠 चल रहे</span>
+      <span class="m-badge m-badge-ongoing" id="mBadgeOngoing">0</span>
+    </button>
+  </div>
+
   <!-- ══ MAIN DUAL-PARTITION SCREEN VIEW ══ -->
   <main class="kds-main" id="kdsMainView">
 
@@ -147,6 +163,6 @@
     </div>
   </div>
 
-  <script src="kitchen.js?v=7"></script>
+  <script src="kitchen.js?v=8"></script>
 </body>
 </html>

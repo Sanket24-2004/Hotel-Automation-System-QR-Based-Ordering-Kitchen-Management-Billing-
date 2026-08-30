@@ -329,11 +329,46 @@ function renderKdsPartitions() {
   if ($badgeNewOrders) $badgeNewOrders.textContent = newCount;
   if ($badgeOngoingOrders) $badgeOngoingOrders.textContent = ongoingCount;
 
+  const mAll = document.getElementById('mBadgeAll');
+  const mNew = document.getElementById('mBadgeNew');
+  const mOngoing = document.getElementById('mBadgeOngoing');
+  if (mAll) mAll.textContent = totalCount;
+  if (mNew) mNew.textContent = newCount;
+  if (mOngoing) mOngoing.textContent = ongoingCount;
+
   // Render Partition 1: New Orders
   renderNewPartition(newOrders);
 
   // Render Partition 2: Ongoing Orders
   renderOngoingPartition(ongoingOrders);
+
+  if (window.innerWidth <= 768) {
+    switchMobileKdsTab(currentMobileTab);
+  }
+}
+
+let currentMobileTab = 'all';
+
+function switchMobileKdsTab(tab) {
+  currentMobileTab = tab;
+  document.querySelectorAll('.m-tab').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById(tab === 'all' ? 'mTabAll' : tab === 'new' ? 'mTabNew' : 'mTabOngoing');
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const pNew = document.getElementById('partitionNew');
+  const pOngoing = document.getElementById('partitionOngoing');
+  if (!pNew || !pOngoing) return;
+
+  if (tab === 'all') {
+    pNew.style.display = '';
+    pOngoing.style.display = '';
+  } else if (tab === 'new') {
+    pNew.style.display = 'flex';
+    pOngoing.style.display = 'none';
+  } else if (tab === 'ongoing') {
+    pNew.style.display = 'none';
+    pOngoing.style.display = 'flex';
+  }
 }
 
 function renderNewPartition(orders) {
