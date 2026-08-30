@@ -670,6 +670,439 @@
       margin-top: -1px; /* seamless attachment to header */
     }
 
+    /* Manual Bill Action Bar */
+    .manual-bill-btn-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.5s ease 0.15s both;
+    }
+    .btn-create-manual-bill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.08));
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      border-radius: 50px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+      transition: all 0.25s ease;
+    }
+    .btn-create-manual-bill:hover {
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 6px 28px rgba(255, 215, 0, 0.35);
+      transform: translateY(-2px) scale(1.02);
+    }
+    .btn-create-manual-bill .btn-icon {
+      font-size: 1.2rem;
+    }
+
+    /* Manual Bill Modal */
+    .man-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 2500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .man-modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .man-modal-card {
+      background: #141414;
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 215, 0, 0.15);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 1120px;
+      height: 92vh;
+      max-height: 850px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalPop 0.3s ease;
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.95) translateY(10px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .man-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.25);
+    }
+    .man-modal-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .man-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--white);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .man-close-btn:hover {
+      background: rgba(239, 68, 68, 0.8);
+      border-color: #ef4444;
+      color: #fff;
+    }
+
+    /* Modal Top Bar (Table / Order Type & Customer Note) */
+    .man-top-bar {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .man-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .man-field-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .man-input, .man-select {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 8px;
+      padding: 7px 12px;
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.84rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .man-input:focus, .man-select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.15);
+    }
+    .man-select option {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    /* Modal 2-Column Body */
+    .man-modal-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Left: Menu Browser */
+    .man-menu-panel {
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .man-search-wrap {
+      padding: 10px 14px 6px;
+    }
+    .man-menu-search {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 215, 0, 0.25);
+      border-radius: 50px;
+      padding: 8px 14px;
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    .man-menu-search:focus {
+      border-color: var(--gold);
+    }
+    .man-cat-chips {
+      display: flex;
+      gap: 5px;
+      padding: 0 14px 8px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .man-cat-chip {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .man-cat-chip:hover {
+      background: rgba(255, 215, 0, 0.1);
+      color: var(--gold);
+    }
+    .man-cat-chip.active {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+    }
+    .man-items-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 14px 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 6px;
+      align-content: start;
+    }
+    .man-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .man-item-row:hover {
+      background: rgba(255, 215, 0, 0.09);
+      border-color: rgba(255, 215, 0, 0.4);
+      transform: translateY(-1px);
+    }
+    .man-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+    .man-item-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .man-item-sub {
+      font-size: 0.68rem;
+      color: rgba(255, 255, 255, 0.45);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .man-item-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .man-item-price {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .man-add-btn {
+      background: rgba(255, 215, 0, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .man-item-row:hover .man-add-btn {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* Custom Item Box */
+    .man-custom-item-box {
+      padding: 6px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      gap: 6px;
+    }
+    .man-custom-name {
+      flex: 2;
+    }
+    .man-custom-price {
+      flex: 1;
+    }
+    .man-btn-add-custom {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid var(--green);
+      color: var(--green);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .man-btn-add-custom:hover {
+      background: var(--green);
+      color: #fff;
+    }
+
+    /* Right: Bill Calculation & Details */
+    .man-bill-panel {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .man-bill-table-wrap {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      min-height: 140px;
+    }
+    .man-bill-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .man-bill-table th {
+      position: sticky;
+      top: 0;
+      background: #1f1f1f;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .man-bill-table td {
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--white);
+    }
+    .man-qty-ctrl {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .man-qty-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .man-qty-btn:hover {
+      background: var(--gold);
+      color: #000;
+    }
+    .man-qty-display {
+      font-weight: 700;
+      min-width: 16px;
+      text-align: center;
+      color: var(--gold);
+      font-size: 0.8rem;
+    }
+    .man-del-item-btn {
+      background: none;
+      border: none;
+      color: rgba(239, 68, 68, 0.7);
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .man-del-item-btn:hover {
+      color: #ef4444;
+    }
+
+    .man-summary-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 10px;
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+    .man-sum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .man-sum-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0 0;
+      margin-top: 2px;
+    }
+
+    /* Modal Responsive */
+    @media (max-width: 820px) {
+      .man-modal-body {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+      }
+      .man-top-bar {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .man-menu-panel {
+        max-height: 280px;
+      }
+    }
+
     /* =============================================
        PRINT STYLES
     ============================================= */
@@ -731,7 +1164,15 @@
     <!-- ── SECTION 2: PAGE TITLE ── -->
     <div class="page-title-wrap" id="page-title-section">
       <h1 class="page-title">🧾 BILLING</h1>
-      <p class="page-subtitle">Select a table to generate bill</p>
+      <p class="page-subtitle">Select a table to generate bill or create a manual bill</p>
+    </div>
+
+    <!-- ── MANUAL BILL BUTTON ── -->
+    <div class="manual-bill-btn-wrap">
+      <button class="btn-create-manual-bill" onclick="openManualBillModal()" aria-label="Create Manual Bill">
+        <span class="btn-icon">⚡</span>
+        <span>➕ Create Manual Bill (Walk-in / Counter / Parcel)</span>
+      </button>
     </div>
 
     <!-- ── SECTION 3: SEARCH BAR ── -->
@@ -744,6 +1185,166 @@
         aria-label="Search occupied tables"
         oninput="handleSearch(this.value)"
       />
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         MANUAL BILL GENERATOR MODAL
+    ══════════════════════════════════════════ -->
+    <div class="man-modal-backdrop" id="man-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="manModalTitle">
+      <div class="man-modal-card">
+        
+        <!-- Modal Header -->
+        <div class="man-modal-header">
+          <div class="man-modal-title" id="manModalTitle">
+            <span>⚡</span>
+            <span>Create Manual Bill (Non-QR Order)</span>
+          </div>
+          <button class="man-close-btn" onclick="closeManualBillModal()" aria-label="Close modal">✕</button>
+        </div>
+
+        <!-- Top Settings: Order Type & Customer Note -->
+        <div class="man-top-bar">
+          <div class="man-field-group">
+            <label class="man-field-label" for="man-order-type">Order Destination / Table</label>
+            <select id="man-order-type" class="man-select" onchange="handleManualTableChange()">
+              <optgroup label="Takeaway / Counter">
+                <option value="Parcel" selected>📦 Parcel / Takeaway</option>
+                <option value="Counter">🏪 Counter Direct Sale</option>
+              </optgroup>
+              <optgroup label="Dine-In Tables">
+                <option value="1">Table 1</option>
+                <option value="2">Table 2</option>
+                <option value="3">Table 3</option>
+                <option value="4">Table 4</option>
+                <option value="5">Table 5</option>
+                <option value="6">Table 6</option>
+                <option value="7">Table 7</option>
+                <option value="8">Table 8</option>
+                <option value="9">Table 9</option>
+                <option value="10">Table 10</option>
+                <option value="11">Table 11</option>
+                <option value="12">Table 12</option>
+                <option value="13">Table 13</option>
+                <option value="14">Table 14</option>
+                <option value="15">Table 15</option>
+                <option value="16">Table 16</option>
+                <option value="17">Table 17</option>
+                <option value="18">Table 18</option>
+                <option value="19">Table 19</option>
+                <option value="20">Table 20</option>
+              </optgroup>
+              <optgroup label="Custom">
+                <option value="custom">✏️ Custom Label / Number</option>
+              </optgroup>
+            </select>
+            <input type="text" id="man-custom-table" class="man-input" placeholder="e.g. Table 21, VIP Lounge, Zomato..." style="display:none; margin-top:4px;" />
+          </div>
+
+          <div class="man-field-group">
+            <label class="man-field-label" for="man-notes">Customer Name / Notes (Optional)</label>
+            <input type="text" id="man-notes" class="man-input" placeholder="e.g. Less spicy, Customer: Amit 9876..." />
+          </div>
+        </div>
+
+        <!-- 2-Column Modal Body -->
+        <div class="man-modal-body">
+          
+          <!-- Left: Menu Browser -->
+          <div class="man-menu-panel">
+            <div class="man-search-wrap">
+              <input type="search" id="man-menu-search" class="man-menu-search" placeholder="🔍 Search menu items (e.g. Paneer, Roti)..." oninput="filterManualMenu(this.value)" />
+            </div>
+            <div class="man-cat-chips" id="man-cat-chips">
+              <span class="man-cat-chip active" onclick="selectManualCategory('all', this)">All</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('starter', this)">Starters</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('main_course', this)">Main Course</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('bread', this)">Breads</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('rice_biryani', this)">Rice</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('beverage', this)">Beverages</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('dessert', this)">Desserts</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('side_dish', this)">Sides</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('water', this)">Water</span>
+            </div>
+            <div class="man-items-list" id="man-items-list">
+              <!-- Rendered by JS -->
+            </div>
+            <!-- Custom item add row -->
+            <div class="man-custom-item-box">
+              <input type="text" id="man-cust-name" class="man-input man-custom-name" placeholder="Custom item name..." />
+              <input type="number" id="man-cust-price" class="man-input man-custom-price" placeholder="₹ Price" min="1" />
+              <button type="button" class="man-btn-add-custom" onclick="addCustomItemToManualBill()">+ Add</button>
+            </div>
+          </div>
+
+          <!-- Right: Bill Details & Live Calculator -->
+          <div class="man-bill-panel">
+            <div class="man-bill-table-wrap">
+              <table class="man-bill-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th style="text-align:center">Price</th>
+                    <th style="text-align:center">Qty</th>
+                    <th style="text-align:right">Total</th>
+                    <th style="text-align:center"></th>
+                  </tr>
+                </thead>
+                <tbody id="man-bill-tbody">
+                  <!-- Items rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Compact Summary and calculation box -->
+            <div class="man-summary-box">
+              <div class="man-sum-row">
+                <span class="summary-label">Subtotal</span>
+                <span class="summary-value" id="man-subtotal">₹0.00</span>
+              </div>
+
+              <!-- Compact Inline Discount control -->
+              <div class="man-sum-row" style="padding: 4px 0;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="summary-label" id="man-discount-label" style="font-size: 0.8rem;">Discount</span>
+                  <div style="display: inline-flex; align-items: center; gap: 3px;">
+                    <button type="button" class="disc-type-btn active" id="man-disc-pct-btn" onclick="setManualDiscType('pct')" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 5px;">%</button>
+                    <button type="button" class="disc-type-btn" id="man-disc-flat-btn" onclick="setManualDiscType('flat')" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 5px;">₹</button>
+                    <input type="number" id="man-discount-input" placeholder="0" min="0" value="0" oninput="recalcManualBill()" style="width: 52px; padding: 2px 6px; font-size: 0.8rem; border-radius: 5px; height: 25px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,215,0,0.3); color: #fff;" />
+                  </div>
+                </div>
+                <span class="summary-value" id="man-discount-val" style="color: #f97316; font-weight: 700;">-₹0.00</span>
+              </div>
+
+              <div class="man-sum-row">
+                <span class="summary-label">GST (5%)</span>
+                <span class="summary-value" id="man-gst">₹0.00</span>
+              </div>
+
+              <div class="man-sum-total-row">
+                <span class="summary-total-label" style="font-size: 0.95rem;">GRAND TOTAL</span>
+                <span class="summary-total-value" id="man-total" style="font-size: 1.25rem;">₹0.00</span>
+              </div>
+
+              <!-- Payment Method & Actions Inline / Compact -->
+              <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div class="pay-btns" style="margin-top: 0; gap: 4px; flex: 1.2;">
+                  <button type="button" class="pay-btn selected" id="man-pay-cash" onclick="selectManualPayment('Cash')" style="padding: 6px 4px; font-size: 0.76rem;">💵 Cash</button>
+                  <button type="button" class="pay-btn" id="man-pay-upi" onclick="selectManualPayment('UPI')" style="padding: 6px 4px; font-size: 0.76rem;">📱 UPI</button>
+                  <button type="button" class="pay-btn" id="man-pay-card" onclick="selectManualPayment('Card')" style="padding: 6px 4px; font-size: 0.76rem;">💳 Card</button>
+                </div>
+              </div>
+
+              <!-- Bill Action Buttons -->
+              <div class="bill-actions" style="margin-top: 8px; gap: 8px;">
+                <button type="button" class="print-btn" onclick="printManualBill()" style="padding: 8px; font-size: 0.84rem;">🖨️ Print Bill</button>
+                <button type="button" class="complete-btn" onclick="saveManualBill()" style="padding: 8px; font-size: 0.84rem;">✅ Complete & Save</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
     </div>
 
     <!-- ── SECTION 4: OCCUPIED TABLES ── -->
@@ -833,19 +1434,17 @@
             <span class="summary-value" id="sum-subtotal">₹0</span>
           </div>
 
-          <!-- Discount -->
-          <div class="summary-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-            <span class="summary-label">Discount</span>
-            <div class="discount-row">
-              <button class="disc-type-btn active" id="disc-pct-btn" onclick="setDiscType('pct')">% Percent</button>
-              <button class="disc-type-btn" id="disc-flat-btn" onclick="setDiscType('flat')">₹ Flat Amount</button>
-              <input type="number" id="discount-input" value="0" min="0" placeholder="0"
-                oninput="recalc()" aria-label="Discount value" />
+          <!-- Compact Inline Discount -->
+          <div class="summary-row" id="discount-row" style="padding: 4px 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="summary-label" id="discount-label">Discount</span>
+              <div style="display: inline-flex; align-items: center; gap: 4px;">
+                <button type="button" class="disc-type-btn active" id="disc-pct-btn" onclick="setDiscType('pct')" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 5px;">%</button>
+                <button type="button" class="disc-type-btn" id="disc-flat-btn" onclick="setDiscType('flat')" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 5px;">₹</button>
+                <input type="number" id="discount-input" value="0" min="0" placeholder="0" oninput="recalc()" aria-label="Discount value" style="width: 55px; padding: 2px 6px; font-size: 0.8rem; border-radius: 5px; height: 26px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,215,0,0.3); color: #fff;" />
+              </div>
             </div>
-          </div>
-          <div class="summary-row" id="discount-row">
-            <span class="summary-label" id="discount-label">Discount (0%)</span>
-            <span class="summary-value" id="sum-discount" style="color:#f97316">-₹0</span>
+            <span class="summary-value" id="sum-discount" style="color:#f97316; font-weight: 700;">-₹0</span>
           </div>
           <div class="summary-row">
             <span class="summary-label">GST (5%)</span>
@@ -1495,9 +2094,369 @@
       }
     }
 
+    /* ================================================
+       MANUAL BILL GENERATOR JAVASCRIPT
+    ================================================ */
+    var manualBillItems = [];
+    var manualDiscountType = 'pct';
+    var manualSelectedPayment = 'Cash';
+    var manualCategoryFilter = 'all';
+
+    function openManualBillModal(tablePrefill) {
+      manualBillItems = [];
+      document.getElementById('man-notes').value = '';
+      document.getElementById('man-cust-name').value = '';
+      document.getElementById('man-cust-price').value = '';
+      document.getElementById('man-discount-input').value = '0';
+      setManualDiscType('pct', true);
+      selectManualPayment('Cash', true);
+      
+      var orderSelect = document.getElementById('man-order-type');
+      if (tablePrefill) {
+        orderSelect.value = String(tablePrefill);
+      }
+      handleManualTableChange();
+
+      renderManualMenuList();
+      renderManualBillTable();
+      recalcManualBill();
+
+      document.getElementById('man-modal-backdrop').classList.add('open');
+    }
+
+    function closeManualBillModal() {
+      document.getElementById('man-modal-backdrop').classList.remove('open');
+    }
+
+    function handleManualTableChange() {
+      var sel = document.getElementById('man-order-type').value;
+      var customInput = document.getElementById('man-custom-table');
+      if (sel === 'custom') {
+        customInput.style.display = 'block';
+        customInput.focus();
+      } else {
+        customInput.style.display = 'none';
+      }
+    }
+
+    function selectManualCategory(cat, chipEl) {
+      manualCategoryFilter = cat;
+      document.querySelectorAll('#man-cat-chips .man-cat-chip').forEach(function(c) { c.classList.remove('active'); });
+      if (chipEl) chipEl.classList.add('active');
+      filterManualMenu(document.getElementById('man-menu-search').value);
+    }
+
+    function renderManualMenuList(itemsToRender) {
+      var list = document.getElementById('man-items-list');
+      list.innerHTML = '';
+      var items = itemsToRender || FULL_MENU;
+
+      if (items.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:24px 10px;font-size:0.85rem">No menu items found.</div>';
+        return;
+      }
+
+      items.forEach(function(item) {
+        var row = document.createElement('div');
+        row.className = 'man-item-row';
+        row.onclick = function() { addManualItem(item); };
+        row.innerHTML =
+          '<div class="man-item-info">' +
+            '<span class="man-item-title">' + (item.name_en || item.name) + '</span>' +
+            '<span class="man-item-sub">' + (item.name_hi || '') + '</span>' +
+          '</div>' +
+          '<div class="man-item-right">' +
+            '<span class="man-item-price">' + fmt(item.price) + '</span>' +
+            '<button type="button" class="man-add-btn">+ Add</button>' +
+          '</div>';
+        list.appendChild(row);
+      });
+    }
+
+    function filterManualMenu(q) {
+      var query = (q || '').trim().toLowerCase();
+      var filtered = FULL_MENU.filter(function(item) {
+        var matchCat = (manualCategoryFilter === 'all') || (item.category === manualCategoryFilter);
+        var matchText = !query || 
+          (item.name_en || '').toLowerCase().indexOf(query) !== -1 ||
+          (item.name_hi || '').toLowerCase().indexOf(query) !== -1;
+        return matchCat && matchText;
+      });
+      renderManualMenuList(filtered);
+    }
+
+    function addManualItem(menuItem) {
+      var existing = manualBillItems.find(function(i) {
+        return (menuItem.id && i.menu_item_id === menuItem.id) || (i.name === (menuItem.name_en || menuItem.name));
+      });
+      if (existing) {
+        existing.qty++;
+      } else {
+        manualBillItems.push({
+          menu_item_id: menuItem.id || 0,
+          category: menuItem.category || 'main_course',
+          name: menuItem.name_en || menuItem.name,
+          price: parseFloat(menuItem.price) || 0,
+          qty: 1
+        });
+      }
+      renderManualBillTable();
+      recalcManualBill();
+      showToast('✅ ' + (menuItem.name_en || menuItem.name) + ' added to manual bill');
+    }
+
+    function addCustomItemToManualBill() {
+      var nameInput = document.getElementById('man-cust-name');
+      var priceInput = document.getElementById('man-cust-price');
+      var name = nameInput.value.trim();
+      var price = parseFloat(priceInput.value);
+
+      if (!name) {
+        showToast('❌ Please enter a custom item name');
+        nameInput.focus();
+        return;
+      }
+      if (isNaN(price) || price < 0) {
+        showToast('❌ Please enter a valid price');
+        priceInput.focus();
+        return;
+      }
+
+      manualBillItems.push({
+        menu_item_id: 0,
+        name: name,
+        price: price,
+        qty: 1
+      });
+
+      nameInput.value = '';
+      priceInput.value = '';
+      renderManualBillTable();
+      recalcManualBill();
+      showToast('✅ Added "' + name + '"');
+    }
+
+    function changeManualItemQty(index, delta) {
+      if (!manualBillItems[index]) return;
+      manualBillItems[index].qty += delta;
+      if (manualBillItems[index].qty <= 0) {
+        manualBillItems.splice(index, 1);
+      }
+      renderManualBillTable();
+      recalcManualBill();
+    }
+
+    function removeManualItem(index) {
+      if (!manualBillItems[index]) return;
+      manualBillItems.splice(index, 1);
+      renderManualBillTable();
+      recalcManualBill();
+    }
+
+    function renderManualBillTable() {
+      var tbody = document.getElementById('man-bill-tbody');
+      tbody.innerHTML = '';
+
+      if (manualBillItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.4);padding:30px 10px;font-size:0.85rem">No items added yet.<br>Click items from the menu on the left to add.</td></tr>';
+        return;
+      }
+
+      manualBillItems.forEach(function(item, idx) {
+        var tr = document.createElement('tr');
+        var lineTotal = item.qty * item.price;
+        tr.innerHTML =
+          '<td>' + item.name + '</td>' +
+          '<td style="text-align:center;color:rgba(255,255,255,0.7);">' + fmt(item.price) + '</td>' +
+          '<td style="text-align:center;">' +
+            '<div class="man-qty-ctrl">' +
+              '<button type="button" class="man-qty-btn" onclick="changeManualItemQty(' + idx + ', -1)">−</button>' +
+              '<span class="man-qty-display">' + item.qty + '</span>' +
+              '<button type="button" class="man-qty-btn" onclick="changeManualItemQty(' + idx + ', 1)">+</button>' +
+            '</div>' +
+          '</td>' +
+          '<td style="text-align:right;font-weight:700;color:var(--gold);">' + fmt(lineTotal) + '</td>' +
+          '<td style="text-align:center;">' +
+            '<button type="button" class="man-del-item-btn" onclick="removeManualItem(' + idx + ')" title="Remove item">🗑️</button>' +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function setManualDiscType(type, silent) {
+      manualDiscountType = type;
+      document.getElementById('man-disc-pct-btn').classList.toggle('active', type === 'pct');
+      document.getElementById('man-disc-flat-btn').classList.toggle('active', type === 'flat');
+      if (!silent) recalcManualBill();
+    }
+
+    function selectManualPayment(method, silent) {
+      manualSelectedPayment = method;
+      ['Cash', 'UPI', 'Card'].forEach(function(m) {
+        var btn = document.getElementById('man-pay-' + m.toLowerCase());
+        if (btn) btn.classList.toggle('selected', m === method);
+      });
+    }
+
+    function getManualCalculations() {
+      var subtotal = manualBillItems.reduce(function(s, i) { return s + i.qty * i.price; }, 0);
+      var discVal = parseFloat(document.getElementById('man-discount-input').value) || 0;
+      var discAmt = 0;
+
+      if (manualDiscountType === 'pct') {
+        discAmt = Math.round((subtotal * discVal / 100) * 100) / 100;
+      } else {
+        discAmt = Math.min(discVal, subtotal);
+      }
+
+      var afterDisc = Math.max(0, subtotal - discAmt);
+      var gst = Math.round((afterDisc * 0.05) * 100) / 100;
+      var total = Math.round((afterDisc + gst) * 100) / 100;
+
+      return {
+        subtotal: subtotal,
+        discVal: discVal,
+        discAmt: discAmt,
+        afterDisc: afterDisc,
+        gst: gst,
+        total: total
+      };
+    }
+
+    function recalcManualBill() {
+      var c = getManualCalculations();
+      document.getElementById('man-subtotal').textContent = fmt(c.subtotal);
+      document.getElementById('man-discount-val').textContent = '-' + fmt(c.discAmt);
+      document.getElementById('man-discount-label').textContent = manualDiscountType === 'pct'
+        ? 'Discount (' + c.discVal + '%)'
+        : 'Discount (Flat)';
+      document.getElementById('man-gst').textContent = fmt(c.gst);
+      document.getElementById('man-total').textContent = fmt(c.total);
+    }
+
+    function getSelectedManualTableLabel() {
+      var sel = document.getElementById('man-order-type').value;
+      if (sel === 'custom') {
+        var customVal = document.getElementById('man-custom-table').value.trim();
+        return customVal || 'Manual Order';
+      }
+      if (sel === 'Parcel') return 'Parcel / Takeaway';
+      if (sel === 'Counter') return 'Counter Sale';
+      return 'Table ' + sel;
+    }
+
+    function getSelectedManualTableKey() {
+      var sel = document.getElementById('man-order-type').value;
+      if (sel === 'custom') {
+        var customVal = document.getElementById('man-custom-table').value.trim();
+        return customVal || 'Manual';
+      }
+      return sel;
+    }
+
+    function printManualBill() {
+      if (manualBillItems.length === 0) {
+        showToast('❌ Please add items before printing bill');
+        return;
+      }
+      var c = getManualCalculations();
+      var d = now();
+      var tableLabel = getSelectedManualTableLabel();
+      var billRef = 'MAN-' + dateStr(d).replace(/[^a-zA-Z0-9]/g, '') + '-' + Math.floor(100 + Math.random() * 900);
+
+      document.getElementById('pr-bill').textContent = billRef + ' (Manual)';
+      document.getElementById('pr-table').textContent = tableLabel;
+      document.getElementById('pr-date').textContent = dateStr(d);
+      document.getElementById('pr-time').textContent = timeStr(d);
+      document.getElementById('pr-subtotal').textContent = fmt(c.subtotal);
+      document.getElementById('pr-disc-label').textContent = manualDiscountType === 'pct'
+        ? 'Discount (' + c.discVal + '%):'
+        : 'Discount (Flat):';
+      document.getElementById('pr-discount').textContent = '-' + fmt(c.discAmt);
+      document.getElementById('pr-gst').textContent = fmt(c.gst);
+      document.getElementById('pr-total').textContent = fmt(c.total);
+      document.getElementById('pr-payment').textContent = manualSelectedPayment;
+
+      var itemsHtml = '';
+      manualBillItems.forEach(function(i) {
+        itemsHtml += '<div class="pr-row"><span>' + i.name + ' x' + i.qty + '</span><span>' + fmt(i.qty * i.price) + '</span></div>';
+      });
+      document.getElementById('pr-items').innerHTML = itemsHtml;
+
+      var pr = document.getElementById('print-receipt');
+      pr.style.display = 'block';
+      window.print();
+      pr.style.display = 'none';
+    }
+
+    async function saveManualBill() {
+      if (manualBillItems.length === 0) {
+        showToast('❌ Please add items to the bill');
+        return;
+      }
+
+      var c = getManualCalculations();
+      var d = now();
+      var tableKey = getSelectedManualTableKey();
+      var tableLabel = getSelectedManualTableLabel();
+      var notes = document.getElementById('man-notes').value.trim();
+
+      try {
+        var res = await fetch('api/complete_payment.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table: tableKey,
+            subtotal: c.subtotal,
+            discount: c.discAmt,
+            discount_type: manualDiscountType,
+            gst: c.gst,
+            total: c.total,
+            payment_method: manualSelectedPayment,
+            items: manualBillItems,
+            is_manual: 1,
+            notes: notes || 'Manual Bill'
+          })
+        });
+
+        var resData = await res.json();
+        if (resData.success) {
+          showToast('✅ Manual Bill ' + (resData.order_ref || '') + ' completed & saved!');
+
+          // Save to localStorage history
+          var history = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+          history.unshift({
+            billNumber: resData.order_ref,
+            tableNumber: tableLabel,
+            date: dateStr(d),
+            time: timeStr(d),
+            items: manualBillItems.slice(),
+            subtotal: c.subtotal,
+            discount: c.discAmt,
+            discountType: manualDiscountType,
+            gst: c.gst,
+            totalAmount: c.total,
+            paymentMethod: manualSelectedPayment,
+            status: 'Completed',
+            is_manual: true,
+            timestamp: Date.now()
+          });
+          localStorage.setItem('orderHistory', JSON.stringify(history));
+
+          closeManualBillModal();
+          await loadOccupiedTablesFromDB();
+        } else {
+          showToast('❌ Error: ' + resData.error);
+        }
+      } catch (e) {
+        console.error('Failed to complete manual bill:', e);
+        showToast('❌ Network error while saving manual bill');
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async function() {
       await loadOccupiedTablesFromDB();
-      loadMenuFromDB();
+      await loadMenuFromDB();
 
       // Check if URL has ?table=X (e.g. redirected from Dashboard Live Table Status modal)
       var urlParams = new URLSearchParams(window.location.search);
@@ -1507,6 +2466,11 @@
         if (tId > 0) {
           showBillView(tId);
         }
+      }
+
+      // Check if URL has ?manual=1
+      if (urlParams.get('manual') === '1') {
+        openManualBillModal();
       }
 
       // Poll occupied tables from DB every 8 seconds

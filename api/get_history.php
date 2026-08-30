@@ -139,12 +139,15 @@ try {
         $batches = isset($batchedItems[$oid]) ? array_values($batchedItems[$oid]) : [];
         $logs = $statusLogs[$oid] ?? [];
 
+        $isManual = str_starts_with((string)$order['order_ref'], 'MAN-') || stripos((string)($order['customer_notes'] ?? ''), 'Manual') !== false;
+
         $result[] = [
             'id'              => $oid,
             'order_ref'       => $order['order_ref'],
             'table_no'        => $order['table_no'],
             'persons'         => (int)$order['persons'],
             'status'          => $order['status'],
+            'is_manual'       => $isManual,
             'payment_method'  => $order['payment_method'] ?? null,
             'discount_amount' => (float)($order['discount_amount'] ?? 0),
             'discount_type'   => $order['discount_type'] ?? null,

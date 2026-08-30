@@ -126,6 +126,7 @@ $tables = [
         `is_veg`        TINYINT(1)          NOT NULL DEFAULT 1,
         `prep_time_min` SMALLINT UNSIGNED   NOT NULL DEFAULT 5,
         `sort_order`    SMALLINT UNSIGNED   NOT NULL DEFAULT 0,
+        `section`       VARCHAR(100)        DEFAULT NULL,
         `created_at`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX `idx_category`  (`category`),
@@ -194,6 +195,17 @@ $tables = [
         `persons`       INT UNSIGNED      NOT NULL DEFAULT 1,
         `occupied_at`   DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    // ── hotel_settings ──
+    'hotel_settings' => "CREATE TABLE IF NOT EXISTS `hotel_settings` (
+        `id`                  INT UNSIGNED      PRIMARY KEY,
+        `geofence_enabled`    TINYINT(1)        NOT NULL DEFAULT 0,
+        `hotel_lat`           DECIMAL(10,8)     NOT NULL DEFAULT 18.52043030,
+        `hotel_lng`           DECIMAL(11,8)     NOT NULL DEFAULT 73.85674370,
+        `radius_meters`       INT               NOT NULL DEFAULT 150,
+        `daily_passcode`      VARCHAR(20)       NOT NULL DEFAULT '1234',
+        `wifi_bypass_enabled` TINYINT(1)        NOT NULL DEFAULT 1
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 ];
 
 foreach ($tables as $name => $sql) {
@@ -210,6 +222,19 @@ foreach ($tables as $name => $sql) {
         logErr("Table <code>$name</code> failed: " . htmlspecialchars($e->getMessage()));
     }
 }
+
+// Insert default hotel settings if empty
+try {
+    $settingsCount = (int) $pdo->query("SELECT COUNT(*) FROM `hotel_settings`")->fetchColumn();
+    if ($settingsCount === 0) {
+        $pdo->exec("INSERT INTO `hotel_settings` (id, geofence_enabled, hotel_lat, hotel_lng, radius_meters, daily_passcode, wifi_bypass_enabled)
+                    VALUES (1, 0, 18.5204303, 73.8567437, 150, '1234', 1)");
+        logOk("Inserted default hotel settings row");
+    }
+} catch (PDOException $e) {
+    logErr("Failed to insert default hotel settings: " . htmlspecialchars($e->getMessage()));
+}
+
 
 // Check and alter orders table for missing columns
 try {

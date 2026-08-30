@@ -155,6 +155,38 @@ CREATE TABLE IF NOT EXISTS `order_status_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- ───────────────────────────────────────────────────────────────
+-- TABLE 5: occupied_tables
+-- Track active table occupancy.
+-- ───────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `occupied_tables` (
+  `table_no`      INT UNSIGNED      PRIMARY KEY,
+  `persons`       INT UNSIGNED      NOT NULL DEFAULT 1,
+  `occupied_at`   DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ───────────────────────────────────────────────────────────────
+-- TABLE 6: hotel_settings
+-- System/Security configurations (Geofencing, Passcode, Wi-Fi Bypass).
+-- ───────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `hotel_settings` (
+  `id`                  INT UNSIGNED      PRIMARY KEY,
+  `geofence_enabled`    TINYINT(1)        NOT NULL DEFAULT 0,
+  `hotel_lat`           DECIMAL(10,8)     NOT NULL DEFAULT 18.52043030,
+  `hotel_lng`           DECIMAL(11,8)     NOT NULL DEFAULT 73.85674370,
+  `radius_meters`       INT               NOT NULL DEFAULT 150,
+  `daily_passcode`      VARCHAR(20)       NOT NULL DEFAULT '1234',
+  `wifi_bypass_enabled` TINYINT(1)        NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert default row into hotel_settings
+INSERT INTO `hotel_settings` (`id`, `geofence_enabled`, `hotel_lat`, `hotel_lng`, `radius_meters`, `daily_passcode`, `wifi_bypass_enabled`)
+VALUES (1, 0, 18.5204303, 73.8567437, 150, '1234', 1)
+ON DUPLICATE KEY UPDATE id=id;
+
+
+
 -- ═══════════════════════════════════════════════════════════════
 -- NOTES FOR FUTURE SCALABILITY
 -- ═══════════════════════════════════════════════════════════════

@@ -17,21 +17,26 @@ $gst = floatval($body['gst']);
 $total = floatval($body['total']);
 $paymentMethod = trim((string)$body['payment_method']);
 $items = $body['items'];
+$isManual = !empty($body['is_manual']);
+$notes = isset($body['notes']) && trim((string)$body['notes']) !== '' ? trim((string)$body['notes']) : ($isManual ? 'Manual Bill' : null);
 
 $pdo = getDB();
 
 try {
     $pdo->beginTransaction();
 
-    // 1. Check for all active unbilled orders on this table
-    $stmt = $pdo->prepare("
-        SELECT id, order_ref, persons, customer_notes, created_at
-        FROM orders
-        WHERE table_no = ? AND payment_method IS NULL AND status != 'served'
-        ORDER BY created_at ASC
-    ");
-    $stmt->execute([$table]);
-    $activeOrders = $stmt->fetchAll();
+    $activeOrders = [];
+    // 1. Check for all active unbilled orders on this table (only if not an explicit manual bill and table is numeric)
+    if (!$isManual && is_numeric($table)) {
+        $stmt = $pdo->prepare("
+            SELECT id, order_ref, persons, customer_notes, created_at
+            FROM orders
+            WHERE table_no = ? AND payment_method IS NULL AND status != 'served'
+            ORDER BY created_at ASC
+        ");
+        $stmt->execute([$table]);
+        $activeOrders = $stmt->fetchAll();
+    }
 
     $now = date('Y-m-d H:i:s');
 
@@ -93,9 +98,11 @@ try {
 
     } else {
         if ($total <= 0 || empty($items)) {
-            // Just release table from occupied_tables
-            $delOcc = $pdo->prepare("DELETE FROM occupied_tables WHERE table_no = ?");
-            $delOcc->execute([(int)$table]);
+            // Just release table from occupied_tables if numeric
+            if (is_numeric($table)) {
+                $delOcc = $pdo->prepare("DELETE FROM occupied_tables WHERE table_no = ?");
+                $delOcc->execute([(int)$table]);
+            }
             $pdo->commit();
             jsonResponse([
                 'success' => true,
@@ -106,22 +113,25 @@ try {
             exit;
         }
 
-        // Create a new order directly as 'served' (billing only order)
+        // Create a new order directly as 'served' (billing only order or manual bill)
         $todayStr = date('ymd');
-        $prefix = 'ORD-' . $todayStr . '-T' . $table;
-        // Count previous orders for this table today
+        $prefixType = $isManual ? 'MAN-' : 'ORD-';
+        $tableClean = preg_replace('/[^a-zA-Z0-9]/', '', $table);
+        $prefix = $prefixType . $todayStr . ($tableClean !== '' ? '-T' . $tableClean : '');
+        // Count previous orders with this prefix today
         $countStmt = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE order_ref LIKE ?");
         $countStmt->execute([$prefix . '-%']);
         $prevCount = (int)$countStmt->fetchColumn();
         $orderRef = $prefix . '-' . str_pad((string)($prevCount + 1), 3, '0', STR_PAD_LEFT);
 
         $insStmt = $pdo->prepare("
-            INSERT INTO orders (order_ref, table_no, persons, status, subtotal, discount_amount, discount_type, gst_amount, total_amount, payment_method, served_at, created_at, updated_at)
-            VALUES (?, ?, 1, 'served', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO orders (order_ref, table_no, persons, status, customer_notes, subtotal, discount_amount, discount_type, gst_amount, total_amount, payment_method, served_at, created_at, updated_at)
+            VALUES (?, ?, 1, 'served', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $insStmt->execute([
             $orderRef,
             $table,
+            $notes,
             $subtotal,
             $discount,
             $discountType ?: null,

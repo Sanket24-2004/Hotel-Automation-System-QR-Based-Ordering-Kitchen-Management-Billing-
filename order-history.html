@@ -31,9 +31,13 @@
     .sum-label{font-size:.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:6px}
     .sum-value{font-size:1.4rem;font-weight:800;color:var(--gold)}
     .filter-row{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;animation:fadeInUp .5s ease .25s both}
-    #histSearch{flex:1;min-width:180px;background:rgba(255,255,255,.08);border:1px solid rgba(255,215,0,.4);border-radius:50px;padding:12px 20px;color:var(--white);font-family:'Poppins',sans-serif;font-size:.9rem;outline:none;caret-color:var(--gold)}
+    #histSearch{flex:1;min-width:220px;background:rgba(255,255,255,.08);border:1px solid rgba(255,215,0,.4);border-radius:50px;padding:12px 20px;color:var(--white);font-family:'Poppins',sans-serif;font-size:.9rem;outline:none;caret-color:var(--gold)}
     #histSearch::placeholder{color:rgba(255,255,255,.4)}
     #histSearch:focus{border-color:rgba(255,215,0,.8);box-shadow:0 0 0 3px rgba(255,215,0,.12)}
+    .type-filter-group{display:flex;gap:8px;flex-wrap:wrap}
+    .type-filter-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,215,0,.3);color:rgba(255,255,255,.7);padding:8px 16px;border-radius:50px;font-family:'Poppins',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+    .type-filter-btn:hover{background:rgba(255,215,0,.12);color:var(--gold)}
+    .type-filter-btn.active{background:var(--gold);color:#000;border-color:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.3)}
     .clear-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:11px 18px;border-radius:50px;font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
     .clear-btn:hover{background:rgba(255,255,255,.15)}
     #histList{display:flex;flex-direction:column;gap:12px;animation:fadeInUp .5s ease .3s both}
@@ -41,7 +45,10 @@
     .hist-card:hover{border-color:rgba(255,215,0,.5);box-shadow:0 8px 28px rgba(0,0,0,.35)}
     .hist-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:12px;flex-wrap:wrap}
     .hist-left{display:flex;align-items:center;gap:12px}
-    .hist-badge{padding:4px 12px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:rgba(34,197,94,.15);border:1px solid var(--green);color:var(--green)}
+    .hist-badge{padding:4px 10px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+    .hist-badge.paid{background:rgba(34,197,94,.15);border:1px solid var(--green);color:var(--green)}
+    .hist-badge.manual{background:rgba(249,115,22,.15);border:1px solid #f97316;color:#f97316}
+    .hist-badge.qr{background:rgba(59,130,246,.15);border:1px solid #3b82f6;color:#60a5fa}
     .hist-bill{font-size:.95rem;font-weight:700;color:var(--white)}
     .hist-table{font-size:.78rem;color:rgba(255,255,255,.5);margin-top:2px}
     .hist-right{text-align:right}
@@ -147,6 +154,11 @@
 
   <div class="filter-row">
     <input type="search" id="histSearch" placeholder="🔍 Search by table, bill no, item…" autocomplete="off" oninput="renderHistory()"/>
+    <div class="type-filter-group">
+      <button type="button" class="type-filter-btn active" id="filter-all" onclick="setTypeFilter('all', this)">All Bills</button>
+      <button type="button" class="type-filter-btn" id="filter-qr" onclick="setTypeFilter('qr', this)">📱 QR Orders</button>
+      <button type="button" class="type-filter-btn" id="filter-manual" onclick="setTypeFilter('manual', this)">📝 Manual Bills</button>
+    </div>
   </div>
 
   <div id="histList" role="list"></div>
@@ -185,6 +197,15 @@
 <script>
   function fmt(n){return'₹'+Number(n).toLocaleString('en-IN')}
   
+  var currentTypeFilter = 'all';
+
+  function setTypeFilter(type, btn) {
+    currentTypeFilter = type;
+    document.querySelectorAll('.type-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    renderHistory();
+  }
+
   function mapDbOrderToJsHistory(order) {
     var d = new Date(order.served_at ? order.served_at.replace(/-/g, '/') : order.created_at.replace(/-/g, '/'));
     var dateStrVal = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -210,9 +231,17 @@
       });
     }
 
+    var isManual = !!order.is_manual || (order.order_ref && order.order_ref.indexOf('MAN-') === 0) || ((order.customer_note || order.customer_notes || '').indexOf('Manual') !== -1);
+    var tableDisplay = order.table_no;
+    if (tableDisplay && !isNaN(tableDisplay)) {
+      tableDisplay = 'Table ' + tableDisplay;
+    } else if (!tableDisplay) {
+      tableDisplay = 'Table —';
+    }
+
     return {
       billNumber:     order.order_ref,
-      tableNumber:    'Table ' + order.table_no,
+      tableNumber:    tableDisplay,
       date:           dateStrVal,
       time:           timeStrVal,
       items:          items,
@@ -223,6 +252,7 @@
       totalAmount:    parseFloat(order.total_amount || 0),
       paymentMethod:  order.payment_method || null,
       status:         'Completed',
+      isManual:       isManual,
       timestamp:      d.getTime()
     };
   }
@@ -249,7 +279,20 @@
   async function renderHistory(){
     var all=await getHistoryFromDB(),q=(document.getElementById('histSearch').value||'').trim().toLowerCase();
     cachedHistory = all;
-    var filtered=q?all.filter(function(h){return(h.billNumber||'').toLowerCase().includes(q)||(h.tableNumber||'').toLowerCase().includes(q)||(h.paymentMethod||'').toLowerCase().includes(q)||(h.items||[]).some(function(i){return(i.name||'').toLowerCase().includes(q)})}):all;
+    var filtered = all.filter(function(h) {
+      var matchType = (currentTypeFilter === 'all') || 
+                      (currentTypeFilter === 'manual' && h.isManual) ||
+                      (currentTypeFilter === 'qr' && !h.isManual);
+      if (!matchType) return false;
+
+      if (!q) return true;
+      return (h.billNumber||'').toLowerCase().includes(q) ||
+             (h.tableNumber||'').toLowerCase().includes(q) ||
+             (h.paymentMethod||'').toLowerCase().includes(q) ||
+             (h.isManual ? 'manual' : 'qr').includes(q) ||
+             (h.items||[]).some(function(i){return(i.name||'').toLowerCase().includes(q)});
+    });
+
     var totalRev=0,totalGst=0;
     all.forEach(function(h){totalRev+=(h.totalAmount||0);totalGst+=(h.gst||0)});
     document.getElementById('sumCount').textContent=all.length;
@@ -259,13 +302,17 @@
     list.innerHTML='';
     if(all.length===0){empty.style.display='block';return}
     empty.style.display='none';
-    if(filtered.length===0){list.innerHTML='<p style="text-align:center;color:rgba(255,255,255,.4);padding:30px">No results for "'+q+'"</p>';return}
+    if(filtered.length===0){list.innerHTML='<p style="text-align:center;color:rgba(255,255,255,.4);padding:30px">No matching orders found.</p>';return}
     filtered.forEach(function(h){
       var card=document.createElement('div');card.className='hist-card';card.setAttribute('role','listitem');
       var pmIcon=h.paymentMethod==='UPI'?'📱':h.paymentMethod==='Card'?'💳':'💵';
       var itemsHtml=(h.items||[]).map(function(it){return'<tr><td>'+it.name+'</td><td>'+it.qty+'</td><td>'+fmt(it.price)+'</td><td>'+fmt(it.qty*it.price)+'</td></tr>'}).join('');
       var safeBillNo = (h.billNumber || '').replace(/'/g, "\\'");
-      card.innerHTML='<div class="hist-card-header" onclick="toggleDetail(this)"><div class="hist-left"><span class="hist-badge">✅ Paid</span><div><div class="hist-bill">'+(h.billNumber||'—')+'</div><div class="hist-table">'+(h.tableNumber||'—')+' · '+(h.date||'')+', '+(h.time||'')+'</div></div></div><div class="hist-right"><div class="hist-amount">'+fmt(h.totalAmount||0)+'</div><span class="pay-chip">'+pmIcon+' '+(h.paymentMethod||'—')+'</span></div></div><div class="hist-detail"><table class="det-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+itemsHtml+'</tbody></table><div class="det-totals"><div class="det-row"><span>Subtotal</span><span>'+fmt(h.subtotal||0)+'</span></div><div class="det-row"><span>Discount</span><span style="color:#f97316">-'+fmt(h.discount||0)+'</span></div><div class="det-row"><span>GST (5%)</span><span>'+fmt(h.gst||0)+'</span></div><div class="det-row"><span>TOTAL</span><span>'+fmt(h.totalAmount||0)+'</span></div></div><button class="btn-print-bill" onclick="printHistoricalBill(\''+safeBillNo+'\')">🖨️ Print Bill Receipt</button></div>';
+      var typeBadge = h.isManual 
+        ? '<span class="hist-badge manual">📝 Manual Bill</span>' 
+        : '<span class="hist-badge qr">📱 QR Order</span>';
+
+      card.innerHTML='<div class="hist-card-header" onclick="toggleDetail(this)"><div class="hist-left"><span class="hist-badge paid">✅ Paid</span>' + typeBadge + '<div><div class="hist-bill">'+(h.billNumber||'—')+'</div><div class="hist-table">'+(h.tableNumber||'—')+' · '+(h.date||'')+', '+(h.time||'')+'</div></div></div><div class="hist-right"><div class="hist-amount">'+fmt(h.totalAmount||0)+'</div><span class="pay-chip">'+pmIcon+' '+(h.paymentMethod||'—')+'</span></div></div><div class="hist-detail"><table class="det-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+itemsHtml+'</tbody></table><div class="det-totals"><div class="det-row"><span>Subtotal</span><span>'+fmt(h.subtotal||0)+'</span></div><div class="det-row"><span>Discount</span><span style="color:#f97316">-'+fmt(h.discount||0)+'</span></div><div class="det-row"><span>GST (5%)</span><span>'+fmt(h.gst||0)+'</span></div><div class="det-row"><span>TOTAL</span><span>'+fmt(h.totalAmount||0)+'</span></div></div><button class="btn-print-bill" onclick="printHistoricalBill(\''+safeBillNo+'\')">🖨️ Print Bill Receipt</button></div>';
       list.appendChild(card);
     });
   }
