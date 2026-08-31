@@ -259,7 +259,7 @@
 
     /* ── CART BAR ── */
     .cart-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      position: fixed; bottom: 4.8rem; left: 0; right: 0; z-index: 200;
       padding: .9rem 1.2rem;
       background: rgba(10,7,2,.95);
       border-top: 1px solid rgba(212,168,50,.3);
@@ -352,7 +352,7 @@
 
     /* lift toast and cart-bar above taskbar */
     .toast { bottom: 5.5rem; }
-    .cart-bar { bottom: 4.5rem; z-index: 9998; }
+    .cart-bar { bottom: 4.8rem; z-index: 9998; }
 
     /* ── RESPONSIVE ── */
     @media (min-width: 560px) {
@@ -419,7 +419,7 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <!-- ══ TASKBAR ══ -->
+      <!-- ══ TASKBAR ══ -->
   <div class="taskbar">
     <a href="menu.html" class="taskbar-btn" id="taskbarHome" onclick="passParams(event)">
       <div class="taskbar-icon">🏠</div>
@@ -427,15 +427,19 @@
     </a>
     <a href="my_orders.html" class="taskbar-btn" id="taskbarOrders" onclick="passParamsToOrders(event)">
       <div class="taskbar-icon">📝</div>
-      <span id="txtMyOrder">My Orders</span>
+      <span id="txtMyOrder">My Order</span>
     </a>
   </div>
 
-  <!-- ══ ORDER POPUP ══ -->
+  <!-- ══ ORDER POPUP OVERLAY ══ -->
   <div class="order-popup-overlay" id="orderPopupOverlay">
-    <div class="order-popup">
+    <div class="order-popup-card">
+      <div class="popup-icon">🍽️</div>
       <div class="popup-title">✨ Order Confirmed</div>
-      <div class="popup-desc" id="popupDesc">Your order has been sent to the kitchen and is expected to arrive within 3 minutes. Thank you 😊.</div>
+      <div class="popup-desc" id="popupDesc">
+        Your order has been sent to the kitchen and will be served shortly. Thank you! 😊
+      </div>
+      <button class="popup-close-btn" onclick="document.getElementById('orderPopupOverlay').classList.remove('show')">Great!</button>
     </div>
   </div>
 
@@ -622,9 +626,9 @@
         const popup = document.getElementById('orderPopupOverlay');
         const popupDesc = document.getElementById('popupDesc');
         const msgs = {
-          en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
-          hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
-          mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+          en: 'Your order has been sent to the kitchen and will be served shortly. Thank you! 😊',
+          hi: 'आपका ऑर्डर किचन में भेज दिया गया है और जल्द ही परोसा जाएगा। धन्यवाद! 😊',
+          mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि लवकरच दिली जाईल. धन्यवाद! 😊'
         };
         const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
         const titleEl = document.querySelector('.popup-title');
@@ -641,17 +645,23 @@
       }
     }
 
-    /* ── Back button params ── */
+        /* ── Back button params ── */
     function passParams(e) {
       const base = 'menu.html';
-      const q = new URLSearchParams({ lang, table, persons }).toString();
+      const qObj = { lang, table, persons };
+      const tok = (window.TableSecurity ? window.TableSecurity.getActiveToken(table) : '') || (new URLSearchParams(location.search)).get('token') || '';
+      if (tok) qObj.token = tok;
+      const q = new URLSearchParams(qObj).toString();
       e.currentTarget.href = base + '?' + q;
     }
 
     /* ── My Orders button params ── */
     function passParamsToOrders(e) {
       const base = 'my_orders.html';
-      const q = new URLSearchParams({ lang, table, persons }).toString();
+      const qObj = { lang, table, persons };
+      const tok = (window.TableSecurity ? window.TableSecurity.getActiveToken(table) : '') || (new URLSearchParams(location.search)).get('token') || '';
+      if (tok) qObj.token = tok;
+      const q = new URLSearchParams(qObj).toString();
       e.currentTarget.href = base + '?' + q;
     }
 

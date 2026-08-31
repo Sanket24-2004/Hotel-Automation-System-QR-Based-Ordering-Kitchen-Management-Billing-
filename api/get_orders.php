@@ -70,15 +70,19 @@ if ($statusFilter !== 'all' && !in_array($statusFilter, $validStatuses, true)) {
 // Category mapping: database ENUM → kitchen.js short names
 // kitchen.js uses: starter, main, bread, rice, beverage, dessert, salad, side, water
 $categoryDbToJs = [
-    'starter'      => 'starter',
-    'main_course'  => 'main',
-    'bread'        => 'bread',
-    'rice_biryani' => 'rice',
-    'beverage'     => 'beverage',
-    'dessert'      => 'dessert',
-    'salad'        => 'salad',
-    'side_dish'    => 'side',
-    'water'        => 'water',
+    'starter'        => 'starter',
+    'main_course'    => 'main',
+    'special_dishes' => 'special_dishes',
+    'bread'          => 'bread',
+    'rice_biryani'   => 'rice',
+    'dessert'        => 'dessert',
+    'salad'          => 'salad',
+    'side_dish'      => 'side',
+    'water'          => 'water',
+    'welcome_drink'  => 'welcome_drink',
+    'breakfast'      => 'breakfast',
+    'thali'          => 'thali',
+    'chinese'        => 'chinese',
 ];
 
 try {
@@ -92,25 +96,28 @@ try {
 
     if ($statusFilter === 'all') {
         if ($sinceTimestamp > 0) {
-            // ── INCREMENTAL POLL: Return active unbilled orders or anything updated since last poll ──
+            // ── INCREMENTAL POLL: Return today's active unbilled orders or anything updated since last poll ──
             $orderSql = "
                 SELECT *
                 FROM orders
-                WHERE updated_at > :since
-                   OR (payment_method IS NULL AND status != 'served')
-                ORDER BY created_at ASC
+                WHERE (
+                    updated_at > :since
+                    OR (payment_method IS NULL AND DATE(created_at) = CURDATE())
+                )
+                ORDER BY updated_at DESC, created_at DESC
             ";
             $orderStmt = $pdo->prepare($orderSql);
             $orderStmt->execute([
                 'since' => $sinceDate,
             ]);
         } else {
-            // ── FIRST LOAD: All active unbilled orders ──
+            // ── FIRST LOAD: All active unbilled orders from TODAY only ──
             $orderSql = "
                 SELECT *
                 FROM orders
-                WHERE payment_method IS NULL AND status != 'served'
-                ORDER BY created_at ASC
+                WHERE payment_method IS NULL
+                  AND DATE(created_at) = CURDATE()
+                ORDER BY updated_at DESC, created_at DESC
             ";
             $orderStmt = $pdo->prepare($orderSql);
             $orderStmt->execute();
@@ -152,7 +159,7 @@ try {
             FROM order_items oi
             LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
             WHERE oi.order_id IN ($placeholders)
-            ORDER BY oi.added_at ASC, oi.id ASC
+            ORDER BY oi.is_served ASC, oi.added_at DESC, oi.id DESC
         ");
         $itemStmt->execute($orderIds);
 
@@ -173,6 +180,8 @@ try {
             $jsCategory = $categoryDbToJs[$dbCategory] ?? $dbCategory;
 
             $batchedItems[$oid][$bid]['items'][] = [
+                'item_id'       => (int)$item['id'],
+                'menu_item_id'  => (int)$item['menu_item_id'],
                 'id'            => (int)$item['menu_item_id'],
                 'name'          => !empty($item['name_hi']) ? $item['name_hi'] : $item['item_name'],
                 'name_hi'       => !empty($item['name_hi']) ? $item['name_hi'] : $item['item_name'],
@@ -181,6 +190,9 @@ try {
                 'price'         => (float)$item['unit_price'],
                 'qty'           => (int)$item['qty'],
                 'is_new'        => (int)$item['is_new'],
+                'is_served'     => (int)($item['is_served'] ?? 0),
+                'served_at'     => $item['served_at'] ?? null,
+                'added_at'      => $item['added_at'] ?? null,
                 'prep_time_min' => (int)($item['prep_time_min'] ?? 5),
                 'is_veg'        => (int)($item['is_veg'] ?? 1),
             ];
@@ -228,6 +240,20 @@ try {
             ? array_values($batchedItems[$oid])
             : [];
 
+        // Calculate item serving counts
+        $totalItemCount = 0;
+        $servedItemCount = 0;
+        foreach ($batches as $b) {
+            foreach ($b['items'] as $it) {
+                $totalItemCount++;
+                if (!empty($it['is_served'])) {
+                    $servedItemCount++;
+                }
+            }
+        }
+        $isAllServed = ($totalItemCount > 0 && $servedItemCount >= $totalItemCount) || $order['status'] === 'served';
+        $hasUnserved = ($totalItemCount > $servedItemCount) && $order['status'] !== 'served';
+
         // Get status log for this order
         $logs = $statusLogs[$oid] ?? [];
 
@@ -256,6 +282,10 @@ try {
 
             // Nested data
             'batches'         => $batches,
+            'all_served'      => $isAllServed,
+            'has_unserved'    => $hasUnserved,
+            'served_count'    => $servedItemCount,
+            'total_items'     => $totalItemCount,
             'status_log'      => $logs,
         ];
     }

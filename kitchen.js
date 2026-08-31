@@ -1,7 +1,7 @@
 /**
  * kitchen.js — Hotel Tulsi 24" Hindi Kitchen Display System (KDS)
- * 100% Hands-Free Operation for Chefs and Kitchen Staff
- * v7.0 — Dual Partition (नया ऑर्डर / चल रहे ऑर्डर्स) with Live Audio Chimes
+ * 100% Hands-Free & Interactive Operation for Chefs and Kitchen Staff
+ * v9.0 — Single Consolidated Table Card, 3 Partitions (New, In-Progress, Fully Served), See All Served Items Toggle
  */
 'use strict';
 
@@ -10,22 +10,21 @@
    ═══════════════════════════════════════════════════════════════ */
 const API_BASE = 'api/';
 const POLL_INTERVAL = 2500; // Poll every 2.5 seconds
-const NEW_ORDER_TIMEOUT_SEC = 180; // 3 minutes stay in "New" section before moving to "Ongoing" if no newer order arrives
 
 const CATEGORY_ICONS = {
-  welcome_drink: '🍹', breakfast: '🍳', starter: '🍽️', main: '🍛', bread: '🫓', rice: '🍚',
-  beverage: '🥤', dessert: '🍨', salad: '🥗', side: '🥣', water: '💧'
+  welcome_drink: '🍹', breakfast: '🍳', starter: '🍽️', thali: '🍱', main: '🍛', special_dishes: '🍲', bread: '🫓', rice: '🍚',
+  chinese: '🥢', side: '🥣', dessert: '🍨', water: '💧', salad: '🥗'
 };
 
 const CATEGORY_HINDI = {
-  welcome_drink: 'वेलकम ड्रिंक', breakfast: 'नाश्ता', starter: 'स्टार्टर', main: 'मेन कोर्स', bread: 'रोटी / ब्रेड', rice: 'चावल / बिरयानी',
-  beverage: 'पेय / बेवरेज', dessert: 'मीठा / डेज़र्ट', salad: 'सलाद', side: 'अन्य', water: 'पानी'
+  welcome_drink: 'वेलकम ड्रिंक', breakfast: 'नाश्ता', starter: 'स्टार्टर', thali: 'थाली', main: 'मेन कोर्स', special_dishes: 'स्पेशल हांडी', bread: 'रोटी / पराठा', rice: 'चावल / बिरयानी',
+  chinese: 'चाइनीज / नूडल्स', side: 'सूप / रायता', dessert: 'आइसक्रीम / डेज़र्ट', water: 'पानी', salad: 'सलाद'
 };
 
 /* ═══════════════════════════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════════════════════════ */
-let ordersCache = {}; // id -> order object
+let ordersCache = {}; // table_no -> consolidated order object
 let previousOrderIds = new Set();
 let soundEnabled = localStorage.getItem('kds_sound') !== 'false';
 let isFirstLoad = true;
@@ -34,20 +33,26 @@ let audioCtx = null;
 let pollIntervalTimer = null;
 let timerTickInterval = null;
 let isHistoryOpen = false;
+let expandedServedTables = new Set(); // Track tables where user clicked "See All Items"
 
 /* ═══════════════════════════════════════════════════════════════
    DOM REFERENCES
    ═══════════════════════════════════════════════════════════════ */
 const $newOrdersContainer     = document.getElementById('newOrdersContainer');
 const $ongoingOrdersContainer = document.getElementById('ongoingOrdersContainer');
+const $servedOrdersContainer  = document.getElementById('servedOrdersContainer');
+
 const $newEmptyState          = document.getElementById('newEmptyState');
 const $ongoingEmptyState      = document.getElementById('ongoingEmptyState');
+const $servedEmptyState       = document.getElementById('servedEmptyState');
 
 const $badgeNewOrders         = document.getElementById('badgeNewOrders');
 const $badgeOngoingOrders     = document.getElementById('badgeOngoingOrders');
+const $badgeServedOrders      = document.getElementById('badgeServedOrders');
 
 const $statNewCount           = document.getElementById('statNewCount');
 const $statOngoingCount       = document.getElementById('statOngoingCount');
+const $statServedCount        = document.getElementById('statServedCount');
 const $statTotalActive        = document.getElementById('statTotalActive');
 
 const $kdsClock               = document.getElementById('kdsClock');
@@ -140,7 +145,6 @@ function playKitchenChime() {
   if (!ac || ac.state === 'suspended') return;
 
   try {
-    // Elegant 4-tone ascending kitchen chime: C6 -> E6 -> G6 -> C7
     const notes = [1046.50, 1318.51, 1567.98, 2093.00];
     const now = ac.currentTime;
 
@@ -210,6 +214,7 @@ function toggleFullScreen() {
 
 /* ═══════════════════════════════════════════════════════════════
    POLLING & SYNC
+   - Consolidates all unbilled items per table into ONE single card!
    ═══════════════════════════════════════════════════════════════ */
 async function fetchKitchenOrders() {
   const url = `${API_BASE}get_orders.php?status=all&since=0&t=${Date.now()}`;
@@ -244,25 +249,37 @@ function processIncomingOrders(orders) {
   let hasBrandNewOrder = false;
   let newOrderTable = '';
 
-  const incomingActiveMap = {};
+  const incomingTableMap = {};
 
   orders.forEach(order => {
     // Only process unbilled orders
-    if (order.status === 'served' || order.payment_method) {
+    if (order.payment_method) {
       return;
     }
 
-    const oid = order.id;
-    incomingActiveMap[oid] = order;
+    const tNo = String(order.table_no);
 
-    // Detect new order arrival
+    if (!incomingTableMap[tNo]) {
+      incomingTableMap[tNo] = order;
+    } else {
+      // Consolidate duplicate table orders if any exist into one
+      const existing = incomingTableMap[tNo];
+      existing.batches = (existing.batches || []).concat(order.batches || []);
+      if (new Date(order.updated_at || order.created_at) > new Date(existing.updated_at || existing.created_at)) {
+        existing.updated_at = order.updated_at;
+        existing.status = order.status;
+      }
+    }
+
+    // Detect brand new order arrival
+    const oid = order.id;
     if (!previousOrderIds.has(oid) && !isFirstLoad) {
       hasBrandNewOrder = true;
       newOrderTable = order.table_no;
     }
 
     // Detect additional batch items added to existing order
-    const prevOrder = ordersCache[oid];
+    const prevOrder = Object.values(ordersCache).find(o => String(o.table_no) === tNo);
     if (prevOrder && !isFirstLoad) {
       const prevBatches = new Set((prevOrder.batches || []).map(b => b.batch_id));
       (order.batches || []).forEach(b => {
@@ -274,9 +291,25 @@ function processIncomingOrders(orders) {
     }
   });
 
+  // Re-calculate all_served per consolidated table
+  Object.values(incomingTableMap).forEach(order => {
+    let totalItems = 0;
+    let servedItems = 0;
+    (order.batches || []).forEach(b => {
+      (b.items || []).forEach(it => {
+        totalItems++;
+        if (it.is_served) servedItems++;
+      });
+    });
+    order.total_items = totalItems;
+    order.served_count = servedItems;
+    order.all_served = (totalItems > 0 && servedItems >= totalItems) || order.status === 'served';
+    order.has_unserved = (totalItems > servedItems) && order.status !== 'served';
+  });
+
   // Update active cache
-  ordersCache = incomingActiveMap;
-  previousOrderIds = new Set(Object.keys(incomingActiveMap).map(Number));
+  ordersCache = incomingTableMap;
+  previousOrderIds = new Set(orders.map(o => o.id));
 
   if (hasBrandNewOrder) {
     playKitchenChime();
@@ -296,51 +329,73 @@ function triggerNewOrderBanner(tableNo) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DUAL-PARTITION RENDER LOGIC
+   3-PARTITION RENDER LOGIC
+   1. Partition 1 (Left / Red): NEWEST ACTIVE ORDER
+   2. Partition 2 (Middle / Orange): IN-PROGRESS ACTIVE ORDERS
+   3. Partition 3 (Right / Green): FULLY SERVED TABLES
    ═══════════════════════════════════════════════════════════════ */
 function renderKdsPartitions() {
-  const activeOrders = Object.values(ordersCache);
+  const allTables = Object.values(ordersCache);
 
-  // Sort by created_at DESC (newest first, then ID)
-  activeOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at) || b.id - a.id);
+  // Separate unserved vs fully served tables
+  const unservedTables = allTables.filter(o => !o.all_served);
+  const fullyServedTables = allTables.filter(o => !!o.all_served);
+
+  // Sort unserved tables: newest updated/created timestamp FIRST
+  unservedTables.sort((a, b) => {
+    const aTime = new Date(a.updated_at || a.created_at).getTime();
+    const bTime = new Date(b.updated_at || b.created_at).getTime();
+    return bTime - aTime || b.id - a.id;
+  });
+
+  // Sort fully served tables: most recently served first
+  fullyServedTables.sort((a, b) => {
+    const aTime = new Date(a.served_at || a.updated_at || a.created_at).getTime();
+    const bTime = new Date(b.served_at || b.updated_at || b.created_at).getTime();
+    return bTime - aTime || b.id - a.id;
+  });
 
   const newOrders = [];
   const ongoingOrders = [];
 
-  if (activeOrders.length > 0) {
-    // Partition 1 (Left): ONLY the single latest / newest order!
-    newOrders.push(activeOrders[0]);
+  if (unservedTables.length > 0) {
+    // Partition 1 (Left): ONLY the single latest / newest active order!
+    newOrders.push(unservedTables[0]);
 
-    // Partition 2 (Right): All other previously received active orders
-    for (let i = 1; i < activeOrders.length; i++) {
-      ongoingOrders.push(activeOrders[i]);
+    // Partition 2 (Middle): All other unserved in-progress tables
+    for (let i = 1; i < unservedTables.length; i++) {
+      ongoingOrders.push(unservedTables[i]);
     }
   }
 
   // Update header badges
-  const totalCount = activeOrders.length;
+  const totalCount = allTables.length;
   const newCount = newOrders.length;
   const ongoingCount = ongoingOrders.length;
+  const servedCount = fullyServedTables.length;
 
   if ($statNewCount) $statNewCount.textContent = newCount;
   if ($statOngoingCount) $statOngoingCount.textContent = ongoingCount;
+  if ($statServedCount) $statServedCount.textContent = servedCount;
   if ($statTotalActive) $statTotalActive.textContent = totalCount;
 
   if ($badgeNewOrders) $badgeNewOrders.textContent = newCount;
   if ($badgeOngoingOrders) $badgeOngoingOrders.textContent = ongoingCount;
+  if ($badgeServedOrders) $badgeServedOrders.textContent = servedCount;
 
   const mAll = document.getElementById('mBadgeAll');
   const mNew = document.getElementById('mBadgeNew');
   const mOngoing = document.getElementById('mBadgeOngoing');
+  const mServed = document.getElementById('mBadgeServed');
   if (mAll) mAll.textContent = totalCount;
   if (mNew) mNew.textContent = newCount;
   if (mOngoing) mOngoing.textContent = ongoingCount;
+  if (mServed) mServed.textContent = servedCount;
 
-  // Render Partition 1: New Orders
+  // Render 3 Partitions
   renderNewPartition(newOrders);
-
-  // Render Partition 2: Ongoing Orders
   renderOngoingPartition(ongoingOrders);
+  renderServedPartition(fullyServedTables);
 
   if (window.innerWidth <= 768) {
     switchMobileKdsTab(currentMobileTab);
@@ -352,22 +407,34 @@ let currentMobileTab = 'all';
 function switchMobileKdsTab(tab) {
   currentMobileTab = tab;
   document.querySelectorAll('.m-tab').forEach(btn => btn.classList.remove('active'));
-  const activeBtn = document.getElementById(tab === 'all' ? 'mTabAll' : tab === 'new' ? 'mTabNew' : 'mTabOngoing');
+  const activeBtn = document.getElementById(
+    tab === 'all' ? 'mTabAll' : 
+    tab === 'new' ? 'mTabNew' : 
+    tab === 'ongoing' ? 'mTabOngoing' : 'mTabServed'
+  );
   if (activeBtn) activeBtn.classList.add('active');
 
   const pNew = document.getElementById('partitionNew');
   const pOngoing = document.getElementById('partitionOngoing');
-  if (!pNew || !pOngoing) return;
+  const pServed = document.getElementById('partitionServed');
+  if (!pNew || !pOngoing || !pServed) return;
 
   if (tab === 'all') {
     pNew.style.display = '';
     pOngoing.style.display = '';
+    pServed.style.display = '';
   } else if (tab === 'new') {
     pNew.style.display = 'flex';
     pOngoing.style.display = 'none';
+    pServed.style.display = 'none';
   } else if (tab === 'ongoing') {
     pNew.style.display = 'none';
     pOngoing.style.display = 'flex';
+    pServed.style.display = 'none';
+  } else if (tab === 'served') {
+    pNew.style.display = 'none';
+    pOngoing.style.display = 'none';
+    pServed.style.display = 'flex';
   }
 }
 
@@ -384,7 +451,7 @@ function renderNewPartition(orders) {
   $newOrdersContainer.innerHTML = '';
 
   orders.forEach(order => {
-    const card = createKdsCard(order, true);
+    const card = createKdsCard(order, true, false);
     $newOrdersContainer.appendChild(card);
   });
 }
@@ -402,23 +469,53 @@ function renderOngoingPartition(orders) {
   $ongoingOrdersContainer.innerHTML = '';
 
   orders.forEach(order => {
-    const card = createKdsCard(order, false);
+    const card = createKdsCard(order, false, false);
     $ongoingOrdersContainer.appendChild(card);
+  });
+}
+
+function renderServedPartition(orders) {
+  if (!$servedOrdersContainer || !$servedEmptyState) return;
+
+  if (orders.length === 0) {
+    $servedOrdersContainer.innerHTML = '';
+    $servedEmptyState.style.display = 'flex';
+    return;
+  }
+
+  $servedEmptyState.style.display = 'none';
+  $servedOrdersContainer.innerHTML = '';
+
+  orders.forEach(order => {
+    const card = createKdsCard(order, false, true);
+    $servedOrdersContainer.appendChild(card);
   });
 }
 
 /* ═══════════════════════════════════════════════════════════════
    CARD CREATION (HINDI KDS COMPONENT)
+   - Single Consolidated Table Card
+   - See All Served Items Toggle for Fully Served Tables
+   - Unserved items ALWAYS on top
    ═══════════════════════════════════════════════════════════════ */
-function createKdsCard(order, isNewPartition) {
+function createKdsCard(order, isNewPartition, isServedPartition) {
   const card = document.createElement('div');
   const isDelayed = checkIsDelayed(order);
+  const isAllServed = !!order.all_served;
+  const tNo = String(order.table_no);
 
-  const cardClass = isNewPartition 
+  let cardClass = isNewPartition 
     ? 'kds-card kds-card-new' 
-    : `kds-card kds-card-ongoing${isDelayed ? ' delayed' : ''}`;
+    : isServedPartition
+      ? 'kds-card kds-card-served all-served'
+      : `kds-card kds-card-ongoing${isDelayed ? ' delayed' : ''}`;
+  
+  if (isAllServed && !isServedPartition) {
+    cardClass += ' all-served';
+  }
   
   card.className = cardClass;
+  card.dataset.table = tNo;
   card.dataset.id = order.id;
 
   const elapsedText = getElapsedFormatted(order.created_at);
@@ -426,7 +523,9 @@ function createKdsCard(order, isNewPartition) {
 
   // Status badge text
   let statusBadgeHtml = '';
-  if (isNewPartition) {
+  if (isAllServed) {
+    statusBadgeHtml = `<span class="status-tag tag-served">✓ परोसा गया (Served)</span>`;
+  } else if (isNewPartition) {
     statusBadgeHtml = `<span class="status-tag tag-new">🔴 नया ऑर्डर</span>`;
   } else if (isDelayed) {
     statusBadgeHtml = `<span class="status-tag tag-delayed">⚠️ विलंब (${prepTime}+ मि.)</span>`;
@@ -450,28 +549,71 @@ function createKdsCard(order, isNewPartition) {
     `;
   }
 
-  // Items rows in Hindi
-  let itemsHtml = '';
+  // Flatten all items across batches and SORT:
+  // 1. Unserved items (is_served === 0) ON TOP
+  // 2. Served items (is_served === 1) BELOW with Green & Dimmed Transparency
+  const allItems = [];
   (order.batches || []).forEach(batch => {
     (batch.items || []).forEach(item => {
-      const icon = CATEGORY_ICONS[item.category] || '🍽️';
-      const dishHindi = item.name_hi || item.name || 'व्यंजन';
-      const dishEnglish = item.name_en && item.name_en !== dishHindi ? item.name_en : '';
-
-      itemsHtml += `
-        <div class="dish-row">
-          <div class="dish-info">
-            <span class="dish-icon">${icon}</span>
-            <div class="dish-text">
-              <span class="dish-name-hi">${dishHindi}</span>
-              ${dishEnglish ? `<span class="dish-name-en">${escapeHtml(dishEnglish)}</span>` : ''}
-            </div>
-          </div>
-          <span class="dish-qty-badge">× ${item.qty}</span>
-        </div>
-      `;
+      allItems.push({ ...item, batch_id: batch.batch_id });
     });
   });
+
+  allItems.sort((a, b) => {
+    const aServed = a.is_served ? 1 : 0;
+    const bServed = b.is_served ? 1 : 0;
+    if (aServed !== bServed) {
+      return aServed - bServed; // 0 (unserved) first
+    }
+    return (b.item_id || 0) - (a.item_id || 0);
+  });
+
+  // Check if fully served items should be collapsed
+  const isExpanded = expandedServedTables.has(tNo) || !isAllServed;
+
+  let itemsHtml = '';
+  allItems.forEach(item => {
+    const icon = CATEGORY_ICONS[item.category] || '🍽️';
+    const dishHindi = item.name_hi || item.name || 'व्यंजन';
+    const dishEnglish = item.name_en && item.name_en !== dishHindi ? item.name_en : '';
+    const isItemServed = !!item.is_served;
+
+    itemsHtml += `
+      <div class="dish-row ${isItemServed ? 'dish-served' : 'dish-active'}" data-item-id="${item.item_id || 0}">
+        <div class="dish-info">
+          <span class="dish-icon">${icon}</span>
+          <div class="dish-text">
+            <span class="dish-name-hi">${dishHindi}</span>
+            ${dishEnglish ? `<span class="dish-name-en">${escapeHtml(dishEnglish)}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+          <span class="dish-qty-badge">× ${item.qty}</span>
+          <button class="dish-check-btn ${isItemServed ? 'checked' : ''}" 
+                  onclick="toggleItemServed('${tNo}', ${order.id}, ${item.item_id || 0}, event)" 
+                  title="${isItemServed ? 'परोसा जा चुका है (क्लिक करके बदलें)' : 'परोसा गया चिह्नित करें'}">
+            ${isItemServed ? '✓ परोसा गया' : 'परोसें ✓'}
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  // "See All" summary toggle when all items are served
+  let servedSummaryHtml = '';
+  if (isAllServed) {
+    servedSummaryHtml = `
+      <div class="all-served-summary">
+        <div class="served-summary-text">
+          <span>✓</span>
+          <span>सभी ${allItems.length} व्यंजन परोसे जा चुके हैं</span>
+        </div>
+        <button class="toggle-items-btn" onclick="toggleTableItemsCollapse('${tNo}', event)">
+          ${isExpanded ? '▲ विवरण छिपाएँ (Hide)' : `👁️ सभी व्यंजन देखें (${allItems.length} Items)`}
+        </button>
+      </div>
+    `;
+  }
 
   card.innerHTML = `
     <div class="card-top">
@@ -501,16 +643,137 @@ function createKdsCard(order, isNewPartition) {
 
     ${noteHtml}
 
-    <div class="card-items-body">
+    ${servedSummaryHtml}
+
+    <div class="card-items-body" style="${!isExpanded && isAllServed ? 'display:none;' : ''}">
       ${itemsHtml}
+    </div>
+
+    <div class="card-actions-bar">
+      <button class="kds-serve-btn ${isAllServed ? 'is-served' : ''}" 
+              onclick="toggleOrderServed('${tNo}', ${order.id}, event)">
+        ${isAllServed ? '✓ पूरा टेबल परोसा गया (वापस खोलें)' : '✓ परोसा गया (Mark as Served)'}
+      </button>
     </div>
 
     <div class="card-bottom-info">
       <span class="order-ref-num">${order.order_ref || ''}</span>
+      <span style="font-size:0.85rem;font-weight:700;color:${isAllServed ? '#4ade80' : 'var(--text-sub)'};">
+        ${order.total_items ? `कुल: ${order.total_items} व्यंजन | परोसे: ${order.served_count || 0}` : ''}
+      </span>
     </div>
   `;
 
   return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOGGLE ITEMS COLLAPSE (SEE ALL ITEMS)
+   ═══════════════════════════════════════════════════════════════ */
+function toggleTableItemsCollapse(tableNo, evt) {
+  if (evt) evt.stopPropagation();
+  const tStr = String(tableNo);
+  if (expandedServedTables.has(tStr)) {
+    expandedServedTables.delete(tStr);
+  } else {
+    expandedServedTables.add(tStr);
+  }
+  renderKdsPartitions();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SERVE ACTIONS (WHOLE ORDER & INDIVIDUAL ITEMS)
+   ═══════════════════════════════════════════════════════════════ */
+async function toggleOrderServed(tableNo, orderId, evt) {
+  if (evt) evt.stopPropagation();
+
+  const order = ordersCache[String(tableNo)];
+  if (!order) return;
+
+  const willBeServed = !order.all_served;
+
+  // Optimistic UI update
+  order.all_served = willBeServed;
+  order.status = willBeServed ? 'served' : 'preparing';
+  (order.batches || []).forEach(b => {
+    (b.items || []).forEach(i => {
+      i.is_served = willBeServed ? 1 : 0;
+    });
+  });
+
+  renderKdsPartitions();
+
+  try {
+    const resp = await fetch(`${API_BASE}update_status.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_id: orderId,
+        action: 'toggle_served'
+      })
+    });
+    const data = await resp.json();
+    if (!data.success) {
+      console.error('Failed to toggle order status:', data.error);
+    }
+  } catch (err) {
+    console.error('Error toggling order status:', err);
+  }
+}
+
+async function toggleItemServed(tableNo, orderId, itemId, evt) {
+  if (evt) evt.stopPropagation();
+
+  const order = ordersCache[String(tableNo)];
+  if (!order) return;
+
+  let targetItem = null;
+  (order.batches || []).forEach(b => {
+    (b.items || []).forEach(i => {
+      if (i.item_id === itemId) {
+        targetItem = i;
+      }
+    });
+  });
+
+  if (targetItem) {
+    targetItem.is_served = targetItem.is_served ? 0 : 1;
+
+    // Check if all items are served
+    let total = 0;
+    let served = 0;
+    (order.batches || []).forEach(b => {
+      (b.items || []).forEach(i => {
+        total++;
+        if (i.is_served) served++;
+      });
+    });
+
+    order.all_served = (total > 0 && served >= total);
+    order.status = order.all_served ? 'served' : 'preparing';
+    order.served_count = served;
+    order.total_items = total;
+
+    renderKdsPartitions();
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}update_status.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_id: orderId,
+        item_id: itemId,
+        action: 'toggle_item_served'
+      })
+    });
+    const data = await resp.json();
+    if (!data.success) {
+      console.error('Failed to toggle item status:', data.error);
+    }
+  } catch (err) {
+    console.error('Error toggling item status:', err);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -522,7 +785,7 @@ function updateLiveTimers() {
     el.textContent = getElapsedFormatted(createdStr);
 
     const card = el.closest('.kds-card');
-    if (card && !card.classList.contains('kds-card-new')) {
+    if (card && !card.classList.contains('kds-card-new') && !card.classList.contains('all-served')) {
       const createdMs = new Date(createdStr).getTime();
       const elapsedMin = (Date.now() - createdMs) / 60000;
       if (elapsedMin > 15 && !card.classList.contains('delayed')) {
@@ -633,6 +896,86 @@ async function loadBilledHistory() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   KITCHEN SECURITY & AUTHENTICATION (Kitchen@414301)
+   ═══════════════════════════════════════════════════════════════ */
+const KITCHEN_MASTER_PASS = 'Kitchen@414301';
+const KITCHEN_AUTH_KEY = 'hotel_tulsi_kitchen_session';
+
+function isKitchenAuthenticated() {
+  try {
+    const s = sessionStorage.getItem(KITCHEN_AUTH_KEY) || localStorage.getItem(KITCHEN_AUTH_KEY);
+    return s === 'HOTEL_TULSI_KITCHEN_UNLOCKED_414301';
+  } catch (_) {
+    return false;
+  }
+}
+
+function handleKitchenUnlock(e) {
+  if (e) e.preventDefault();
+  const inp = document.getElementById('kitchenPassInput');
+  const err = document.getElementById('kitchenLockError');
+  const overlay = document.getElementById('kitchenLockOverlay');
+  if (!inp) return;
+
+  const val = inp.value.trim();
+  if (val === KITCHEN_MASTER_PASS) {
+    try {
+      sessionStorage.setItem(KITCHEN_AUTH_KEY, 'HOTEL_TULSI_KITCHEN_UNLOCKED_414301');
+      localStorage.setItem(KITCHEN_AUTH_KEY, 'HOTEL_TULSI_KITCHEN_UNLOCKED_414301');
+    } catch (_) {}
+    if (overlay) overlay.style.display = 'none';
+    if (err) err.style.display = 'none';
+    startKdsEngine();
+  } else {
+    if (err) {
+      err.textContent = '❌ गलत पासवर्ड! कृपया सही पासवर्ड दर्ज करें।';
+      err.style.display = 'block';
+    }
+    inp.focus();
+    inp.select();
+  }
+}
+
+function toggleKitchenPassVisibility() {
+  const inp = document.getElementById('kitchenPassInput');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function lockKitchen() {
+  try {
+    sessionStorage.removeItem(KITCHEN_AUTH_KEY);
+    localStorage.removeItem(KITCHEN_AUTH_KEY);
+  } catch (_) {}
+  const overlay = document.getElementById('kitchenLockOverlay');
+  const inp = document.getElementById('kitchenPassInput');
+  const err = document.getElementById('kitchenLockError');
+  if (err) err.style.display = 'none';
+  if (inp) inp.value = '';
+  if (overlay) overlay.style.display = 'flex';
+  if (pollIntervalTimer) { clearInterval(pollIntervalTimer); pollIntervalTimer = null; }
+  if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
+  isPolling = false;
+}
+
+function checkKitchenAccess() {
+  const overlay = document.getElementById('kitchenLockOverlay');
+  if (isKitchenAuthenticated()) {
+    if (overlay) overlay.style.display = 'none';
+    startKdsEngine();
+  } else {
+    if (overlay) overlay.style.display = 'flex';
+    const inp = document.getElementById('kitchenPassInput');
+    if (inp) inp.focus();
+  }
+}
+
+window.handleKitchenUnlock = handleKitchenUnlock;
+window.toggleKitchenPassVisibility = toggleKitchenPassVisibility;
+window.lockKitchen = lockKitchen;
+window.checkKitchenAccess = checkKitchenAccess;
+
+/* ═══════════════════════════════════════════════════════════════
    INITIALIZATION
    ═══════════════════════════════════════════════════════════════ */
 function startKdsEngine() {
@@ -642,8 +985,9 @@ function startKdsEngine() {
   checkAudioAutoplay();
   fetchKitchenOrders();
 
-  pollIntervalTimer = setInterval(fetchKitchenOrders, POLL_INTERVAL);
-  timerTickInterval = setInterval(updateLiveTimers, 1000);
+  if (!pollIntervalTimer) pollIntervalTimer = setInterval(fetchKitchenOrders, POLL_INTERVAL);
+  if (!timerTickInterval) timerTickInterval = setInterval(updateLiveTimers, 1000);
 }
 
-startKdsEngine();
+// Check kitchen auth before starting engine
+checkKitchenAccess();

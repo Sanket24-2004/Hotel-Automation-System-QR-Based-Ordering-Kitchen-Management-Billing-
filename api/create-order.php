@@ -51,7 +51,9 @@ $items        = $body['items'];
 // Valid category values (must match database ENUM)
 $validCategories = [
     'starter', 'main_course', 'bread', 'rice_biryani',
-    'beverage', 'dessert', 'salad', 'side_dish', 'water'
+    'dessert', 'salad', 'side_dish', 'water',
+    'welcome_drink', 'breakfast', 'thali', 'special_dishes',
+    'chinese'
 ];
 
 // ─── Validate each item ───
@@ -146,6 +148,22 @@ try {
     // If settings table missing, continue gracefully
 }
 
+// ─── Table Security Token Check (Option A) ───
+$suppliedTableToken = trim((string)($body['table_token'] ?? $body['token'] ?? ''));
+$isStaff = !empty($body['is_staff']) || !empty($body['is_owner']);
+
+if (!$isStaff && !verifyTableSecurityToken($tableNo, $suppliedTableToken)) {
+    $suppliedPass = trim((string)($body['passcode'] ?? ''));
+    $passValid = isset($secConfig) && !empty($secConfig['daily_passcode']) && strcasecmp($suppliedPass, (string)$secConfig['daily_passcode']) === 0;
+    if (!$passValid) {
+        jsonResponse([
+            'success'            => false,
+            'table_token_invalid'=> true,
+            'error'              => 'Unauthorized table access: Invalid Table Security Token. Please scan your table QR code.'
+        ], 403);
+    }
+}
+
 try {
     $pdo->beginTransaction();
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
@@ -156,13 +174,13 @@ try {
     // ─── Generate unique batch ID for this submission ───
     $batchId = 'B' . time() . '_' . bin2hex(random_bytes(4));
 
-    // ─── Check for existing active unbilled order on this table ───
+    // ─── Check for existing active unbilled order on this table (today only, to avoid ghost orders from old sessions) ───
     $checkStmt = $pdo->prepare("
         SELECT id, order_ref, subtotal, gst_amount, total_amount, customer_notes
         FROM orders
         WHERE table_no = :table_no
           AND payment_method IS NULL
-          AND status != 'served'
+          AND DATE(created_at) = CURDATE()
         ORDER BY created_at DESC
         LIMIT 1
     ");
@@ -213,6 +231,8 @@ try {
                 gst_amount     = :gst_amount,
                 total_amount   = :total_amount,
                 customer_notes = :notes,
+                status         = 'new',
+                served_at      = NULL,
                 updated_at     = :now
             WHERE id = :id
         ");

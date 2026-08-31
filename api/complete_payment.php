@@ -31,7 +31,7 @@ try {
         $stmt = $pdo->prepare("
             SELECT id, order_ref, persons, customer_notes, created_at
             FROM orders
-            WHERE table_no = ? AND payment_method IS NULL AND status != 'served'
+            WHERE table_no = ? AND payment_method IS NULL
             ORDER BY created_at ASC
         ");
         $stmt->execute([$table]);
@@ -39,6 +39,27 @@ try {
     }
 
     $now = date('Y-m-d H:i:s');
+
+    // ── Always close out any lingering ghost/unbilled orders for this table from older sessions ──
+    // (Covers the manual-bill case where the old QR-order was never linked to the payment)
+    if (is_numeric($table)) {
+        $pdo->prepare("
+            UPDATE orders
+            SET payment_method = 'cancelled',
+                status = 'served',
+                updated_at = ?
+            WHERE table_no = ?
+              AND payment_method IS NULL
+              AND id NOT IN (
+                  SELECT id FROM (
+                      SELECT id FROM orders
+                      WHERE table_no = ? AND payment_method IS NULL
+                      ORDER BY created_at DESC
+                      LIMIT 1
+                  ) AS newest
+              )
+        ")->execute([$now, $table, $table]);
+    }
 
     if (!empty($activeOrders)) {
         $primaryOrder = $activeOrders[0];

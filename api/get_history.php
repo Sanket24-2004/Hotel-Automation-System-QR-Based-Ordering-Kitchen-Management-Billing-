@@ -17,15 +17,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $pdo = getDB();
 
 $categoryDbToJs = [
-    'starter'      => 'starter',
-    'main_course'  => 'main',
-    'bread'        => 'bread',
-    'rice_biryani' => 'rice',
-    'beverage'     => 'beverage',
-    'dessert'      => 'dessert',
-    'salad'        => 'salad',
-    'side_dish'    => 'side',
-    'water'        => 'water',
+    'starter'        => 'starter',
+    'main_course'    => 'main',
+    'special_dishes' => 'special_dishes',
+    'bread'          => 'bread',
+    'rice_biryani'   => 'rice',
+    'dessert'        => 'dessert',
+    'salad'          => 'salad',
+    'side_dish'      => 'side',
+    'water'          => 'water',
+    'welcome_drink'  => 'welcome_drink',
+    'breakfast'      => 'breakfast',
+    'thali'          => 'thali',
+    'chinese'        => 'chinese',
 ];
 
 try {

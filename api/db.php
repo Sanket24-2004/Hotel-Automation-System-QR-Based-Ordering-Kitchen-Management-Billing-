@@ -15,6 +15,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/table_token.php';
+
 // ─── Set Default Timezone ───
 // Ensures all date() and time() calls match the local Indian timezone (IST)
 date_default_timezone_set('Asia/Kolkata');

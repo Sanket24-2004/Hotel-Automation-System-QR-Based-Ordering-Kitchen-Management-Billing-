@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 
-$validCategories = ['starter','main_course','bread','rice_biryani','beverage','dessert','salad','side_dish','water','welcome_drink','breakfast'];
+$validCategories = ['starter','main_course','bread','rice_biryani','dessert','salad','side_dish','water','welcome_drink','breakfast','thali','special_dishes','chinese'];
 $category = trim($_GET['category'] ?? '');
 
 if (!$category || !in_array($category, $validCategories, true)) {

@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="owner-auth.js"></script>
 
   <style>
     /* =============================================
@@ -1158,7 +1159,11 @@
   <!-- ==================== TABLE MODAL ==================== -->
   <div class="modal-backdrop" id="table-modal" role="dialog" aria-modal="true" aria-labelledby="modal-table-name">
     <div class="modal-box">
+      <!-- Table title – will be filled by openModal() -->
+      <h3 id="modal-table-name" class="modal-title" style="font-family:var(--ff-cinzel); font-size:1.15rem; color:#FFD700; margin:0 0 0.5rem 0;">Table</h3>
+      <!-- Status badge (Occupied / Available) -->
       <span class="modal-status-badge" id="modal-status-badge">Available</span>
+      <!-- Buttons -->
       <div class="modal-btn-row">
         <a href="billing.html" class="modal-billing-btn" id="modal-billing-btn" style="display:none;">🧾 Go to Billing →</a>
         <button class="modal-close-btn" id="modal-close-btn" onclick="closeModal()" aria-label="Close modal">Close</button>
@@ -1191,7 +1196,11 @@
        LOGOUT
     ================================================ */
     function handleLogout() {
-      window.location.href = 'owner-login.html';
+      if (window.OwnerAuth) {
+        window.OwnerAuth.logout();
+      } else {
+        window.location.href = 'owner-login.html';
+      }
     }
 
     /* ================================================

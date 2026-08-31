@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="kitchen.css?v=10"/>
+  <link rel="stylesheet" href="kitchen.css?v=11"/>
 </head>
 <body class="kds-body">
 
@@ -50,11 +50,16 @@
       </div>
       <div class="hstat hstat-active">
         <span class="hstat-dot"></span>
-        <span class="hstat-label">चल रहे:</span>
+        <span class="hstat-label">तैयारी चालू:</span>
         <strong id="statOngoingCount">0</strong>
       </div>
+      <div class="hstat hstat-served">
+        <span class="hstat-dot" style="background:#22c55e;box-shadow:0 0 8px #22c55e;"></span>
+        <span class="hstat-label">परोसे गए:</span>
+        <strong id="statServedCount" style="color:#4ade80;">0</strong>
+      </div>
       <div class="hstat hstat-total">
-        <span class="hstat-label">कुल चालू:</span>
+        <span class="hstat-label">कुल टेबल:</span>
         <strong id="statTotalActive">0</strong>
       </div>
     </div>
@@ -74,6 +79,9 @@
       </button>
       <button class="tool-btn btn-fullscreen" onclick="toggleFullScreen()" title="फुलस्क्रीन मोड">
         ⛶ <span>फुलस्क्रीन</span>
+      </button>
+      <button class="tool-btn" id="kitchenLockBtn" onclick="lockKitchen()" title="स्क्रीन लॉक करें" style="border-color:rgba(239,68,68,0.4);color:#fca5a5;">
+        🔒 <span>लॉक</span>
       </button>
     </div>
   </header>
@@ -95,15 +103,19 @@
       <span class="m-badge m-badge-new" id="mBadgeNew">0</span>
     </button>
     <button type="button" class="m-tab" id="mTabOngoing" onclick="switchMobileKdsTab('ongoing')">
-      <span>🟠 चल रहे</span>
+      <span>🟠 चालू</span>
       <span class="m-badge m-badge-ongoing" id="mBadgeOngoing">0</span>
+    </button>
+    <button type="button" class="m-tab" id="mTabServed" onclick="switchMobileKdsTab('served')">
+      <span>🟢 परोसे गए</span>
+      <span class="m-badge m-badge-served" id="mBadgeServed" style="background:rgba(34,197,94,0.2);color:#4ade80;border-color:rgba(34,197,94,0.5);">0</span>
     </button>
   </div>
 
-  <!-- ══ MAIN DUAL-PARTITION SCREEN VIEW ══ -->
+  <!-- ══ MAIN 3-PARTITION SCREEN VIEW ══ -->
   <main class="kds-main" id="kdsMainView">
 
-    <!-- ── LEFT PARTITION: NEW ORDERS (नया ऑर्डर) ── -->
+    <!-- ── 1. LEFT: NEW ORDERS (नया ऑर्डर) ── -->
     <section class="partition partition-new" id="partitionNew">
       <div class="partition-header">
         <div class="partition-title">
@@ -124,12 +136,12 @@
       </div>
     </section>
 
-    <!-- ── RIGHT PARTITION: IN-PROGRESS ORDERS (चल रहे ऑर्डर्स) ── -->
+    <!-- ── 2. MIDDLE: IN-PROGRESS ORDERS (तैयारी चालू) ── -->
     <section class="partition partition-ongoing" id="partitionOngoing">
       <div class="partition-header">
         <div class="partition-title">
           <span class="p-icon p-icon-ongoing">🟠</span>
-          <h2>चल रहे ऑर्डर्स <span class="p-sub">(प्रगति पर / पहले के ऑर्डर्स)</span></h2>
+          <h2>तैयारी चालू <span class="p-sub">(प्रगति पर ऑर्डर्स)</span></h2>
         </div>
         <span class="partition-badge badge-ongoing-count" id="badgeOngoingOrders">0</span>
       </div>
@@ -140,8 +152,29 @@
 
       <div class="partition-empty" id="ongoingEmptyState">
         <div class="p-empty-icon">🍲</div>
-        <h3>कोई पुराना ऑर्डर चालू नहीं है</h3>
-        <p>जैसे ही नए ऑर्डर पुराने होंगे, वे यहाँ लाइव टाइमर के साथ दिखेंगे</p>
+        <h3>कोई ऑर्डर चालू नहीं है</h3>
+        <p>चल रहे ऑर्डर यहाँ लाइव टाइमर के साथ दिखेंगे</p>
+      </div>
+    </section>
+
+    <!-- ── 3. RIGHT: FULLY SERVED ORDERS (परोसे गए टेबल्स) ── -->
+    <section class="partition partition-served" id="partitionServed">
+      <div class="partition-header">
+        <div class="partition-title">
+          <span class="p-icon p-icon-served">🟢</span>
+          <h2>परोसे गए टेबल्स <span class="p-sub">(सभी व्यंजन परोसे गए)</span></h2>
+        </div>
+        <span class="partition-badge badge-served-count" id="badgeServedOrders">0</span>
+      </div>
+
+      <div class="partition-content grid-ongoing" id="servedOrdersContainer">
+        <!-- Fully served order cards rendered here -->
+      </div>
+
+      <div class="partition-empty" id="servedEmptyState">
+        <div class="p-empty-icon">✅</div>
+        <h3>कोई परोसा गया टेबल नहीं</h3>
+        <p>जब किसी टेबल के सभी व्यंजन परोस दिए जाएंगे, वे यहाँ दिखेंगे</p>
       </div>
     </section>
 
@@ -163,6 +196,68 @@
     </div>
   </div>
 
-  <script src="kitchen.js?v=10"></script>
+  <!-- ══ KITCHEN PASSWORD LOCK MODAL ══ -->
+  <div id="kitchenLockOverlay" style="
+    position: fixed; inset: 0; z-index: 9999999;
+    background: radial-gradient(circle at 50% 30%, rgba(26,18,4,0.96) 0%, rgba(8,5,1,0.99) 100%);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  ">
+    <div style="
+      background: linear-gradient(160deg, rgba(30,22,6,0.98), rgba(16,11,2,0.99));
+      border: 1.5px solid rgba(212,168,50,0.45);
+      border-radius: 24px; max-width: 400px; width: 100%;
+      padding: 2.2rem 1.8rem; text-align: center; color: #fff;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.95), 0 0 35px rgba(212,168,50,0.25);
+      font-family: 'Poppins', sans-serif;
+    ">
+      <div style="font-size: 3rem; margin-bottom: 0.6rem;">🔐</div>
+      <h2 style="font-size: 1.4rem; font-weight: 700; color: #f5d48a; margin-bottom: 0.4rem; letter-spacing: 0.5px;">रसोईघर सुरक्षा लॉक</h2>
+      <p style="font-size: 0.84rem; color: rgba(255,255,255,0.7); margin-bottom: 1.5rem; line-height: 1.45;">
+        Kitchen Display System Access<br/>
+        कृपया चालू ऑर्डर देखने के लिए पासवर्ड दर्ज करें
+      </p>
+
+      <form onsubmit="handleKitchenUnlock(event)" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="position:relative;">
+          <input 
+            type="password" 
+            id="kitchenPassInput" 
+            placeholder="रसोईघर पासवर्ड दर्ज करें" 
+            required 
+            autocomplete="current-password"
+            style="
+              width: 100%; padding: 12px 42px 12px 16px;
+              background: rgba(255,255,255,0.07); border: 1px solid rgba(212,168,50,0.35);
+              border-radius: 12px; color: #fff; font-size: 0.95rem; outline: none;
+              text-align: center; letter-spacing: 1px;
+            "
+          />
+          <button type="button" onclick="toggleKitchenPassVisibility()" style="
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: transparent; border: none; color: #f5d48a; cursor: pointer; font-size: 1.1rem;
+          ">👁️</button>
+        </div>
+
+        <button type="submit" id="kitchenUnlockBtn" style="
+          padding: 12px; border: none; border-radius: 12px;
+          background: linear-gradient(135deg, #d4a832, #b8901e);
+          color: #080500; font-weight: 700; font-size: 0.95rem;
+          cursor: pointer; box-shadow: 0 4px 16px rgba(212,168,50,0.3);
+          transition: transform 0.2s ease;
+        ">
+          🔓 रसोईघर खोलें (Unlock)
+        </button>
+      </form>
+
+      <div id="kitchenLockError" style="
+        display: none; color: #ef4444; background: rgba(239,68,68,0.12);
+        border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;
+        padding: 8px 12px; font-size: 0.8rem; margin-top: 12px; font-weight: 500;
+      "></div>
+    </div>
+  </div>
+
+  <script src="kitchen.js?v=12"></script>
 </body>
 </html>

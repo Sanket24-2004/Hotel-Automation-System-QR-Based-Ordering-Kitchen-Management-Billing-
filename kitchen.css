@@ -341,9 +341,9 @@ body.kds-body {
 .kds-main {
   flex: 1;
   display: grid;
-  grid-template-columns: 46% 54%;
-  gap: 1.2rem;
-  padding: 1.2rem;
+  grid-template-columns: 1.15fr 1.35fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
   height: calc(100vh - 72px);
   overflow: hidden;
 }
@@ -508,15 +508,16 @@ body.kds-body {
 .kds-card-new {
   border: 3px solid #ef4444;
   background: linear-gradient(180deg, #1c141d 0%, #131824 100%);
-  animation: newCardArrival 0.8s ease, newCardGlow 2.5s infinite;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(239, 68, 68, 0.3);
+  animation: newCardArrival 0.6s ease-out, newCardGlow 1.2s ease-in-out 3;
 }
 @keyframes newCardArrival {
   0% { transform: scale(0.95); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 @keyframes newCardGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
-  50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.65); }
+  0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); transform: scale(1); }
+  50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.7), 0 0 15px #ef4444; transform: scale(1.015); }
 }
 
 /* Card in Ongoing section */
@@ -589,7 +590,7 @@ body.kds-body {
   background: var(--red-bg);
   color: #ff6b6b;
   border: 1px solid rgba(239, 68, 68, 0.5);
-  animation: badgeBlink 1.2s infinite;
+  animation: badgeBlink 1s ease-in-out 3;
 }
 .tag-ongoing {
   background: var(--orange-bg);
@@ -604,7 +605,7 @@ body.kds-body {
 }
 @keyframes badgeBlink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.4; }
 }
 
 /* ─── BIG PROMINENT PERSONS BADGE ─── */
@@ -1250,4 +1251,240 @@ body.kds-body {
   .drawer-body {
     padding: 10px;
   }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   KDS SERVED STATES, DISTINCT TRANSPARENCY & SERVE ACTION BUTTONS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── SERVED CARD (Green Theme + Distinct Transparency) ─── */
+.kds-card.all-served,
+.kds-card-served {
+  border: 2px solid rgba(34, 197, 94, 0.6) !important;
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.15) 0%, rgba(15, 22, 28, 0.95) 100%) !important;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.12) !important;
+  opacity: 0.58 !important;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease !important;
+}
+.kds-card.all-served:hover,
+.kds-card-served:hover {
+  opacity: 0.95 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(34, 197, 94, 0.25) !important;
+}
+
+.kds-card.all-served .table-big-num {
+  color: #4ade80 !important;
+  text-shadow: 0 0 15px rgba(74, 222, 128, 0.4) !important;
+}
+
+/* ─── STATUS TAG SERVED ─── */
+.tag-served {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(34, 197, 94, 0.5) !important;
+  font-weight: 900 !important;
+}
+
+/* ─── SERVE ACTION BUTTON ON CARD ─── */
+.card-actions-bar {
+  padding: 0.75rem 1.2rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1.5px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.kds-serve-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.2rem;
+  background: linear-gradient(135deg, #15803d, #22c55e);
+  color: #ffffff;
+  font-family: var(--font-hindi);
+  font-size: 1.2rem;
+  font-weight: 800;
+  border-radius: var(--radius-md);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.02em;
+}
+.kds-serve-btn:hover {
+  background: linear-gradient(135deg, #16a34a, #4ade80);
+  box-shadow: 0 6px 20px rgba(74, 222, 128, 0.5);
+  transform: translateY(-1px);
+}
+.kds-serve-btn:active {
+  transform: scale(0.98);
+}
+
+.kds-serve-btn.is-served {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow: none;
+}
+.kds-serve-btn.is-served:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* ─── DISH ROW: ACTIVE vs SERVED (GREEN + DIMMED TRANSPARENCY) ─── */
+.dish-row {
+  transition: all 0.25s ease;
+}
+
+/* Active Dish (100% Opacity, Crisp, Bright) */
+.dish-row.dish-active {
+  opacity: 1 !important;
+  background: var(--bg-inner);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+}
+.kds-card-new .dish-row.dish-active {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.15);
+}
+
+/* Served Dish (Green Background + 55% Opacity Dimmed) */
+.dish-row.dish-served {
+  background: rgba(34, 197, 94, 0.14) !important;
+  border: 1.5px solid rgba(34, 197, 94, 0.4) !important;
+  opacity: 0.55 !important;
+}
+.dish-row.dish-served:hover {
+  opacity: 0.9 !important;
+}
+.dish-row.dish-served .dish-name-hi {
+  color: #86efac !important;
+  text-decoration: line-through rgba(134, 239, 172, 0.4);
+}
+.dish-row.dish-served .dish-name-en {
+  color: rgba(134, 239, 172, 0.6) !important;
+}
+.dish-row.dish-served .dish-qty-badge {
+  background: rgba(34, 197, 94, 0.25) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(34, 197, 94, 0.4) !important;
+  box-shadow: none !important;
+}
+
+/* Dish Checkmark Button */
+.dish-check-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-hindi);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-sub);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.dish-check-btn:hover {
+  background: rgba(34, 197, 94, 0.3);
+  color: #fff;
+  border-color: #22c55e;
+}
+.dish-check-btn.checked {
+  background: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.5);
+}
+.dish-check-btn.checked:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: #ef4444;
+}
+
+/* Batch Header */
+.batch-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.5rem;
+  margin-top: 0.4rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.batch-badge-new {
+  color: #ff6b6b;
+  font-weight: 800;
+}
+
+
+/* ─── 3. RIGHT: FULLY SERVED ORDERS PARTITION ─── */
+.partition-served {
+  border-color: rgba(34, 197, 94, 0.4);
+  box-shadow: inset 0 0 30px rgba(34, 197, 94, 0.05);
+}
+.partition-served .partition-header {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.16), transparent);
+  border-bottom-color: rgba(34, 197, 94, 0.3);
+}
+.partition-served .partition-title h2 {
+  color: #4ade80;
+}
+.badge-served-count {
+  background: var(--green-bg);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+}
+
+/* ─── ALL SERVED SUMMARY & SEE ALL BUTTON ─── */
+.all-served-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px dashed rgba(34, 197, 94, 0.4);
+  border-radius: var(--radius-sm);
+  margin: 0.4rem 1.2rem;
+}
+.served-summary-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #86efac;
+}
+.toggle-items-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  color: #4ade80;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-hindi);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.toggle-items-btn:hover {
+  background: rgba(34, 197, 94, 0.35);
+  color: #fff;
+  border-color: #22c55e;
 }

@@ -2,81 +2,44 @@
 /**
  * ═══════════════════════════════════════════════════════════════
  * update_status.php — Golden Stone Hotel
- * POST: Kitchen staff updates order status through the dashboard.
+ * POST: Kitchen staff updates order / item status through the dashboard.
  * ═══════════════════════════════════════════════════════════════
  *
- * Status Flow (strict one-way transitions):
- *   new → preparing → ready → served
- *
- * Request body (JSON):
- * {
- *   "order_id": 101,
- *   "status": "preparing"
- * }
- *
- * Response:
- * {
- *   "success": true,
- *   "updated_at": "2026-06-03 19:28:00",
- *   "message": "Order status updated to preparing"
- * }
- *
- * kitchen.js reads: data.success, data.updated_at
+ * Supported Actions:
+ * 1. Update whole order:
+ *    { "order_id": 101, "status": "served" | "preparing" | "ready" | "new" }
+ * 2. Toggle whole order served:
+ *    { "order_id": 101, "action": "toggle_served" }
+ * 3. Update / Toggle specific item:
+ *    { "order_id": 101, "item_id": 505, "action": "toggle_item_served" | "set_item_served", "is_served": 1|0 }
  */
 
 declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 
-// ─── Only POST allowed ───
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'error' => 'Method Not Allowed. Use POST.'], 405);
 }
 
-// ─── Parse and validate request ───
 $body = getJsonBody();
+$pdo  = getDB();
 
-if (!isset($body['order_id']) || !isset($body['status'])) {
-    jsonResponse([
-        'success' => false,
-        'error'   => 'Both order_id and status are required.',
-    ], 400);
-}
-
-$orderId   = intval($body['order_id']);
-$newStatus = trim((string)$body['status']);
-$note      = trim((string)($body['note'] ?? ''));
+$orderId = intval($body['order_id'] ?? 0);
+$itemId  = intval($body['item_id'] ?? 0);
+$action  = trim((string)($body['action'] ?? ''));
+$status  = trim((string)($body['status'] ?? ''));
+$note    = trim((string)($body['note'] ?? ''));
 
 if ($orderId < 1) {
-    jsonResponse(['success' => false, 'error' => 'Invalid order_id.'], 400);
+    jsonResponse(['success' => false, 'error' => 'Valid order_id is required.'], 400);
 }
 
-// ─── Validate status value ───
-$validStatuses = ['new', 'preparing', 'ready', 'served'];
-if (!in_array($newStatus, $validStatuses, true)) {
-    jsonResponse([
-        'success' => false,
-        'error'   => "Invalid status '$newStatus'. Allowed: " . implode(', ', $validStatuses),
-    ], 400);
-}
-
-// ─── Allowed transitions (strict one-way) ───
-$allowedTransitions = [
-    'new'       => 'preparing',
-    'preparing' => 'ready',
-    'ready'     => 'served',
-];
-
-$pdo = getDB();
+$now = date('Y-m-d H:i:s');
 
 try {
     // ─── Fetch current order ───
-    $stmt = $pdo->prepare("
-        SELECT id, order_ref, table_no, persons, status,
-               total_amount, gst_amount
-        FROM orders
-        WHERE id = :id
-    ");
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = :id");
     $stmt->execute(['id' => $orderId]);
     $order = $stmt->fetch();
 
@@ -84,128 +47,152 @@ try {
         jsonResponse(['success' => false, 'error' => 'Order not found.'], 404);
     }
 
-    $currentStatus = $order['status'];
-
-    // ─── Validate transition ───
-    if ($currentStatus === $newStatus) {
-        jsonResponse([
-            'success' => false,
-            'error'   => "Order is already in '$currentStatus' status.",
-        ], 400);
-    }
-
-    if ($currentStatus === 'served') {
-        jsonResponse([
-            'success' => false,
-            'error'   => 'Cannot change status of a served order.',
-        ], 400);
-    }
-
-    $expectedNext = $allowedTransitions[$currentStatus] ?? null;
-    if ($expectedNext !== $newStatus) {
-        jsonResponse([
-            'success' => false,
-            'error'   => "Invalid transition: '$currentStatus' → '$newStatus'. Expected: '$currentStatus' → '$expectedNext'.",
-        ], 400);
-    }
-
-    // ════════════════════════════════════════════
-    // UPDATE ORDER STATUS
-    // ════════════════════════════════════════════
-
-    $now = date('Y-m-d H:i:s');
-
     $pdo->beginTransaction();
 
-    // ─── Build status-specific timestamp update ───
-    $timestampField = '';
-    $timestampParam = [];
+    // ─── ACTION 1: Toggle or Set Specific Item Served State ───
+    if ($itemId > 0 || $action === 'toggle_item_served' || $action === 'set_item_served') {
+        $itemStmt = $pdo->prepare("SELECT * FROM order_items WHERE id = :item_id AND order_id = :order_id");
+        $itemStmt->execute(['item_id' => $itemId, 'order_id' => $orderId]);
+        $orderItem = $itemStmt->fetch();
 
-    switch ($newStatus) {
-        case 'preparing':
-            $timestampField = ', prep_started_at = :ts';
-            $timestampParam = ['ts' => $now];
-            if ($note === '') $note = 'Preparation started';
-            break;
+        if (!$orderItem) {
+            $pdo->rollBack();
+            jsonResponse(['success' => false, 'error' => 'Order item not found.'], 404);
+        }
 
-        case 'ready':
-            $timestampField = ', ready_at = :ts';
-            $timestampParam = ['ts' => $now];
-            if ($note === '') $note = 'Ready to serve';
-            break;
+        $newServed = isset($body['is_served']) 
+            ? (int)(bool)$body['is_served'] 
+            : ($orderItem['is_served'] ? 0 : 1);
 
-        case 'served':
-            $timestampField = ', served_at = :ts';
-            $timestampParam = ['ts' => $now];
-            if ($note === '') $note = 'Served to customer';
-            break;
+        $updateItemStmt = $pdo->prepare("
+            UPDATE order_items 
+            SET is_served = :is_served, 
+                served_at = :served_at,
+                is_new = 0
+            WHERE id = :item_id
+        ");
+        $updateItemStmt->execute([
+            'is_served' => $newServed,
+            'served_at' => $newServed ? $now : null,
+            'item_id'   => $itemId
+        ]);
+
+        // Check overall items status in this order
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) as total, SUM(is_served) as served_count FROM order_items WHERE order_id = :order_id");
+        $checkStmt->execute(['order_id' => $orderId]);
+        $counts = $checkStmt->fetch();
+
+        $totalItems = (int)($counts['total'] ?? 0);
+        $servedItems = (int)($counts['served_count'] ?? 0);
+
+        if ($totalItems > 0 && $servedItems >= $totalItems) {
+            $orderStatus = 'served';
+            $servedAt = $now;
+        } else {
+            $orderStatus = 'preparing';
+            $servedAt = null;
+        }
+
+        $pdo->prepare("
+            UPDATE orders 
+            SET status = :status, 
+                served_at = :served_at,
+                updated_at = :now
+            WHERE id = :id
+        ")->execute([
+            'status'    => $orderStatus,
+            'served_at' => $servedAt,
+            'now'       => $now,
+            'id'        => $orderId
+        ]);
+
+        $pdo->commit();
+
+        jsonResponse([
+            'success'      => true,
+            'order_id'     => $orderId,
+            'item_id'      => $itemId,
+            'is_served'    => (bool)$newServed,
+            'order_status' => $orderStatus,
+            'all_served'   => ($totalItems > 0 && $servedItems >= $totalItems),
+            'updated_at'   => $now
+        ]);
     }
 
-    // ─── Update orders table ───
+    // ─── ACTION 2: Toggle whole order served state ───
+    if ($action === 'toggle_served') {
+        if ($order['status'] === 'served') {
+            $newStatus = 'preparing';
+            $newServed = 0;
+            $servedAt  = null;
+            if ($note === '') $note = 'Order reopened / unserved';
+        } else {
+            $newStatus = 'served';
+            $newServed = 1;
+            $servedAt  = $now;
+            if ($note === '') $note = 'Whole order marked served';
+        }
+    } else {
+        // Direct status setting
+        $newStatus = $status !== '' ? $status : 'served';
+        $newServed = ($newStatus === 'served') ? 1 : 0;
+        $servedAt  = ($newStatus === 'served') ? $now : null;
+    }
+
+    // Update all items in this order
+    $pdo->prepare("
+        UPDATE order_items
+        SET is_served = :is_served,
+            served_at = :served_at,
+            is_new = 0
+        WHERE order_id = :order_id
+    ")->execute([
+        'is_served' => $newServed,
+        'served_at' => $servedAt,
+        'order_id'  => $orderId
+    ]);
+
+    // Update orders table
     $updateSql = "
         UPDATE orders
         SET status     = :status,
-            updated_at = :now
-            $timestampField
+            updated_at = :now,
+            served_at  = :served_at
         WHERE id = :id
     ";
-    $updateStmt = $pdo->prepare($updateSql);
-    $updateStmt->execute(array_merge([
-        'status' => $newStatus,
-        'now'    => $now,
-        'id'     => $orderId,
-    ], $timestampParam));
-
-    // ─── Log to order_status_history ───
-    $logStmt = $pdo->prepare("
-        INSERT INTO order_status_history (order_id, status, note, changed_at)
-        VALUES (:order_id, :status, :note, :now)
-    ");
-    $logStmt->execute([
-        'order_id' => $orderId,
-        'status'   => $newStatus,
-        'note'     => $note,
-        'now'      => $now,
+    $pdo->prepare($updateSql)->execute([
+        'status'    => $newStatus,
+        'now'       => $now,
+        'served_at' => $servedAt,
+        'id'        => $orderId
     ]);
 
-    // ─── If status = ready, clear is_new flags on all items ───
-    if ($newStatus === 'ready') {
-        $pdo->prepare("
-            UPDATE order_items
-            SET is_new = 0
-            WHERE order_id = :order_id AND is_new = 1
-        ")->execute(['order_id' => $orderId]);
-    }
+    // Log to order_status_history
+    $pdo->prepare("
+        INSERT INTO order_status_history (order_id, status, note, changed_at)
+        VALUES (:order_id, :status, :note, :now)
+    ")->execute([
+        'order_id' => $orderId,
+        'status'   => $newStatus,
+        'note'     => $note !== '' ? $note : "Status updated to $newStatus",
+        'now'      => $now
+    ]);
 
     $pdo->commit();
 
-    // ─── Success response ───
     jsonResponse([
-        'success'    => true,
-        'order_id'   => $orderId,
-        'old_status' => $currentStatus,
-        'new_status' => $newStatus,
-        'updated_at' => $now,
-        'message'    => "Order status updated to $newStatus",
+        'success'      => true,
+        'order_id'     => $orderId,
+        'order_status' => $newStatus,
+        'is_served'    => ($newStatus === 'served'),
+        'all_served'   => ($newStatus === 'served'),
+        'updated_at'   => $now,
+        'message'      => "Order status updated to $newStatus"
     ]);
 
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    jsonResponse([
-        'success' => false,
-        'error'   => 'Failed to update order status.',
-        'detail'  => $e->getMessage(),
-    ], 500);
-
-} catch (\Exception $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-    jsonResponse([
-        'success' => false,
-        'error'   => 'Unexpected error.',
-        'detail'  => $e->getMessage(),
-    ], 500);
+    jsonResponse(['success' => false, 'error' => 'Database error: ' . $e->getMessage()], 500);
 }

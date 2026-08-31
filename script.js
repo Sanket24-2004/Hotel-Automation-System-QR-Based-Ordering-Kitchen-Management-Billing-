@@ -66,11 +66,15 @@
       sessionStorage.setItem('hotel_lang',      lang);
       sessionStorage.setItem('hotel_lang_name', langName);
 
-      // Check for table param from QR code
+      // Check for table and token params from QR code
       const urlParams = new URLSearchParams(window.location.search);
       const table = urlParams.get('table');
+      const token = urlParams.get('token') || urlParams.get('sec');
       if (table) {
         sessionStorage.setItem('hotel_table', table);
+        if (token && window.TableSecurity) {
+          window.TableSecurity.storeTableToken(table, token);
+        }
       }
     } catch (_) {
       // sessionStorage may be blocked in private mode
@@ -99,9 +103,13 @@
   function navigateTo(lang) {
     const urlParams = new URLSearchParams(window.location.search);
     const table = urlParams.get('table') || sessionStorage.getItem('hotel_table');
+    const token = urlParams.get('token') || urlParams.get('sec') || (window.TableSecurity ? window.TableSecurity.getActiveToken(table) : '');
     let target = `table-select.html?lang=${encodeURIComponent(lang)}`;
     if (table) {
       target += `&table=${encodeURIComponent(table)}`;
+    }
+    if (token) {
+      target += `&token=${encodeURIComponent(token)}`;
     }
     window.location.href = target;
   }

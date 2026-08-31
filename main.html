@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Hotel Tulsi | Main Course Section</title>
+  <title>Hotel Tulsi | Starter Section</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
-  <meta name="description" content="Savor our delectable and rich Indian Main Course dishes at Hotel Tulsi."/>
+  <meta name="description" content="Order from our premium starter menu at Hotel Tulsi."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -95,15 +95,17 @@
       -webkit-background-clip: text; background-clip: text; color: transparent;
       text-shadow: none;
     }
+    /* spacer to balance the back button */
     .topbar-spacer { width: 90px; flex-shrink: 0; }
 
-    /* ── SEARCH BAR ── */
+    /* ── PAGE INTRO / SEARCH ── */
     .page-intro {
       position: relative; z-index: 2;
       padding: 1rem 1.1rem .9rem;
       animation: pageIn .8s .05s var(--ease-out) both;
     }
     @keyframes pageIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .search-wrap { position: relative; width: 100%; }
     .search-input {
       width: 100%; padding: .75rem 3rem .75rem 1.2rem;
@@ -121,9 +123,10 @@
       box-shadow: 0 0 0 3px rgba(212,168,50,.12), 0 4px 20px rgba(0,0,0,.5);
     }
     .search-icon {
-      position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%);
+      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
       color: var(--gold-400); font-size: 1.1rem; pointer-events: none;
     }
+    .suggestions { display: none; }
     .no-results-card {
       grid-column: 1 / -1;
       text-align: center; padding: 2rem 1rem;
@@ -134,242 +137,302 @@
     .section-label.hidden { display: none; }
 
     /* ── ITEMS GRID ── */
+    /* ── ITEMS GRID ── */
     .items-section {
       position: relative; z-index: 2;
-      padding: 0 1rem 3rem;
+      padding: 0 .75rem 5rem;
       animation: pageIn .9s .12s var(--ease-out) both;
     }
     .section-label {
-      font-family: var(--ff-cinzel); font-size: .7rem; letter-spacing: .2em;
+      font-family: var(--ff-cinzel); font-size: clamp(.7rem, 2.8vw, .85rem); letter-spacing: .2em;
       text-transform: uppercase; color: var(--gold-500);
-      text-align: center; margin-bottom: 1rem;
-      opacity: .85;
+      text-align: center; margin: 1.2rem 0 .9rem;
+      opacity: .9;
     }
     .items-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: .85rem;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .75rem;
     }
 
-    /* ── RECTANGLE ITEM CARD ── */
+    /* ── ITEM CARD (Square Image with Rounded Corners + Gold Line) ── */
     .item-card {
-      display: flex; align-items: center; gap: .9rem;
-      background: rgba(20,14,4,.72);
-      border: 1px solid rgba(212,168,50,.18);
-      border-radius: 18px;
-      padding: .75rem;
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 4px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
-      transition: transform .3s var(--ease-bounce), border-color .3s ease, box-shadow .3s ease;
-      opacity: 0; transform: translateY(22px);
       position: relative;
-    }
-    .item-card.visible {
-      opacity: 1; transform: translateY(0);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(14,10,3,.92);
+      border: 1px solid rgba(212,168,50,.22);
+      box-shadow: 0 6px 22px rgba(0,0,0,.65);
+      backdrop-filter: blur(12px);
+      display: flex; flex-direction: column;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+      touch-action: manipulation;
     }
     .item-card:hover {
-      transform: translateY(-3px) scale(1.012);
-      border-color: rgba(212,168,50,.45);
-      box-shadow: 0 0 32px rgba(212,168,50,.12), 0 12px 36px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
+      transform: translateY(-3px);
+      border-color: rgba(212,168,50,.55);
+      box-shadow: 0 12px 32px rgba(0,0,0,.8), 0 0 24px rgba(212,168,50,.18);
     }
-
     .item-card.ordered {
-      border-color: #22c55e !important;
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.4), 0 4px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06) !important;
-    }
-    .item-card.ordered:hover {
-      border-color: #4ade80 !important;
-      box-shadow: 0 0 24px rgba(74, 222, 128, 0.5), 0 12px 36px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1) !important;
+      border-color: var(--gold-500);
+      box-shadow: 0 0 0 1.5px var(--gold-500), 0 10px 28px rgba(212,168,50,.25);
     }
 
-    .item-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(212,168,50,.6), transparent);
-      border-radius: 18px 18px 0 0;
-      opacity: .6;
-    }
-    .item-card.ordered::before {
-      background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.8), transparent) !important;
-    }
-
+    /* Square Image Container */
     .item-img-wrap {
-      width: 88px; height: 88px; border-radius: 14px;
-      overflow: hidden; flex-shrink: 0;
-      border: 1.5px solid rgba(212,168,50,.22);
-      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 17px 17px 0 0;
+      background: rgba(0,0,0,.4);
     }
     .item-img-wrap img {
-      width: 100%; height: 100%; object-fit: cover;
-      transition: transform .45s var(--ease-out);
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform .4s ease;
+      display: block;
     }
-    .item-card:hover .item-img-wrap img { transform: scale(1.1); }
+    .item-card:hover .item-img-wrap img { transform: scale(1.05); }
 
-    .item-info { flex: 1; min-width: 0; }
+    /* Pure Veg indicator */
+    .item-badge {
+      position: absolute; top: .55rem; left: .55rem; z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px;
+      border: 2px solid #2ecc40; border-radius: 3px;
+      background: rgba(4,20,6,.85);
+    }
+    .item-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #2ecc40; box-shadow: 0 0 4px #2ecc40;
+    }
+
+    /* Gold Divider Line Below Image */
+    .item-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+      opacity: .5;
+    }
+
+    /* Card Details */
+    .item-info {
+      padding: .65rem .65rem .75rem;
+      display: flex; flex-direction: column; gap: .4rem;
+      flex: 1; justify-content: space-between;
+    }
     .item-name {
-      font-family: var(--ff-cinzel); font-size: clamp(1rem, 3.8vw, 1.18rem);
-      font-weight: 600; letter-spacing: .05em; line-height: 1.3;
-      color: #fff;
-      text-shadow: 0 1px 8px rgba(0,0,0,.8);
-      margin-bottom: .35rem;
-      white-space: normal;
+      font-family: var(--ff-cinzel);
+      font-size: clamp(0.76rem, 3.3vw, 0.96rem); font-weight: 700;
+      letter-spacing: .03em; color: #fff;
+      line-height: 1.25;
+      text-shadow: 0 1px 6px rgba(0,0,0,.8);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.5em;
     }
     .item-price-row {
-      display: flex; align-items: center; justify-content: space-between; gap: .5rem;
-      flex-wrap: wrap;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: .25rem;
+      margin-top: auto;
     }
     .item-price {
-      font-family: var(--ff-cinzel); font-size: clamp(.95rem, 3.5vw, 1.1rem);
-      font-weight: 700; letter-spacing: .06em;
-      background: linear-gradient(135deg, var(--gold-300), var(--gold-500));
-      -webkit-background-clip: text; background-clip: text; color: transparent;
+      font-family: var(--ff-serif);
+      font-size: clamp(0.92rem, 3.8vw, 1.15rem); font-weight: 700;
+      color: var(--gold-300);
+      letter-spacing: .02em;
     }
 
-    /* ── ORDER COUNTER ── */
+    /* Counter / Stepper: Default state (qty = 0) hides minus and 0, shows only + button */
     .order-counter {
-      display: flex; align-items: center; gap: 0;
-      background: rgba(8,5,0,.7);
-      border: 1px solid rgba(212,168,50,.35);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all .2s ease;
+      background: transparent;
+      border: 1px solid transparent;
       border-radius: 100px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,.4);
+      padding: 0;
     }
-    .counter-btn {
-      width: 34px; height: 34px;
+    .order-counter .counter-btn.minus,
+    .order-counter .counter-display {
+      display: none !important;
+    }
+    .order-counter .counter-btn.plus {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: none; cursor: pointer;
+      font-size: 1.15rem; font-weight: 700; line-height: 1;
       display: flex; align-items: center; justify-content: center;
-      background: none; border: none; cursor: pointer;
-      font-size: 1.1rem; font-weight: 700;
-      color: var(--gold-400);
-      transition: background .2s ease, color .2s ease;
-      flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+      color: #080500;
+      box-shadow: 0 0 10px rgba(212,168,50,.35);
+      transition: transform .15s ease, background .15s ease;
+      touch-action: manipulation;
     }
-    .counter-btn:hover { background: rgba(212,168,50,.18); color: var(--gold-200); }
-    .counter-btn:active { background: rgba(212,168,50,.3); }
-    .counter-btn.minus { display: none; }
-    .counter-display {
-      min-width: 28px; text-align: center;
-      font-family: var(--ff-cinzel); font-size: .85rem; font-weight: 700;
-      color: #fff; letter-spacing: .04em;
-      display: none;
-      padding: 0 2px;
+    .order-counter .counter-btn.plus:active { transform: scale(.88); }
+
+    /* When qty > 0 (.has-items), expand into full pill stepper [ - ] [ QTY ] [ + ] */
+    .order-counter.has-items {
+      background: rgba(212,168,50,.18);
+      border: 1px solid var(--gold-500);
+      padding: .15rem .35rem;
+      gap: .25rem;
     }
-    .order-counter.has-items .counter-btn.minus { display: flex; }
-    .order-counter.has-items .counter-display { display: block; }
+    .order-counter.has-items .counter-btn.minus {
+      display: flex !important; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      border: none; cursor: pointer;
+      font-size: .95rem; font-weight: 700; line-height: 1;
+      background: rgba(255,255,255,.14); color: #fff;
+      transition: transform .15s ease;
+      touch-action: manipulation;
+    }
+    .order-counter.has-items .counter-btn.minus:active { transform: scale(.88); }
+    .order-counter.has-items .counter-display {
+      display: inline-block !important;
+      min-width: 16px; text-align: center;
+      font-family: var(--ff-body); font-size: .84rem; font-weight: 700;
+      color: var(--gold-200);
+    }
+    .order-counter.has-items .counter-btn.plus {
+      width: 22px; height: 22px;
+      font-size: .95rem;
+    }
 
     /* ── CART BAR ── */
     .cart-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-      padding: .9rem 1.2rem;
-      background: rgba(10,7,2,.95);
-      border-top: 1px solid rgba(212,168,50,.3);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      position: fixed; bottom: 4.8rem; left: 1rem; right: 1rem; z-index: 150;
+      background: linear-gradient(135deg, rgba(28,20,5,.97), rgba(16,11,2,.98));
+      border: 1.5px solid var(--gold-500);
+      border-radius: 16px;
+      padding: .75rem 1.2rem;
       display: flex; align-items: center; justify-content: space-between;
-      transform: translateY(100%);
-      transition: transform .4s var(--ease-bounce);
-      box-shadow: 0 -8px 32px rgba(0,0,0,.6);
+      box-shadow: 0 8px 32px rgba(0,0,0,.8), 0 0 25px rgba(212,168,50,.3);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      transform: translateY(120%); opacity: 0;
+      transition: transform .35s var(--ease-bounce), opacity .3s ease;
+      pointer-events: none;
     }
-    .cart-bar.visible { transform: translateY(0); }
-    .cart-info { display: flex; flex-direction: column; gap: .1rem; min-width: 0; flex: 1; margin-right: 1rem; }
+    .cart-bar.visible {
+      transform: translateY(0); opacity: 1; pointer-events: all;
+    }
+    .cart-info { display: flex; flex-direction: column; gap: .1rem; }
     .cart-count {
-      font-family: var(--ff-cinzel); font-size: .72rem; letter-spacing: .12em; color: var(--gold-400);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--gold-400); font-family: var(--ff-body); font-weight: 600;
     }
-    .cart-total { font-family: var(--ff-cinzel); font-size: 1.1rem; font-weight: 700;
-      background: linear-gradient(135deg, var(--gold-300), var(--gold-500));
-      -webkit-background-clip: text; background-clip: text; color: transparent; flex-shrink: 0; }
+    .cart-total {
+      font-family: var(--ff-serif); font-size: 1.2rem; font-weight: 700;
+      color: #fff;
+    }
     .cart-btn {
-      font-family: var(--ff-cinzel); font-size: .78rem; font-weight: 700;
-      letter-spacing: .12em; text-transform: uppercase;
-      padding: .7rem 1.5rem; border-radius: 100px;
-      border: none; cursor: pointer;
-      background: linear-gradient(135deg, var(--gold-500), var(--gold-400), var(--gold-600));
-      color: #1a0f00;
-      box-shadow: 0 4px 20px rgba(212,168,50,.4);
-      transition: transform .2s var(--ease-bounce), box-shadow .2s ease;
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+      color: #080500; font-family: var(--ff-body); font-size: .85rem; font-weight: 700;
+      letter-spacing: .06em; padding: .65rem 1.3rem; border-radius: 100px;
+      border: none; cursor: pointer; box-shadow: 0 0 18px rgba(212,168,50,.5);
+      transition: transform .2s ease, box-shadow .2s ease;
+      touch-action: manipulation;
     }
-    .cart-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(212,168,50,.55); }
-    .cart-btn:active { transform: scale(.97); }
+    .cart-btn:active { transform: scale(.95); }
 
     /* ── TOAST ── */
     .toast {
-      position: fixed; bottom: 5rem; left: 50%;
+      position: fixed; bottom: 8rem; left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: rgba(16,12,4,.96); border: 1px solid rgba(212,168,50,.4);
-      border-radius: 100px; padding: .5rem 1.3rem;
-      font-size: .74rem; letter-spacing: .06em; color: var(--gold-300);
+      border-radius: 100px; padding: .55rem 1.4rem;
+      font-size: .75rem; letter-spacing: .06em; color: var(--gold-300);
       opacity: 0; transition: .35s ease; z-index: 9999; white-space: nowrap;
       backdrop-filter: blur(16px); box-shadow: 0 4px 24px rgba(0,0,0,.5);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ── ORDER POPUP ── */
-    .order-popup-overlay {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
-      display: flex; align-items: flex-start; justify-content: center;
-      padding-top: 2rem; pointer-events: none;
-    }
-    .order-popup {
-      background: rgba(16,12,4,.96); border: 1px solid rgba(212,168,50,.5);
-      border-radius: 20px; padding: 1.5rem; max-width: 90%; width: 340px;
-      text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.8);
-      transform: translateY(-150%) scale(.9); opacity: 0;
-      transition: transform .5s var(--ease-bounce), opacity .4s ease;
-    }
-    .order-popup-overlay.show .order-popup { transform: translateY(0) scale(1); opacity: 1; }
-    
-    .popup-title {
-      font-family: var(--ff-cinzel); font-size: 1.4rem; font-weight: 700;
-      color: var(--gold-400); margin-bottom: 1rem;
-    }
-    .popup-desc {
-      font-family: var(--ff-body); font-size: .95rem; color: rgba(255,255,255,.8);
-      line-height: 1.5;
-    }
-
-    /* ── TASKBAR ── */
-    .taskbar {
-      position: fixed; bottom: 0; left: 0; right: 0; width: 100%; z-index: 9999;
-      background: rgba(10,7,2,.96);
-      border-top: 1px solid rgba(212,168,50,.35);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      display: flex !important; align-items: center; justify-content: space-around;
-      padding: .6rem 0 calc(.6rem + env(safe-area-inset-bottom, 0px));
-      box-shadow: 0 -8px 32px rgba(0,0,0,.7);
-    }
-    .taskbar-btn {
-      display: flex; flex-direction: column; align-items: center; gap: .2rem;
-      text-decoration: none; color: rgba(255,255,255,.65);
-      font-family: var(--ff-body); font-size: .68rem; letter-spacing: .05em;
-      transition: color .25s ease, transform .2s ease;
-      flex: 1; -webkit-tap-highlight-color: transparent;
-      cursor: pointer;
-    }
-    .taskbar-icon { font-size: 1.25rem; margin-bottom: .1rem; }
-    .taskbar-btn.active { color: var(--gold-400); }
-    .taskbar-btn.active .taskbar-icon { filter: drop-shadow(0 0 6px var(--gold-glow)); }
-    .taskbar-btn:hover { color: var(--gold-300); transform: translateY(-2px); }
-
-    /* lift toast and cart-bar above taskbar */
-    .toast { bottom: 5.5rem; }
-    .cart-bar { bottom: 4.5rem; z-index: 9998; }
-
     /* ── RESPONSIVE ── */
-    @media (min-width: 560px) {
-      .items-grid { grid-template-columns: repeat(2, 1fr); }
-      .item-img-wrap { width: 80px; height: 80px; }
+    @media (min-width: 500px) {
+      .items-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
     }
-    @media (min-width: 860px) {
-      .items-grid { grid-template-columns: repeat(3, 1fr); }
-      .items-section { padding: 0 1.5rem 5.5rem; }
+    @media (min-width: 768px) {
+      .items-grid { grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+      .items-section { padding: 0 2rem 4rem; }
+      .cart-bar { left: 2rem; right: 2rem; }
     }
     @media (min-width: 1100px) {
-      .items-grid { grid-template-columns: repeat(4, 1fr); }
-      .items-section { padding: 0 1.5rem 5.5rem; }
+      .items-grid { grid-template-columns: repeat(4, 1fr); gap: 1.3rem; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
+  
+    /* ── POPUP OVERLAY (ORDER CONFIRMED) ── */
+    .order-popup-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity .35s ease;
+    }
+    .order-popup-overlay.show { opacity: 1; pointer-events: all; }
+    .order-popup-card {
+      background: linear-gradient(145deg, rgba(26,18,4,.98), rgba(12,8,2,.98));
+      border: 1.5px solid var(--gold-500);
+      border-radius: 24px;
+      padding: 2.2rem 1.8rem;
+      text-align: center;
+      max-width: 380px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.9), 0 0 40px rgba(212,168,50,.35);
+      transform: scale(.85) translateY(20px);
+      transition: transform .4s var(--ease-bounce, cubic-bezier(.34,1.56,.64,1));
+    }
+    .order-popup-overlay.show .order-popup-card { transform: scale(1) translateY(0); }
+    .popup-icon {
+      font-size: 3rem; margin-bottom: .8rem;
+      filter: drop-shadow(0 0 16px rgba(212,168,50,.6));
+      animation: popIcon .6s var(--ease-bounce, cubic-bezier(.34,1.56,.64,1)) both;
+    }
+    @keyframes popIcon { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .popup-title {
+      font-family: var(--ff-cinzel, 'Cinzel', serif); font-size: 1.3rem; font-weight: 700;
+      color: var(--gold-300, #f5d48a); margin-bottom: .6rem; letter-spacing: .08em;
+    }
+    .popup-desc {
+      font-size: .88rem; line-height: 1.55;
+      color: rgba(255,255,255,.8); font-family: var(--ff-body, sans-serif);
+      margin-bottom: 1.4rem;
+    }
+    .popup-close-btn {
+      background: linear-gradient(135deg, var(--gold-400, #e8c56a), var(--gold-600, #b8901e));
+      color: #080500; font-family: var(--ff-body, sans-serif); font-size: .85rem; font-weight: 700;
+      padding: .65rem 2rem; border-radius: 100px; border: none; cursor: pointer;
+      letter-spacing: .06em; box-shadow: 0 0 16px rgba(212,168,50,.4);
+      transition: transform .2s ease;
+    }
+    .popup-close-btn:active { transform: scale(.94); }
+
+    /* ── TASKBAR ── */
+    .taskbar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(10,7,2,.95);
+      border-top: 1px solid rgba(212,168,50,.3);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex; align-items: center; justify-content: space-around;
+      padding: .6rem 0 calc(.6rem + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -8px 32px rgba(0,0,0,.6);
+    }
+    .taskbar-btn {
+      display: flex; flex-direction: column; align-items: center; gap: .2rem;
+      text-decoration: none; color: rgba(255,255,255,.5);
+      font-family: var(--ff-body, sans-serif); font-size: .65rem; letter-spacing: .05em;
+      transition: color .25s ease, transform .2s ease;
+      flex: 1; -webkit-tap-highlight-color: transparent;
+    }
+    .taskbar-icon { font-size: 1.2rem; margin-bottom: .1rem; }
+    .taskbar-btn.active { color: var(--gold-400, #e8c56a); }
+    .taskbar-btn.active .taskbar-icon { filter: drop-shadow(0 0 6px var(--gold-glow, rgba(212,168,50,.55))); }
+    .taskbar-btn:hover { color: var(--gold-300, #f5d48a); transform: translateY(-2px); }
+
   </style>
 </head>
 <body>
@@ -389,7 +452,7 @@
     <a href="menu.html" class="back-btn" id="backBtn" onclick="passParams(event)">
       <span class="back-arrow">&#8592;</span> Back
     </a>
-    <div class="topbar-title">Main Course</div>
+    <div class="topbar-title" id="topbarTitle">Main Course</div>
     <div class="topbar-spacer"></div>
   </div>
 
@@ -399,11 +462,12 @@
       <input class="search-input" id="searchInput" type="text" autocomplete="off"
              placeholder="Search main course..." aria-label="Search menu items"/>
       <span class="search-icon">&#128269;</span>
+      <div class="suggestions" id="suggestions"></div>
     </div>
   </div>
 
   <!-- ITEMS SECTION -->
-  <section class="items-section" aria-label="Main Course Items">
+  <section class="items-section" aria-label="Starter Items">
     <div class="items-grid" id="itemsGrid"></div>
   </section>
 
@@ -419,7 +483,7 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <!-- ══ TASKBAR ══ -->
+      <!-- ══ TASKBAR ══ -->
   <div class="taskbar">
     <a href="menu.html" class="taskbar-btn" id="taskbarHome" onclick="passParams(event)">
       <div class="taskbar-icon">🏠</div>
@@ -427,15 +491,19 @@
     </a>
     <a href="my_orders.html" class="taskbar-btn" id="taskbarOrders" onclick="passParamsToOrders(event)">
       <div class="taskbar-icon">📝</div>
-      <span id="txtMyOrder">My Orders</span>
+      <span id="txtMyOrder">My Order</span>
     </a>
   </div>
 
-  <!-- ══ ORDER POPUP ══ -->
+  <!-- ══ ORDER POPUP OVERLAY ══ -->
   <div class="order-popup-overlay" id="orderPopupOverlay">
-    <div class="order-popup">
+    <div class="order-popup-card">
+      <div class="popup-icon">🍽️</div>
       <div class="popup-title">✨ Order Confirmed</div>
-      <div class="popup-desc" id="popupDesc">Your order has been sent to the kitchen and is expected to arrive within 10 minutes. Thank you 😊.</div>
+      <div class="popup-desc" id="popupDesc">
+        Your order has been sent to the kitchen and will be served shortly. Thank you! 😊
+      </div>
+      <button class="popup-close-btn" onclick="document.getElementById('orderPopupOverlay').classList.remove('show')">Great!</button>
     </div>
   </div>
 
@@ -452,13 +520,62 @@
 
     /* ── Language strings ── */
     const UI = {
-      en: { search: 'Search main course...', back: '← Back', noResults: 'No items found', paneer: '— Paneer Specialties —', veg: '— Delectable Veg Curries —', dal: '— Creamy Dals —', confirmOrder: 'Confirm Order', items: 'items', item: 'item', home: 'Home', myOrder: 'My Orders' },
-      hi: { search: 'मेन कोर्स खोजें...', back: '← वापस', noResults: 'कोई आइटम नहीं मिला', paneer: '— पनीर व्यंजन —', veg: '— स्वादिष्ट शाकाहारी करी —', dal: '— दाल और मखनी —', confirmOrder: 'ऑर्डर कन्फर्म करें', items: 'आइटम', item: 'आइटम', home: 'होम', myOrder: 'मेरा ऑर्डर' },
-      mr: { search: 'मेन कोर्स शोधा...', back: '← मागे', noResults: 'कोणती वस्तू सापडली नाही', paneer: '— पनीरचे खास पदार्थ —', veg: '— स्वादिष्ट व्हेज कढी —', dal: '— डाळीचे प्रकार —', confirmOrder: 'ऑर्डर निश्चित करा', items: 'वस्तू', item: 'वस्तू', home: 'मुख्यपृष्ठ', myOrder: 'माझी ऑर्डर' },
+      en: { 
+        pageTitle: 'Main Course',
+        search: 'Search main course...', 
+        back: '← Back', 
+        noResults: 'No items found', 
+        paneerdishes: 'Paneer Dishes', 
+        sweetdishes: 'Sweet Dishes', 
+        indiandishes: 'Indian Dishes', 
+        dallentils: 'Dal & Lentils', 
+        maincourse: 'Main Course',
+        main: 'Main Course',
+        confirmOrder: 'Confirm Order', 
+        items: 'items', 
+        item: 'item', 
+        home: 'Home', 
+        myOrder: 'My Orders' 
+      },
+      hi: { 
+        pageTitle: 'मुख्य व्यंजन',
+        search: 'मेन कोर्स खोजें...', 
+        back: '← वापस', 
+        noResults: 'कोई आइटम नहीं मिला', 
+        paneerdishes: 'पनीर व्यंजन', 
+        sweetdishes: 'स्वीट डिशेस', 
+        indiandishes: 'भारतीय व्यंजन', 
+        dallentils: 'दाल व दाल तड़का', 
+        maincourse: 'मुख्य व्यंजन',
+        main: 'मुख्य व्यंजन',
+        confirmOrder: 'ऑर्डर कन्फर्म करें', 
+        items: 'आइटम', 
+        item: 'आइटम', 
+        home: 'होम', 
+        myOrder: 'मेरा ऑर्डर' 
+      },
+      mr: { 
+        pageTitle: 'मुख्य जेवण',
+        search: 'मेन कोर्स शोधा...', 
+        back: '← मागे', 
+        noResults: 'कोणती वस्तू सापडली नाही', 
+        paneerdishes: 'पनीर डिशेस', 
+        sweetdishes: 'स्वीट डिशेस', 
+        indiandishes: 'भारतीय भाज्या', 
+        dallentils: 'डाळ व वरण', 
+        maincourse: 'मुख्य जेवण',
+        main: 'मुख्य जेवण',
+        confirmOrder: 'ऑर्डर निश्चित करा', 
+        items: 'वस्तू', 
+        item: 'वस्तू', 
+        home: 'मुख्यपृष्ठ', 
+        myOrder: 'माझी ऑर्डर' 
+      },
     };
     const ui = UI[lang] || UI.en;
 
     /* ── Apply UI language ── */
+    if (document.getElementById('topbarTitle')) document.getElementById('topbarTitle').textContent = ui.pageTitle;
     document.getElementById('searchInput').placeholder = ui.search;
     document.getElementById('backBtn').childNodes[1].textContent = ' ' + ui.back.replace('← ','');
     document.querySelector('.back-arrow').textContent = '←';
@@ -622,9 +739,9 @@
         const popup = document.getElementById('orderPopupOverlay');
         const popupDesc = document.getElementById('popupDesc');
         const msgs = {
-          en: 'Your order has been sent to the kitchen and is expected to arrive within a few minutes. Thank you 😊.',
-          hi: 'आपका ऑर्डर किचन में भेज दिया गया है और कुछ मिनटों में आने की उम्मीद है। धन्यवाद 😊।',
-          mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि काही मिनिटांत येण्याची अपेक्षा आहे. धन्यवाद 😊.'
+          en: 'Your order has been sent to the kitchen and will be served shortly. Thank you! 😊',
+          hi: 'आपका ऑर्डर किचन में भेज दिया गया है और जल्द ही परोसा जाएगा। धन्यवाद! 😊',
+          mr: 'तुमची ऑर्डर किचनमध्ये पाठवली गेली आहे आणि लवकरच दिली जाईल. धन्यवाद! 😊'
         };
         const titles = { en: '✨ Order Confirmed', hi: '✨ ऑर्डर कन्फर्म', mr: '✨ ऑर्डर निश्चित' };
         const titleEl = document.querySelector('.popup-title');
@@ -641,17 +758,23 @@
       }
     }
 
-    /* ── Back button params ── */
+        /* ── Back button params ── */
     function passParams(e) {
       const base = 'menu.html';
-      const q = new URLSearchParams({ lang, table, persons }).toString();
+      const qObj = { lang, table, persons };
+      const tok = (window.TableSecurity ? window.TableSecurity.getActiveToken(table) : '') || (new URLSearchParams(location.search)).get('token') || '';
+      if (tok) qObj.token = tok;
+      const q = new URLSearchParams(qObj).toString();
       e.currentTarget.href = base + '?' + q;
     }
 
     /* ── My Orders button params ── */
     function passParamsToOrders(e) {
       const base = 'my_orders.html';
-      const q = new URLSearchParams({ lang, table, persons }).toString();
+      const qObj = { lang, table, persons };
+      const tok = (window.TableSecurity ? window.TableSecurity.getActiveToken(table) : '') || (new URLSearchParams(location.search)).get('token') || '';
+      if (tok) qObj.token = tok;
+      const q = new URLSearchParams(qObj).toString();
       e.currentTarget.href = base + '?' + q;
     }
 

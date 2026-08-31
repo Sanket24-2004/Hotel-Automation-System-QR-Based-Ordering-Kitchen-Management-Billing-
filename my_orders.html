@@ -279,6 +279,7 @@
     </div>
   </div>
 
+  <script src="table_security.js"></script>
   <script>
     'use strict';
     /* ── Session params ── */
@@ -286,12 +287,17 @@
     const lang    = params.get('lang')    || sessionStorage.getItem('hotel_lang')    || 'en';
     const table   = params.get('table')   || sessionStorage.getItem('hotel_table')   || '—';
     const persons = params.get('persons') || sessionStorage.getItem('hotel_persons') || '1';
+    let token     = params.get('token')   || params.get('sec') || (window.TableSecurity ? window.TableSecurity.getActiveToken(table) : '');
+
+    if (token && window.TableSecurity && table && table !== '—') {
+      window.TableSecurity.storeTableToken(table, token);
+    }
 
     /* ── Language strings ── */
     const STRINGS = {
-      en: { back: '← Back', title: 'My Orders', empty: 'You have not ordered anything yet.', home: 'Home', myOrder: 'My Orders', qty: 'Qty: ', viewBill: 'View Bill', subtotal: 'Subtotal', tax: 'Tax (5%)', total: 'Total', thankYou: 'Thank you for dining with us!', visitAgain: 'Please visit again', close: 'Close' },
-      hi: { back: '← वापस', title: 'मेरा ऑर्डर', empty: 'आपने अभी तक कुछ भी ऑर्डर नहीं किया है।', home: 'होम', myOrder: 'मेरा ऑर्डर', qty: 'मात्रा: ', viewBill: 'बिल देखें', subtotal: 'उप-कुल', tax: 'कर (5%)', total: 'कुल राशि', thankYou: 'हमारे साथ भोजन करने के लिए धन्यवाद!', visitAgain: 'कृपया फिर पधारें', close: 'बंद करें' },
-      mr: { back: '← मागे', title: 'माझी ऑर्डर', empty: 'तुम्ही अद्याप काहीही ऑर्डर केलेले नाही.', home: 'मुख्यपृष्ठ', myOrder: 'माझी ऑर्डर', qty: 'प्रमाण: ', viewBill: 'बिल पाहा', subtotal: 'उप-एकूण', tax: 'कर (5%)', total: 'एकूण रक्कम', thankYou: 'आमच्यासोबत जेवल्याबद्दल धन्यवाद!', visitAgain: 'कृपया पुन्हा भेट द्या', close: 'बंद करा' }
+      en: { back: '← Back', title: 'My Orders', empty: 'You have not ordered anything yet.', home: 'Home', myOrder: 'My Orders', qty: 'Qty: ', viewBill: 'View Bill', subtotal: 'Subtotal', tax: 'Tax (5%)', total: 'Total', thankYou: 'Thank you for dining with us!', visitAgain: 'Please visit again', close: 'Close', unauthorized: '🔒 Table Security: Please scan your table QR code to view your orders.' },
+      hi: { back: '← वापस', title: 'मेरा ऑर्डर', empty: 'आपने अभी तक कुछ भी ऑर्डर नहीं किया है।', home: 'होम', myOrder: 'मेरा ऑर्डर', qty: 'मात्रा: ', viewBill: 'बिल देखें', subtotal: 'उप-कुल', tax: 'कर (5%)', total: 'कुल राशि', thankYou: 'हमारे साथ भोजन करने के लिए धन्यवाद!', visitAgain: 'कृपया फिर पधारें', close: 'बंद करें', unauthorized: '🔒 टेबल सुरक्षा: अपने ऑर्डर देखने के लिए कृपया टेबल QR कोड स्कैन करें।' },
+      mr: { back: '← मागे', title: 'माझी ऑर्डर', empty: 'तुम्ही अद्याप काहीही ऑर्डर केलेले नाही.', home: 'मुख्यपृष्ठ', myOrder: 'माझी ऑर्डर', qty: 'प्रमाण: ', viewBill: 'बिल पाहा', subtotal: 'उप-एकूण', tax: 'कर (5%)', total: 'एकूण रक्कम', thankYou: 'आमच्यासोबत जेवल्याबद्दल धन्यवाद!', visitAgain: 'कृपया पुन्हा भेट द्या', close: 'बंद करा', unauthorized: '🔒 टेबल सुरक्षा: तुमची ऑर्डर पाहण्यासाठी कृपया टेबलवरील QR कोड स्कॅन करा.' }
     };
     const ui = STRINGS[lang] || STRINGS.en;
 
@@ -312,62 +318,116 @@
 
     function passParamsToHome(e) {
       const base = 'menu.html';
-      const q = new URLSearchParams({ lang, table, persons }).toString();
+      const qObj = { lang, table, persons };
+      if (token) qObj.token = token;
+      const q = new URLSearchParams(qObj).toString();
       e.currentTarget.href = base + '?' + q;
     }
 
     /* ── Load Orders ── */
     let stored = [];
+    let liveBillData = null;
     const orderKey = 'hotel_confirmed_orders_' + table;
 
-    function renderMyOrders() {
-      try { stored = JSON.parse(sessionStorage.getItem(orderKey) || '[]'); } catch (e) { stored = []; }
+    function renderOrderItems() {
       const listEl = document.getElementById('orderList');
+      const emptyStateEl = document.getElementById('emptyState');
+      const totalSec = document.getElementById('totalSection');
       if (listEl) listEl.innerHTML = '';
 
-      if (stored.length === 0) {
-        document.getElementById('emptyState').style.display = 'block';
-        var totalSec = document.getElementById('totalSection');
+      if (!stored || stored.length === 0) {
+        if (emptyStateEl) {
+          emptyStateEl.textContent = ui.empty;
+          emptyStateEl.style.display = 'block';
+        }
         if (totalSec) totalSec.style.display = 'none';
       } else {
-        document.getElementById('emptyState').style.display = 'none';
+        if (emptyStateEl) emptyStateEl.style.display = 'none';
         stored.forEach(item => {
-          const itemName = item[lang] || item.en;
-          const itemTotal = item.price * item.qty;
+          const itemName = item['name_' + lang] || item.name_en || item.name || item[lang] || item.en;
+          const itemPrice = parseFloat(item.price) || 0;
+          const itemQty = parseInt(item.qty, 10) || 1;
+          const itemTotal = itemPrice * itemQty;
 
           const card = document.createElement('div');
           card.className = 'order-card';
           card.innerHTML = `
             <div class="order-info">
               <div class="order-name">${itemName}</div>
-              <div class="order-qty">${ui.qty}${item.qty}</div>
+              <div class="order-qty">${ui.qty}${itemQty}</div>
             </div>
-            <div class="order-price">₹${itemTotal}</div>
+            <div class="order-price">₹${itemTotal.toFixed(2)}</div>
           `;
           if (listEl) listEl.appendChild(card);
         });
-        var totalSec = document.getElementById('totalSection');
         if (totalSec) totalSec.style.display = 'flex';
       }
     }
 
-    async function checkActiveSession() {
+    async function loadLiveOrders() {
+      if (!table || table === '—') {
+        renderOrderItems();
+        return;
+      }
+
       try {
-        const res = await fetch('api/get_active_bill.php?table=' + encodeURIComponent(table));
+        let url = 'api/get_active_bill.php?table=' + encodeURIComponent(table);
+        if (token) url += '&token=' + encodeURIComponent(token);
+
+        const res = await fetch(url);
         const d = await res.json();
-        if (d.success && !d.exists) {
-          sessionStorage.removeItem(orderKey);
-          sessionStorage.removeItem('hotel_security_token');
-          renderMyOrders();
+
+        if (d.unauthorized) {
+          stored = [];
+          const emptyStateEl = document.getElementById('emptyState');
+          const totalSec = document.getElementById('totalSection');
+          if (emptyStateEl) {
+            emptyStateEl.innerHTML = `
+              <div style="font-size:2.4rem;margin-bottom:0.8rem;">🔒</div>
+              <div style="font-weight:600;font-size:1.05rem;color:#f5d48a;margin-bottom:0.5rem;">Table Security Check</div>
+              <div style="color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.4;">${ui.unauthorized}</div>
+            `;
+            emptyStateEl.style.display = 'block';
+          }
+          if (totalSec) totalSec.style.display = 'none';
+          return;
+        }
+
+        if (d.success && d.exists && Array.isArray(d.items) && d.items.length > 0) {
+          liveBillData = d;
+          stored = d.items;
+          try {
+            sessionStorage.setItem(orderKey, JSON.stringify(stored));
+            localStorage.setItem(orderKey, JSON.stringify(stored));
+          } catch (_) {}
+          renderOrderItems();
+        } else if (d.success && !d.exists) {
+          liveBillData = null;
+          stored = [];
+          try {
+            sessionStorage.removeItem(orderKey);
+            localStorage.removeItem(orderKey);
+          } catch (_) {}
+          renderOrderItems();
+        } else {
+          // Fallback to local storage if network issue
+          try {
+            stored = JSON.parse(localStorage.getItem(orderKey) || sessionStorage.getItem(orderKey) || '[]');
+          } catch (e) { stored = []; }
+          renderOrderItems();
         }
       } catch (e) {
-        console.warn('Failed to verify table session status:', e);
+        console.warn('Network error loading active orders:', e);
+        try {
+          stored = JSON.parse(localStorage.getItem(orderKey) || sessionStorage.getItem(orderKey) || '[]');
+        } catch (_) { stored = []; }
+        renderOrderItems();
       }
     }
 
-    // Run render and check session
-    renderMyOrders();
-    checkActiveSession();
+    // Initial load + live refresh polling
+    loadLiveOrders();
+    setInterval(loadLiveOrders, 8000);
 
     /* ── Bill Logic ── */
     function getFormattedDate() {
@@ -390,25 +450,27 @@
         billItemsContainer.innerHTML = '';
 
         stored.forEach(item => {
-          const itemName = item[lang] || item.en;
-          const itemTotal = item.price * item.qty;
+          const itemName = item['name_' + lang] || item.name_en || item.name || item[lang] || item.en;
+          const itemPrice = parseFloat(item.price) || 0;
+          const itemQty = parseInt(item.qty, 10) || 1;
+          const itemTotal = itemPrice * itemQty;
           subtotal += itemTotal;
 
           const row = document.createElement('div');
           row.className = 'bill-item-row';
           row.innerHTML = `
-            <div class="bill-item-name">${item.qty}x ${itemName}</div>
-            <div class="bill-item-price">₹${itemTotal}</div>
+            <div class="bill-item-name">${itemQty}x ${itemName}</div>
+            <div class="bill-item-price">₹${itemTotal.toFixed(2)}</div>
           `;
           billItemsContainer.appendChild(row);
         });
 
-        const tax = Math.round(subtotal * 0.05); // 5% tax
-        const total = subtotal + tax;
+        const tax = parseFloat((subtotal * 0.05).toFixed(2)); // 5% tax with cents
+        const total = parseFloat((subtotal + tax).toFixed(2));
 
-        document.getElementById('billSubtotal').textContent = `₹${subtotal}`;
-        document.getElementById('billTax').textContent = `₹${tax}`;
-        document.getElementById('billTotal').textContent = `₹${total}`;
+        document.getElementById('billSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('billTax').textContent = `₹${tax.toFixed(2)}`;
+        document.getElementById('billTotal').textContent = `₹${total.toFixed(2)}`;
         
         document.getElementById('billDate').textContent = getFormattedDate();
         document.getElementById('billTableNum').textContent = table;

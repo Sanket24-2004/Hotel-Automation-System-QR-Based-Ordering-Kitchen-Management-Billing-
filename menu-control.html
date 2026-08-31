@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="owner-auth.js"></script>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
     :root{--gold:#FFD700;--gold-border:rgba(255,215,0,.3);--white:#fff;--green:#22c55e;--red:#ef4444;--glass-bg:rgba(255,255,255,.05);--radius:12px;--navbar-h:60px;--botnav-h:65px}
@@ -208,17 +209,19 @@
     <p class="page-subtitle">Add, edit, remove items and toggle availability</p>
   </div>
 
-  <div class="toolbar">
     <select id="catFilter" onchange="loadMenu()">
       <option value="">All Categories</option>
+      <option value="welcome_drink">Welcome Drink</option>
+      <option value="breakfast">Breakfast</option>
       <option value="starter">Starter</option>
+      <option value="thali">Thali Special</option>
       <option value="main_course">Main Course</option>
-      <option value="bread">Bread</option>
-      <option value="rice_biryani">Rice &amp; Biryani</option>
-      <option value="beverage">Beverage</option>
-      <option value="dessert">Dessert</option>
-      <option value="salad">Salad</option>
-      <option value="side_dish">Side Dish</option>
+      <option value="special_dishes">Special Dishes &amp; Handi</option>
+      <option value="bread">Roti &amp; Paratha</option>
+      <option value="rice_biryani">Rice &amp; Dals</option>
+      <option value="chinese">Chinese Rice &amp; Noodles</option>
+      <option value="side_dish">Soups &amp; Raitas</option>
+      <option value="dessert">Ice Creams &amp; Desserts</option>
       <option value="water">Water</option>
     </select>
     <input type="text" id="searchInput" placeholder="🔍 Search items…" oninput="filterTable()"/>
@@ -270,14 +273,17 @@
         <label>Category *</label>
         <div style="display: flex; gap: 6px; align-items: center;">
           <select id="fCategory" style="flex: 1;">
+            <option value="welcome_drink">Welcome Drink</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="thali">Thali Special</option>
             <option value="starter">Starter</option>
             <option value="main_course">Main Course</option>
-            <option value="bread">Bread</option>
-            <option value="rice_biryani">Rice &amp; Biryani</option>
-            <option value="beverage">Beverage</option>
-            <option value="dessert">Dessert</option>
-            <option value="salad">Salad</option>
-            <option value="side_dish">Side Dish</option>
+            <option value="special_dishes">Special Dishes &amp; Handi</option>
+            <option value="bread">Roti &amp; Paratha</option>
+            <option value="rice_biryani">Rice &amp; Dals</option>
+            <option value="chinese">Chinese Rice &amp; Noodles</option>
+            <option value="side_dish">Soups &amp; Raitas</option>
+            <option value="dessert">Ice Creams &amp; Desserts</option>
             <option value="water">Water</option>
           </select>
           <button type="button" onclick="addNewCategoryPrompt()" style="padding: 0 10px; height: 38px; line-height: 38px; border: 1px solid rgba(255,215,0,0.3); color: var(--gold); border-radius: 8px; font-weight: bold; background: rgba(255,215,0,0.05); font-size: 1.1rem; cursor: pointer;" title="Add Custom Category">➕</button>
@@ -363,14 +369,15 @@
   var knownCategories = {
     welcome_drink: 'Welcome Drink',
     breakfast: 'Breakfast',
+    thali: 'Thali Special',
     starter: 'Starter',
     main_course: 'Main Course',
-    bread: 'Bread',
-    rice_biryani: 'Rice & Biryani',
-    beverage: 'Beverage',
-    dessert: 'Dessert',
-    salad: 'Salad',
-    side_dish: 'Side Dish',
+    special_dishes: 'Special Dishes & Handi',
+    bread: 'Roti & Paratha',
+    rice_biryani: 'Rice & Dals',
+    chinese: 'Chinese Rice & Noodles',
+    side_dish: 'Soups & Raitas',
+    dessert: 'Ice Creams & Desserts',
     water: 'Water'
   };
 
@@ -472,15 +479,16 @@
     return {
       welcome_drink: 'ALL Images/Tea_result.webp',
       breakfast: 'ALL Images/Pohe_result.webp',
+      thali: 'ALL Images/Special Veg Thali_result.webp',
       starter: 'ALL Images/Starter_Paneer_Tikka.webp',
       main_course: 'ALL Images/MainCourse_panner_butter_Masala.webp',
+      special_dishes: 'ALL Images/veg handi (full)_result.webp',
       bread: 'ALL Images/Breads_Roti.webp',
       rice_biryani: 'ALL Images/Rice_and_Biryani.webp',
-      beverage: 'ALL Images/Beverages_Mango_lassi.webp',
-      dessert: 'ALL Images/Dessert_Rasmalai.webp',
-      side_dish: 'ALL Images/Side_dishes_Raita.webp',
-      water: 'ALL Images/Water Bottle (500 ml - Normal) new.webp',
-      salad: 'ALL Images/Side_dishes_Raita.webp'
+      chinese: 'ALL Images/Veg Triple Schezwan Rice._result.webp',
+      dessert: 'ALL Images/Rajbhog_result.webp',
+      side_dish: 'ALL Images/Veg Manchow Soup_result.webp',
+      water: 'ALL Images/Water Bottle (500 ml - Normal) new.webp'
     }[cat] || '';
   }
 

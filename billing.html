@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="owner-auth.js"></script>
 
   <style>
     /* =============================================
@@ -1259,12 +1260,14 @@
               <span class="man-cat-chip" onclick="selectManualCategory('welcome_drink', this)">Welcome Drinks</span>
               <span class="man-cat-chip" onclick="selectManualCategory('breakfast', this)">Breakfast</span>
               <span class="man-cat-chip" onclick="selectManualCategory('starter', this)">Starters</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('thali', this)">Thali Special</span>
               <span class="man-cat-chip" onclick="selectManualCategory('main_course', this)">Main Course</span>
-              <span class="man-cat-chip" onclick="selectManualCategory('bread', this)">Breads</span>
-              <span class="man-cat-chip" onclick="selectManualCategory('rice_biryani', this)">Rice</span>
-              <span class="man-cat-chip" onclick="selectManualCategory('beverage', this)">Beverages</span>
-              <span class="man-cat-chip" onclick="selectManualCategory('dessert', this)">Desserts</span>
-              <span class="man-cat-chip" onclick="selectManualCategory('side_dish', this)">Sides</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('special_dishes', this)">Special Dishes &amp; Handi</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('bread', this)">Roti &amp; Paratha</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('rice_biryani', this)">Rice &amp; Dals</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('chinese', this)">Chinese Rice &amp; Noodles</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('side_dish', this)">Soups &amp; Raitas</span>
+              <span class="man-cat-chip" onclick="selectManualCategory('dessert', this)">Ice Creams &amp; Desserts</span>
               <span class="man-cat-chip" onclick="selectManualCategory('water', this)">Water</span>
             </div>
             <div class="man-items-list" id="man-items-list">
@@ -1647,7 +1650,7 @@
       var sittingMins = tableData ? tableData.minutesAgo : 0;
 
       try {
-        var res = await fetch('api/get_active_bill.php?table=' + tableId);
+        var res = await fetch('api/get_active_bill.php?table=' + encodeURIComponent(tableId) + '&is_staff=1');
         var d   = await res.json();
         if (d.success) {
           currentItems = (d.items || []).map(function(i){
@@ -2083,6 +2086,7 @@
               name: item.name_en,
               name_en: item.name_en,
               name_hi: item.name_hi || '',
+              category: item.category || 'main_course',
               price: parseFloat(item.price)
             };
           });

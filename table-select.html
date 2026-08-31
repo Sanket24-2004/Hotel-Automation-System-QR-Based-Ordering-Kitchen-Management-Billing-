@@ -375,9 +375,8 @@
       <!-- PERSONS SECTION (replaces table card in same spot) -->
       <div class="persons-section" id="personsSection">
         <div class="persons-card">
-          <div class="table-badge" onclick="showTableCard()" title="Click to change table" style="cursor:pointer;" role="button" tabindex="0">
+          <div class="table-badge">
             <span id="badgeTablePrefix">🪑 &nbsp;Table</span> &nbsp;<span id="badgeTableNum">—</span>
-            <span style="font-size:0.65rem;opacity:0.75;margin-left:0.35rem;border-left:1px solid rgba(212,168,50,0.4);padding-left:0.45rem;">✏️ Edit</span>
           </div>
           <p class="persons-title">How many guests at your table?</p>
 
@@ -411,6 +410,8 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <script src="table_security.js"></script>
+  <script src="geofence.js"></script>
   <script>
     'use strict';
 
@@ -607,7 +608,6 @@
       const inp = document.getElementById('counterDisplay');
       if(on){
         inp.classList.add('error');
-        // re-trigger animation each time
         void inp.offsetWidth;
       } else {
         inp.classList.remove('error');
@@ -616,28 +616,83 @@
 
     /* ── CONFIRM ── */
     function handleConfirm(){
-      if(!tableNum){ showToast(str.toastNoTable); return; }
-      // validate live input before navigating
-      const raw = parseInt(document.getElementById('counterDisplay').value, 10);
-      if(isNaN(raw) || raw < 1){
-        showToast('⚠️ Please enter correct information');
-        setCounterError(true);
-        document.getElementById('counterDisplay').focus();
+      const btn = document.getElementById('confirmBtn');
+      if (btn && btn.disabled) return;
+
+      if (!tableNum) {
+        const inp = document.getElementById('tableInput');
+        if (inp && inp.value) tableNum = parseInt(inp.value, 10);
+        if (!tableNum) {
+          const pTable = params.get('table') || sessionStorage.getItem('hotel_table');
+          if (pTable) tableNum = parseInt(pTable, 10);
+        }
+      }
+
+      if (!tableNum) {
+        showToast(str.toastNoTable);
+        showTableCard();
         return;
       }
+
+      const countEl = document.getElementById('counterDisplay');
+      const raw = countEl ? parseInt(countEl.value, 10) : personCount;
+      if (isNaN(raw) || raw < 1) {
+        showToast('⚠️ Please enter correct guest count');
+        setCounterError(true);
+        if (countEl) countEl.focus();
+        return;
+      }
+
       personCount = Math.min(raw, 30);
       sessionStorage.setItem('hotel_table',   tableNum);
       sessionStorage.setItem('hotel_persons', personCount);
       sessionStorage.setItem('hotel_lang',    lang);
 
-      // Register table occupancy in DB before proceeding
-      fetch('api/occupy_table.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'occupy', table: tableNum, persons: personCount })
-      }).finally(() => {
-        window.location.href = 'menu.html?lang=' + encodeURIComponent(lang) + '&table=' + tableNum + '&persons=' + personCount;
-      });
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token') || urlParams.get('sec') || (window.TableSecurity ? window.TableSecurity.getActiveToken(tableNum) : '');
+      if (token && window.TableSecurity) {
+        window.TableSecurity.storeTableToken(tableNum, token);
+      }
+
+      // Visual feedback immediately
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Opening Menu… ✨';
+        btn.style.opacity = '0.85';
+      }
+
+      // Ask for device location permission RIGHT HERE on this click gesture.
+      // This triggers the browser native popup (Allow / Block).
+      // We don't wait for it — we navigate immediately and verify silently on menu.html.
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            sessionStorage.setItem('hotel_pending_lat', pos.coords.latitude);
+            sessionStorage.setItem('hotel_pending_lng', pos.coords.longitude);
+            sessionStorage.setItem('hotel_pending_acc', pos.coords.accuracy || 25);
+          },
+          function() { /* denied/error — PIN fallback handles this on menu.html */ },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+      }
+
+      // Navigate immediately — don't wait for GPS result
+      let target = 'menu.html?lang=' + encodeURIComponent(lang) + '&table=' + encodeURIComponent(tableNum) + '&persons=' + personCount;
+      if (token) target += '&token=' + encodeURIComponent(token);
+
+      let navigated = false;
+      const doNav = () => { if (!navigated) { navigated = true; window.location.href = target; } };
+
+      try {
+        fetch('api/occupy_table.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'occupy', table: tableNum, persons: personCount }),
+          keepalive: true
+        }).then(doNav).catch(doNav);
+      } catch (_) { doNav(); }
+
+      setTimeout(doNav, 150);
     }
 
     /* ── ENTER key on input ── */

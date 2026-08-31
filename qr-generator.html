@@ -11,8 +11,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet"/>
   
+  <!-- Owner Auth Guard -->
+  <script src="owner-auth.js"></script>
   <!-- QRCode.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Table Security Token Library -->
+  <script src="table_security.js"></script>
 
   <style>
     :root {
@@ -569,9 +573,10 @@
       }
 
       for (let t = start; t <= end; t++) {
-        // Construct target URL with table param
+        // Construct target URL with table and token params
+        const tok = window.TableSecurity ? window.TableSecurity.generateTableToken(t) : '';
         const delimiter = rawBaseUrl.includes('?') ? '&' : '?';
-        const targetUrl = `${rawBaseUrl}${delimiter}table=${t}`;
+        const targetUrl = `${rawBaseUrl}${delimiter}table=${t}&token=${tok}`;
 
         const card = document.createElement('div');
         card.className = 'table-card';

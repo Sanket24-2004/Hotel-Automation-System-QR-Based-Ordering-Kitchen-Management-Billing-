@@ -27,13 +27,13 @@ CREATE TABLE IF NOT EXISTS `menu_items` (
                     'main_course',
                     'bread',
                     'rice_biryani',
-                    'beverage',
                     'dessert',
                     'salad',
                     'side_dish',
                     'water',
                     'welcome_drink',
-                    'breakfast'
+                    'breakfast',
+                    'thali'
                   )                   NOT NULL,
   `price`         DECIMAL(8,2)        NOT NULL DEFAULT 0.00,
   `image_path`    VARCHAR(255)        DEFAULT NULL COMMENT 'Relative path to item image',
@@ -103,13 +103,13 @@ CREATE TABLE IF NOT EXISTS `order_items` (
                     'main_course',
                     'bread',
                     'rice_biryani',
-                    'beverage',
                     'dessert',
                     'salad',
                     'side_dish',
                     'water',
                     'welcome_drink',
-                    'breakfast'
+                    'breakfast',
+                    'thali'
                   )                   NOT NULL,
   `unit_price`    DECIMAL(8,2)        NOT NULL,
   `qty`           SMALLINT UNSIGNED   NOT NULL DEFAULT 1,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
 
   CONSTRAINT `fk_oi_menu`
     FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items`(`id`)
-    ON DELETE RESTRICT ON UPDATE CASCADE,
+    ON DELETE SET NULL ON UPDATE CASCADE,
 
   INDEX `idx_order_id`   (`order_id`),
   INDEX `idx_batch_id`   (`batch_id`),
