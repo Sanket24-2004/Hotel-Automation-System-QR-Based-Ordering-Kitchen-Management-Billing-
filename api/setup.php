@@ -119,7 +119,7 @@ $tables = [
         `name_en`       VARCHAR(150)        NOT NULL,
         `name_hi`       VARCHAR(150)        DEFAULT NULL,
         `name_mr`       VARCHAR(150)        DEFAULT NULL,
-        `category`      ENUM('starter','main_course','bread','rice_biryani','beverage','dessert','salad','side_dish','water') NOT NULL,
+        `category`      ENUM('starter','main_course','bread','rice_biryani','beverage','dessert','salad','side_dish','water','welcome_drink','breakfast') NOT NULL,
         `price`         DECIMAL(8,2)        NOT NULL DEFAULT 0.00,
         `image_path`    VARCHAR(255)        DEFAULT NULL,
         `is_available`  TINYINT(1)          NOT NULL DEFAULT 1,
@@ -163,7 +163,7 @@ $tables = [
         `batch_id`      VARCHAR(50)         NOT NULL,
         `menu_item_id`  INT UNSIGNED        NOT NULL,
         `item_name`     VARCHAR(150)        NOT NULL,
-        `category`      ENUM('starter','main_course','bread','rice_biryani','beverage','dessert','salad','side_dish','water') NOT NULL,
+        `category`      ENUM('starter','main_course','bread','rice_biryani','beverage','dessert','salad','side_dish','water','welcome_drink','breakfast') NOT NULL,
         `unit_price`    DECIMAL(8,2)        NOT NULL,
         `qty`           SMALLINT UNSIGNED   NOT NULL DEFAULT 1,
         `line_total`    DECIMAL(10,2)       GENERATED ALWAYS AS (`unit_price` * `qty`) STORED,
@@ -346,6 +346,8 @@ $categoryDefaults = [
     'side_dish'   => 'ALL Images/Side_dishes_Raita.webp',
     'salad'       => 'ALL Images/Side_dishes_Raita.webp',
     'water'       => 'ALL Images/Water Bottle (500 ml - Normal) new.webp',
+    'welcome_drink'=> 'ALL Images/Tea_result.webp',
+    'breakfast'   => 'ALL Images/Pohe_result.webp',
 ];
 
 $itemsToUpdate = $pdo->query("SELECT id, name_en, category, image_path FROM menu_items")->fetchAll();

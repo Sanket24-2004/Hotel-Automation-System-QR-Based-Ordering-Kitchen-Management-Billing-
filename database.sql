@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS `menu_items` (
                     'dessert',
                     'salad',
                     'side_dish',
-                    'water'
+                    'water',
+                    'welcome_drink',
+                    'breakfast'
                   )                   NOT NULL,
   `price`         DECIMAL(8,2)        NOT NULL DEFAULT 0.00,
   `image_path`    VARCHAR(255)        DEFAULT NULL COMMENT 'Relative path to item image',
@@ -105,7 +107,9 @@ CREATE TABLE IF NOT EXISTS `order_items` (
                     'dessert',
                     'salad',
                     'side_dish',
-                    'water'
+                    'water',
+                    'welcome_drink',
+                    'breakfast'
                   )                   NOT NULL,
   `unit_price`    DECIMAL(8,2)        NOT NULL,
   `qty`           SMALLINT UNSIGNED   NOT NULL DEFAULT 1,

@@ -443,6 +443,36 @@
   <section class="categories-section" aria-label="Menu Categories">
     <div class="grid" id="menuGrid">
 
+      <!-- Welcome Drinks -->
+      <div class="cat-card" id="cat-welcome-drinks"
+           onclick="openCategory('welcome_drinks', 'Welcome Drinks')"
+           tabindex="0" role="button" aria-label="Welcome Drinks">
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Tea_result.webp');"></div>
+        <div class="cat-scrim"></div>
+        <div class="cat-content">
+          <div class="cat-name">Welcome Drinks</div>
+          <div class="cat-cta">
+            <span class="cat-cta-line"></span>
+            Explore
+          </div>
+        </div>
+      </div>
+
+      <!-- Breakfast -->
+      <div class="cat-card" id="cat-breakfast"
+           onclick="openCategory('breakfast', 'Break Fast')"
+           tabindex="0" role="button" aria-label="Break Fast">
+        <div class="cat-bg-img" style="background-image: url('ALL Images/Pohe_result.webp');"></div>
+        <div class="cat-scrim"></div>
+        <div class="cat-content">
+          <div class="cat-name">Break Fast</div>
+          <div class="cat-cta">
+            <span class="cat-cta-line"></span>
+            Explore
+          </div>
+        </div>
+      </div>
+
       <!-- Appetizers / Starters -->
       <div class="cat-card" id="cat-starters"
            onclick="openCategory('starters', 'Appetizers / Starters')"
@@ -609,6 +639,8 @@
         guestPlural:  'guests',
         topGuests:    (n) => n + (n === '1' ? ' guest' : ' guests'),
         cats: {
+          welcome_drinks: 'Welcome Drinks',
+          breakfast: 'Break Fast',
           starters:  'Appetizers / Starters',
           main:      'Main Course',
           breads:    'Breads',
@@ -632,6 +664,8 @@
         guestPlural:  'अतिथि',
         topGuests:    (n) => n + ' अतिथि',
         cats: {
+          welcome_drinks: 'वेलकम ड्रिंक',
+          breakfast: 'नाश्ता',
           starters:  'स्टार्टर्स',
           main:      'मुख्य व्यंजन',
           breads:    'रोटी / ब्रेड',
@@ -655,6 +689,8 @@
         guestPlural:  'पाहुणे',
         topGuests:    (n) => n + ' पाहुणे',
         cats: {
+          welcome_drinks: 'वेलकम ड्रिंक',
+          breakfast: 'नाश्ता',
           starters:  'स्टार्टर्स',
           main:      'मुख्य जेवण',
           breads:    'पोळी / ब्रेड',
@@ -703,6 +739,8 @@
 
     // Category names
     const catMap = {
+      'cat-welcome-drinks': str.cats.welcome_drinks,
+      'cat-breakfast': str.cats.breakfast,
       'cat-starters':  str.cats.starters,
       'cat-main':      str.cats.main,
       'cat-breads':    str.cats.breads,
@@ -727,7 +765,11 @@
     /* ── Category click ── */
     function openCategory(cat, label) {
       const q = new URLSearchParams({ lang, table, persons }).toString();
-      if (cat === 'starters') {
+      if (cat === 'welcome_drinks') {
+        window.location.href = 'welcome-drinks.html?' + q;
+      } else if (cat === 'breakfast') {
+        window.location.href = 'breakfast.html?' + q;
+      } else if (cat === 'starters') {
         window.location.href = 'starters.html?' + q;
       } else if (cat === 'desserts') {
         window.location.href = 'dessert.html?' + q;

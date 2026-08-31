@@ -51,7 +51,7 @@ try {
         'rasmalai (2 pcs)'               => 'ALL Images/Rasmalai (2 pcs).webp',
         'masala chaas'                   => 'ALL Images/Masala Chaas (Buttermilk).webp',
         'masala chaas (buttermilk)'      => 'ALL Images/Masala Chaas (Buttermilk).webp',
-        'lassi'                          => 'ALL Images/Sweet Lassi.webp',
+        'sweet lassi'                    => 'ALL Images/Sweet Lassi.webp',
         'roasted papad'                  => 'ALL Images/Roasted Papad.webp',
         'fried papad'                    => 'ALL Images/Fried Papad.webp',
         'masala papad'                   => 'ALL Images/Masala Papad.webp',
@@ -75,6 +75,29 @@ try {
         'malai chaap'                    => 'ALL Images/Malai Chaap.webp',
         'tandoori broccoli'              => 'ALL Images/Tandoori Broccoli.webp',
         'veg tandoori platter'           => 'ALL Images/Veg Tandoori Platter.webp',
+        'lemon tea'                      => 'ALL Images/Lemon Tea_result.webp',
+        'milk'                           => 'ALL Images/Milk_result.webp',
+        'tak ( plain / masala )'         => 'ALL Images/Tak_result.webp',
+        'tak'                            => 'ALL Images/Tak_result.webp',
+        'taak'                           => 'ALL Images/Tak_result.webp',
+        'fresh lime soda'                => 'ALL Images/Fresh Laim Soda_result.webp',
+        'fresh laim soda'                => 'ALL Images/Fresh Laim Soda_result.webp',
+        'mineral water'                  => 'ALL Images/Mineral Water_result.webp',
+        'cold drink (200 ml)'            => 'ALL Images/ColdDrinks 200 ml_result.webp',
+        'cold drink (500 ml)'            => 'ALL Images/ColdDrinks 500 ml_result.webp',
+        'cold drink (750 ml / 1 l)'      => 'ALL Images/ColdDrinks 1 L_result.webp',
+        'red bull'                       => 'ALL Images/Red Bull_result.webp',
+        'sting'                          => 'ALL Images/Sting_result.webp',
+        'hell'                           => 'ALL Images/Hell_result.webp',
+        'hell energy drink'              => 'ALL Images/Hell_result.webp',
+        'medu wada'                      => 'ALL Images/Mendu Wada_result.webp',
+        'mendu wada'                     => 'ALL Images/Mendu Wada_result.webp',
+        'plain dosa'                     => 'ALL Images/Plain dosa_result.webp',
+        'paper plain dosa'               => 'ALL Images/Paper Plane Dosa_result.webp',
+        'butter pav'                     => 'ALL Images/Butter pav_result.webp',
+        'sabudana khichdi'               => 'ALL Images/Sabudana khichdi_result.webp',
+        'sabudana kheer'                 => 'ALL Images/Shabudana Kheer_result.webp',
+        'shabudana kheer'                => 'ALL Images/Shabudana Kheer_result.webp',
     ];
 
     $categoryDefaults = [
@@ -87,6 +110,8 @@ try {
         'side_dish'   => 'ALL Images/Side_dishes_Raita.webp',
         'salad'       => 'ALL Images/Side_dishes_Raita.webp',
         'water'       => 'ALL Images/Water Bottle (500 ml - Normal) new.webp',
+        'welcome_drink'=> 'ALL Images/Tea_result.webp',
+        'breakfast'   => 'ALL Images/Pohe_result.webp',
     ];
 
     $updateStmt = $pdo->prepare("UPDATE menu_items SET image_path = ? WHERE id = ?");
@@ -104,17 +129,27 @@ try {
 
         $newPath = null;
 
-        // 1. Direct file check
-        $exactPath = $imgDir . '/' . $nameEn . '.webp';
-        if (file_exists($exactPath)) {
-            $newPath = 'ALL Images/' . $nameEn . '.webp';
-        }
-
-        // 2. Custom override check
-        if (!$newPath && isset($customOverrides[$nameLower])) {
+        // 1. Custom override check
+        if (isset($customOverrides[$nameLower])) {
             $targetOverride = __DIR__ . '/../' . $customOverrides[$nameLower];
             if (file_exists($targetOverride)) {
                 $newPath = $customOverrides[$nameLower];
+            }
+        }
+
+        // 2. Result images check for welcome_drink & breakfast
+        if (!$newPath && in_array($cat, ['welcome_drink', 'breakfast'])) {
+            $resultPath = $imgDir . '/' . $nameEn . '_result.webp';
+            if (file_exists($resultPath)) {
+                $newPath = 'ALL Images/' . $nameEn . '_result.webp';
+            }
+        }
+
+        // 3. Direct file check
+        if (!$newPath) {
+            $exactPath = $imgDir . '/' . $nameEn . '.webp';
+            if (file_exists($exactPath)) {
+                $newPath = 'ALL Images/' . $nameEn . '.webp';
             }
         }
 

@@ -13,12 +13,12 @@ const POLL_INTERVAL = 2500; // Poll every 2.5 seconds
 const NEW_ORDER_TIMEOUT_SEC = 180; // 3 minutes stay in "New" section before moving to "Ongoing" if no newer order arrives
 
 const CATEGORY_ICONS = {
-  starter: '🍽️', main: '🍛', bread: '🫓', rice: '🍚',
+  welcome_drink: '🍹', breakfast: '🍳', starter: '🍽️', main: '🍛', bread: '🫓', rice: '🍚',
   beverage: '🥤', dessert: '🍨', salad: '🥗', side: '🥣', water: '💧'
 };
 
 const CATEGORY_HINDI = {
-  starter: 'स्टार्टर', main: 'मेन कोर्स', bread: 'रोटी / ब्रेड', rice: 'चावल / बिरयानी',
+  welcome_drink: 'वेलकम ड्रिंक', breakfast: 'नाश्ता', starter: 'स्टार्टर', main: 'मेन कोर्स', bread: 'रोटी / ब्रेड', rice: 'चावल / बिरयानी',
   beverage: 'पेय / बेवरेज', dessert: 'मीठा / डेज़र्ट', salad: 'सलाद', side: 'अन्य', water: 'पानी'
 };
 

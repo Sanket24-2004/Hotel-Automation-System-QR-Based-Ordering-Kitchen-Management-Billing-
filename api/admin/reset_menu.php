@@ -29,6 +29,16 @@ function sectionFor(int $id, string $cat): string {
             if ($id >= 613 && $id <= 616) return 'Shakes & Coffee';
             if ($id >= 601 && $id <= 606) return 'Refreshers';
             return 'Mocktails & Juices';
+        case 'welcome_drink':
+            if ($id <= 804) return 'Hot Brews';
+            if ($id <= 806) return 'Traditional Coolers';
+            if ($id <= 808) return 'Refreshers';
+            return 'Cold Drinks & Energy';
+        case 'breakfast':
+            if ($id <= 909) return 'Maharashtrian Snacks';
+            if ($id <= 916) return 'South Indian Delicacies';
+            if ($id <= 922) return 'Pav Bhaji & Chaat';
+            return 'Upvas Specials';
         case 'side_dish':     return 'Accompaniments';
         case 'water':         return 'Premium Hydration';
     }
@@ -187,6 +197,50 @@ $items = [
   [702,'water','Water Bottle (500 ml - Normal)','पानी की बोतल (500 मिली - नॉर्मल)','पाण्याची बाटली (500 मिली - नॉर्मल)',10,'Water Bottle/Water Bottle (500 ml - Normal).png',1,2,1],
   [703,'water','Water Bottle (1 Litre - Cold)','पानी की बोतल (1 लीटर - ठंडी)','पाण्याची बाटली (1 लीटर - थंड)',20,'Water Bottle/Water Bottle (1 Litre - Cold).png',1,3,1],
   [704,'water','Water Bottle (1 Litre - Normal)','पानी की बोतल (1 लीटर - नॉर्मल)','पाण्याची बाटली (1 लीटर - नॉर्मल)',20,'Water Bottle/Water Bottle (1 Litre - Normal).png',1,4,1],
+
+  // WELCOME DRINKS
+  [801,'welcome_drink','Tea','चाय','चहा',15,'ALL Images/Tea_result.webp',1,1,3],
+  [802,'welcome_drink','Lemon Tea','लेमन टी','लेमन टी',15,'ALL Images/Lemon Tea_result.webp',1,2,3],
+  [803,'welcome_drink','Coffee','कॉफी','कॉफी',25,'ALL Images/Coffee_result.webp',1,3,3],
+  [804,'welcome_drink','Milk','दूध','दूध',30,'ALL Images/Milk_result.webp',1,4,3],
+  [805,'welcome_drink','Tak ( Plain / Masala )','ताक (सादा / मसाला)','ताक (प्लेन / मसाला)',30,'ALL Images/Tak_result.webp',1,5,3],
+  [806,'welcome_drink','Lassi','लस्सी','लस्सी',40,'ALL Images/Lassi_result.webp',1,6,4],
+  [807,'welcome_drink','Fresh Lime Soda','फ्रेश लाइम सोडा','फ्रेश लाईम सोडा',35,'ALL Images/Fresh Laim Soda_result.webp',1,7,3],
+  [808,'welcome_drink','Mineral Water','मिनरल वाटर','मिनरल वॉटर',20,'ALL Images/Mineral Water_result.webp',1,8,1],
+  [809,'welcome_drink','Cold Drink (200 ml)','कोल्ड ड्रिंक (200 मिली)','कोल्ड ड्रिंक (200 मिली)',20,'ALL Images/ColdDrinks 200 ml_result.webp',1,9,1],
+  [810,'welcome_drink','Cold Drink (500 ml)','कोल्ड ड्रिंक (500 मिली)','कोल्ड ड्रिंक (500 मिली)',45,'ALL Images/ColdDrinks 500 ml_result.webp',1,10,1],
+  [811,'welcome_drink','Cold Drink (750 ml / 1 L)','कोल्ड ड्रिंक (750 मिली / 1 ली)','कोल्ड ड्रिंक (750 मिली / 1 ली)',50,'ALL Images/ColdDrinks 1 L_result.webp',1,11,1],
+  [812,'welcome_drink','Red Bull','रेड बुल','रेड बुल',130,'ALL Images/Red Bull_result.webp',1,12,1],
+  [813,'welcome_drink','Sting','स्टिंग','स्टिंग',20,'ALL Images/Sting_result.webp',1,13,1],
+  [814,'welcome_drink','Hell Energy Drink','हेल एनर्जी ड्रिंक','हेल एनर्जी ड्रिंक',60,'ALL Images/Hell_result.webp',1,14,1],
+
+  // BREAKFAST
+  [901,'breakfast','Pohe','पोहे','पोहे',50,'ALL Images/Pohe_result.webp',1,1,5],
+  [902,'breakfast','Upit','उपीट (उपमा)','उपीट (उपमा)',60,'ALL Images/Upit_result.webp',1,2,5],
+  [903,'breakfast','Sheera','शीरा (हलवा)','शिरा',50,'ALL Images/Sheera_result.webp',1,3,5],
+  [904,'breakfast','Wada Pav','वड़ा पाव','वडा पाव',15,'ALL Images/Wada Pav_result.webp',1,4,3],
+  [905,'breakfast','Misal Pav','मिसल पाव','मिसळ पाव',80,'ALL Images/Misal Pav_result.webp',1,5,8],
+  [906,'breakfast','Wada Sample','वड़ा सॅम्पल','वडा सॅम्पल',70,'ALL Images/Wada Sample_result.webp',1,6,6],
+  [907,'breakfast','Kadhi Wada','कढ़ी वड़ा','कढी वडा',20,'ALL Images/Kadhi Wada_result.webp',1,7,5],
+  [908,'breakfast','Kanda Bhaji','कांदा भजी (प्याज़ पकोड़ा)','कांदा भजी',50,'ALL Images/Kanda Bhaji_result.webp',1,8,8],
+  [909,'breakfast','Batata Bhaji','बटाटा भजी (आलू पकोड़ा)','बटाटा भजी',50,'ALL Images/Batata Bhaji_result.webp',1,9,8],
+  [910,'breakfast','Idli Sambar','इडली सांभर','इडली सांबार',80,'ALL Images/Idli Sambar_result.webp',1,10,5],
+  [911,'breakfast','Medu Wada','मेदू वड़ा','मेदू वडा',75,'ALL Images/Mendu Wada_result.webp',1,11,7],
+  [912,'breakfast','Plain Dosa','प्लेन डोसा','प्लेन डोसा',80,'ALL Images/Plain dosa_result.webp',1,12,8],
+  [913,'breakfast','Paper Plain Dosa','पेपर प्लेन डोसा','पेपर प्लेन डोसा',85,'ALL Images/Paper Plane Dosa_result.webp',1,13,8],
+  [914,'breakfast','Masala Dosa','मसाला डोसा','मसाला डोसा',80,'ALL Images/Masala Dosa_result.webp',1,14,9],
+  [915,'breakfast','Plain Uttappa','प्लेन उत्तपम','प्लेन उत्तप्पा',60,'ALL Images/Plain Uttappa_result.webp',1,15,8],
+  [916,'breakfast','Masala Uttappa','मसाला उत्तपम','मसाला उत्तप्पा',80,'ALL Images/Masala Uttappa_result.webp',1,16,9],
+  [917,'breakfast','Pav Bhaji','पाव भाजी','पाव भाजी',80,'ALL Images/Pav Bhaji_result.webp',1,17,10],
+  [918,'breakfast','Cheese Butter Pav Bhaji','चीज़ बटर पाव भाजी','चीज बटर पाव भाजी',150,'ALL Images/Cheese Butter Pav Bhaji_result.webp',1,18,10],
+  [919,'breakfast','Butter Pav','बटर पाव','बटर पाव',10,'ALL Images/Butter pav_result.webp',1,19,2],
+  [920,'breakfast','Extra Pav','एक्स्ट्रा पाव','एक्स्ट्रा पाव',5,'ALL Images/Extra Pav_result.webp',1,20,1],
+  [921,'breakfast','Matki Bhel','मटकी भेल','मटकी भेळ',50,'ALL Images/Matki Bhel_result.webp',1,21,5],
+  [922,'breakfast','Oli Bhel','गीली भेल (ओली भेल)','ओली भेळ',60,'ALL Images/Oli Bhel_result.webp',1,22,5],
+  [923,'breakfast','Sabudana Khichdi','साबूदाना खिचड़ी','साबुदाणा खिचडी',50,'ALL Images/Sabudana khichdi_result.webp',1,23,6],
+  [924,'breakfast','Sabudana Wada','साबूदाना वड़ा','साबुदाणा वडा',60,'ALL Images/Sabudana Wada_result.webp',1,24,7],
+  [925,'breakfast','Sabudana Kheer','साबूदाना खीर','साबुदाणा खीर',100,'ALL Images/Shabudana Kheer_result.webp',1,25,7],
+  [926,'breakfast','Finger Chips','फिंगर चिप्स (फ्रेंच फ्राइज)','फिंगर चिप्स',60,'ALL Images/Finger Chips_result.webp',1,26,6],
 ];
 
 /* ── 5) Insert with section + item_code ── */
